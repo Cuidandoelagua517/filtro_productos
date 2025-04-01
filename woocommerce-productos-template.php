@@ -106,15 +106,15 @@ if (!class_exists('WC_Productos_Template')) {
         /**
          * Registrar scripts y estilos
          */
-        public function register_scripts() {
-            // Solo cargar en la página de tienda y categorías de productos
-            if (is_shop() || is_product_category()) {
-                // CSS
-                wp_enqueue_style('wc-productos-template-styles', 
-                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-                    array(), 
-                    '1.0.0'
-                );
+  public function register_scripts() {
+    // Solo cargar en la página de tienda y categorías de productos
+    if (is_shop() || is_product_category() || is_product_tag() || has_shortcode(get_post()->post_content, 'productos_personalizados')) {
+        // CSS
+        wp_enqueue_style('wc-productos-template-styles', 
+            WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
+            array(), 
+            '1.0.1' // Incrementar versión para evitar caché
+        );
                 
                 // JavaScript con jQuery como dependencia
                 wp_enqueue_script('wc-productos-template-script', 
