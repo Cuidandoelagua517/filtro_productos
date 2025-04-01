@@ -2,7 +2,12 @@
 /**
  * Template para el archivo de productos (archive-product.php)
  */
+
+// Eliminar hooks por defecto de WooCommerce que podrían interferir
+remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
+remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
 ?>
+
 <div class="productos-container">
     <!-- Header -->
     <div class="productos-header">
@@ -15,10 +20,10 @@
         </div>
     </div>
     
-    <!-- Nueva estructura con filtros y productos al mismo nivel -->
+    <!-- Layout de dos columnas -->
     <div class="productos-layout">
-        <!-- Sidebar de filtros -->
-        <div class="productos-sidebar">
+        <!-- Sidebar de filtros (columna izquierda) -->
+        <aside class="productos-sidebar">
             <h3><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h3>
             
             <!-- Filtro de categorías -->
@@ -96,16 +101,16 @@
                     <input type="hidden" name="max_volume" value="5000" />
                 </div>
             </div>
-        </div>
+        </aside>
         
-        <!-- Contenido principal -->
-        <div class="productos-main">
+        <!-- Contenido principal (columna derecha) -->
+        <main class="productos-main">
             <!-- Breadcrumbs -->
             <div class="productos-breadcrumb">
                 <?php woocommerce_breadcrumb(); ?>
             </div>
             
-            <!-- Listado de productos -->
+            <!-- Listado de productos en formato grid -->
             <div class="productos-grid">
                 <?php
                 if (have_posts()) {
@@ -156,6 +161,6 @@
                     ?>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 </div>
