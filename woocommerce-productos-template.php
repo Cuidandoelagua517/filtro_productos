@@ -394,13 +394,17 @@ body {
 
 /* Layout principal - IMPORTANTE: Esto establece la estructura de dos columnas */
 .productos-layout {
-    display: flex;
+    display: flex !important; /* Forzar flex incluso si hay estilos conflictivos */
+    flex-direction: row !important; /* Asegurar que la dirección es horizontal */
     gap: 20px;
+    align-items: flex-start; /* Para que el sidebar no se estire */
 }
 
 /* Sidebar de filtros */
 .productos-sidebar {
     width: 250px;
+    flex: 0 0 250px; /* Fijar el ancho del sidebar */
+    max-width: 250px; /* Limitar el ancho máximo */
     flex-shrink: 0;
     background-color: #ffffff;
     border: 1px solid #dee2e6;
@@ -408,6 +412,8 @@ body {
     padding: 15px;
     margin-bottom: 20px;
     height: fit-content;
+    position: sticky; /* Opcionalmente hacer que el sidebar se quede fijo al hacer scroll */
+    top: 20px;
 }
 
 .productos-sidebar h3 {
@@ -460,6 +466,7 @@ body {
 .productos-main {
     flex: 1;
     min-width: 0; /* Importante para evitar que el flex sobrepase el ancho del contenedor */
+    width: calc(100% - 270px); /* Compensar por el ancho del sidebar + gap */
 }
 
 .productos-breadcrumb {
@@ -605,7 +612,7 @@ body {
 /* Responsive */
 @media (max-width: 768px) {
     .productos-layout {
-        flex-direction: column;
+        flex-direction: column !important;
     }
     
     .productos-sidebar {
@@ -629,6 +636,12 @@ body {
     .productos-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
+     .productos-sidebar, 
+    .productos-main {
+        width: 100%;
+        max-width: 100%;
+    }
+}
 }
 
 @media (max-width: 480px) {
