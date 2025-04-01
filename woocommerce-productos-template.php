@@ -143,32 +143,36 @@ public function register_scripts() {
         /**
          * Sobreescribir templates de WooCommerce
          */
-        public function override_woocommerce_templates($template, $template_name, $template_path) {
-            // Verificar si estamos buscando un template específico
-            $plugin_template_path = WC_PRODUCTOS_TEMPLATE_PATH . 'templates/';
-            
-            // Archivos de template a sobreescribir
-            $templates_to_override = array(
-                'archive-product.php',
-                'content-product.php',
-                'loop/loop-start.php',
-                'loop/loop-end.php',
-                'loop/pagination.php'
-            );
-            
-            // Verificar si es un template que queremos sobreescribir
-            if (in_array($template_name, $templates_to_override)) {
-                $custom_template = $plugin_template_path . $template_name;
-                
-                // Si el archivo existe en nuestro plugin, usarlo
-                if (file_exists($custom_template)) {
-                    return $custom_template;
-                }
-            }
-            
-            // Si no, devolver el template original
-            return $template;
+ public function override_woocommerce_templates($template, $template_name, $template_path) {
+    // Verificar si estamos buscando un template específico
+    $plugin_template_path = WC_PRODUCTOS_TEMPLATE_PATH . 'templates/';
+    
+    // Archivos de template a sobreescribir
+    $templates_to_override = array(
+        'archive-product.php',
+        'content-product.php',
+        'loop/loop-start.php',
+        'loop/loop-end.php',
+        'loop/pagination.php'
+    );
+    
+    // Agregar logging para depuración (opcional)
+    // error_log('Template solicitado: ' . $template_name);
+    
+    // Verificar si es un template que queremos sobreescribir
+    if (in_array($template_name, $templates_to_override)) {
+        $custom_template = $plugin_template_path . $template_name;
+        
+        // Si el archivo existe en nuestro plugin, usarlo
+        if (file_exists($custom_template)) {
+            // error_log('Usando template personalizado: ' . $custom_template);
+            return $custom_template;
         }
+    }
+    
+    // Si no, devolver el template original
+    return $template;
+}
 
         /**
          * Obtener categorías de productos
