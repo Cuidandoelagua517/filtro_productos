@@ -1,14 +1,20 @@
 <?php
 /**
- * Template para el archivo de productos (archive-product.php)
+ * Template para el archivo de productos (archive-product.php) reforzado
  */
 
 // Eliminar hooks por defecto de WooCommerce que podrían interferir
 remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
 remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
+remove_action('woocommerce_before_shop_loop', 'woocommerce_result_count', 20);
+remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
+
+// Asegurarse de que los estilos de WooCommerce no interfieran
+wp_dequeue_style('woocommerce-layout');
+wp_dequeue_style('woocommerce-smallscreen');
 ?>
 
-<div class="productos-container">
+<div class="productos-container wc-productos-template">
     <!-- Header -->
     <div class="productos-header">
         <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
@@ -56,7 +62,7 @@ remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrap
                 <h4><?php esc_html_e('Grado', 'wc-productos-template'); ?></h4>
                 <?php
                 $grado_terms = get_terms(array(
-                    'taxonomy' => 'pa_grado', // Asegúrate de que este atributo existe
+                    'taxonomy' => 'pa_grado',
                     'hide_empty' => true,
                 ));
                 
@@ -111,7 +117,7 @@ remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrap
             </div>
             
             <!-- Listado de productos en formato grid -->
-            <div class="productos-grid">
+            <div class="productos-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
                 <?php
                 if (have_posts()) {
                     while (have_posts()) {
