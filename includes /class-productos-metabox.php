@@ -1,6 +1,8 @@
 <?php
 /**
  * Añade un campo metabox para el volumen y opciones de peligrosidad
+ * 
+ * Esta clase es compatible con HPOS (High-Performance Order Storage)
  */
 if (!class_exists('WC_Productos_Template_Metabox')) {
 
@@ -131,4 +133,12 @@ if (!class_exists('WC_Productos_Template_Metabox')) {
     
     // Inicializar la clase
     new WC_Productos_Template_Metabox();
+}
+
+/**
+ * Función para incluir este archivo desde el plugin principal
+ */
+function wc_productos_template_include_metabox() {
+    // Esta función será llamada desde el archivo principal del plugin
+    require_once plugin_dir_path(__FILE__) . 'includes/class-productos-metabox.php';
 }
