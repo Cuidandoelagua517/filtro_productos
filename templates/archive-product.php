@@ -16,7 +16,7 @@
     </div>
     
     <!-- Nueva estructura con filtros y productos al mismo nivel -->
-    <div class="productos-content">
+    <div class="productos-layout">
         <!-- Sidebar de filtros -->
         <div class="productos-sidebar">
             <h3><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h3>
