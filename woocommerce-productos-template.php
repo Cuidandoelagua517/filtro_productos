@@ -326,43 +326,41 @@ if (!class_exists('WC_Productos_Template')) {
         }
     }
 
-  /**
- * CSS por defecto
- */
-function wc_productos_template_get_default_css() {
+ function wc_productos_template_get_default_css() {
     return '
-            /* Estilos para el template personalizado de productos */
-/* Reseteo y base */
+   /**
+
+/* ===== 1. RESETEO Y BASE ===== */
 * {
     box-sizing: border-box;
-}
-
-body {
     margin: 0;
     padding: 0;
 }
 
-/* Contenedor principal */
+/* ===== 2. CONTENEDOR PRINCIPAL ===== */
 .productos-container {
     max-width: 1200px;
     margin: 0 auto;
-    font-family: Arial, sans-serif;
+    padding: 0 15px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: #333;
 }
 
-/* Header con título y buscador */
+/* ===== 3. HEADER CON TÍTULO Y BUSCADOR ===== */
 .productos-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #dee2e6;
-    margin-bottom: 20px;
+    padding: 20px 0;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e2e2e2;
 }
 
 .productos-header h1 {
     font-size: 24px;
+    font-weight: 600;
     margin: 0;
+    color: #333;
 }
 
 /* Barra de búsqueda */
@@ -373,10 +371,17 @@ body {
 
 .productos-search input {
     width: 100%;
-    padding: 8px 35px 8px 12px;
-    border: 1px solid #dee2e6;
+    padding: 10px 40px 10px 15px;
+    border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.productos-search input:focus {
+    outline: none;
+    border-color: #0056b3;
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
 .productos-search button {
@@ -384,55 +389,61 @@ body {
     right: 0;
     top: 0;
     height: 100%;
-    width: 35px;
+    width: 40px;
     background-color: #0056b3;
     color: white;
     border: none;
     border-radius: 0 4px 4px 0;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-/* Layout principal - IMPORTANTE: Esto establece la estructura de dos columnas */
+.productos-search button:hover {
+    background-color: #004494;
+}
+
+/* ===== 4. LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
 .productos-layout {
-    display: flex !important; /* Forzar flex incluso si hay estilos conflictivos */
-    flex-direction: row !important; /* Asegurar que la dirección es horizontal */
-    gap: 20px;
-    align-items: flex-start; /* Para que el sidebar no se estire */
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
 }
 
-/* Sidebar de filtros */
+/* ===== 5. SIDEBAR DE FILTROS ===== */
 .productos-sidebar {
+    flex: 0 0 250px;
     width: 250px;
-    flex: 0 0 250px; /* Fijar el ancho del sidebar */
-    max-width: 250px; /* Limitar el ancho máximo */
-    flex-shrink: 0;
-    background-color: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 20px;
-    height: fit-content;
-    position: sticky; /* Opcionalmente hacer que el sidebar se quede fijo al hacer scroll */
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 20px;
+    border: 1px solid #e2e2e2;
+    position: sticky;
     top: 20px;
 }
 
 .productos-sidebar h3 {
-    font-size: 16px;
-    margin-top: 0;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #dee2e6;
+    font-size: 18px;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e2e2;
+    color: #333;
+    font-weight: 600;
 }
 
 /* Grupos de filtros */
 .filtro-grupo {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.filtro-grupo:last-child {
+    margin-bottom: 0;
 }
 
 .filtro-grupo h4 {
-    font-size: 14px;
-    margin-top: 0;
-    margin-bottom: 10px;
+    font-size: 15px;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #555;
 }
 
 .filtro-option {
@@ -443,36 +454,72 @@ body {
 
 .filtro-option input[type="checkbox"] {
     margin-right: 10px;
+    cursor: pointer;
+}
+
+.filtro-option label {
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
 }
 
 /* Slider de volumen */
 .volumen-slider {
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .volumen-range {
-    margin-bottom: 10px;
-    height: 6px;
+    margin-bottom: 15px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.ui-slider-range {
+    background-color: #0056b3;
+}
+
+.ui-slider-handle {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    background-color: #0056b3 !important;
+    border: 2px solid #fff !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+    top: -0.5em !important;
+}
+
+.ui-slider-handle:focus {
+    outline: none;
 }
 
 .volumen-values {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
-    color: #666;
+    font-size: 13px;
+    color: #777;
 }
 
-/* Área principal de productos */
+/* ===== 6. ÁREA PRINCIPAL DE PRODUCTOS ===== */
 .productos-main {
     flex: 1;
-    min-width: 0; /* Importante para evitar que el flex sobrepase el ancho del contenedor */
-    width: calc(100% - 270px); /* Compensar por el ancho del sidebar + gap */
+    min-width: 0; /* Importante para flex */
 }
 
 .productos-breadcrumb {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-size: 13px;
-    color: #666;
+    color: #777;
+}
+
+.productos-breadcrumb a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.productos-breadcrumb a:hover {
+    text-decoration: underline;
 }
 
 /* Cuadrícula de productos */
@@ -480,27 +527,29 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-/* Tarjeta de producto */
+/* ===== 7. TARJETA DE PRODUCTO ===== */
 .producto-card {
-    background-color: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 6px;
+    padding: 20px;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .producto-card:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
 }
 
 .producto-imagen {
-    height: 160px;
+    height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -513,16 +562,24 @@ body {
     max-height: 100%;
     max-width: 100%;
     object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.producto-card:hover .producto-imagen img {
+    transform: scale(1.05);
 }
 
 .producto-badge {
     position: absolute;
     top: 10px;
     right: 10px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .badge-stock {
@@ -536,23 +593,36 @@ body {
 }
 
 .producto-titulo {
-    font-size: 15px;
-    font-weight: bold;
-    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: #333;
+    line-height: 1.4;
 }
 
 .producto-detalles {
     font-size: 13px;
-    color: #666;
-    margin: 0 0 10px 0;
+    color: #777;
+    margin: 0 0 15px 0;
+    line-height: 1.4;
 }
 
 .producto-precio {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 700;
     color: #0056b3;
-    margin: 0 0 15px 0;
-    margin-top: auto; /* Empuja el precio hacia abajo */
+    margin: auto 0 15px 0;
+}
+
+.producto-precio del {
+    font-size: 14px;
+    color: #999;
+    font-weight: normal;
+    margin-right: 5px;
+}
+
+.producto-precio ins {
+    text-decoration: none;
 }
 
 .producto-boton {
@@ -560,27 +630,32 @@ body {
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 8px 0;
+    padding: 10px;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    width: 100%;
+    text-align: center;
 }
 
 .producto-boton:hover {
-    background-color: #003d82;
+    background-color: #004494;
 }
 
-/* Paginación */
+/* ===== 8. PAGINACIÓN ===== */
 .productos-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e2e2;
 }
 
 .pagination-info {
-    font-size: 13px;
-    color: #666;
+    font-size: 14px;
+    color: #777;
 }
 
 .pagination-links {
@@ -588,8 +663,8 @@ body {
 }
 
 .page-number {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -597,29 +672,33 @@ body {
     border-radius: 4px;
     font-size: 14px;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .page-number.active {
     background-color: #0056b3;
     color: white;
+    font-weight: 600;
 }
 
 .page-number:not(.active) {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
+    color: #555;
 }
 
-/* Responsive */
+.page-number:not(.active):hover {
+    background-color: #e9ecef;
+}
+
+/* ===== 9. RESPONSIVE ===== */
+@media (max-width: 991px) {
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
 @media (max-width: 768px) {
-    .productos-layout {
-        flex-direction: column !important;
-    }
-    
-    .productos-sidebar {
-        width: 100%;
-        margin-bottom: 20px;
-    }
-    
     .productos-header {
         flex-direction: column;
         align-items: flex-start;
@@ -631,34 +710,115 @@ body {
     
     .productos-search {
         width: 100%;
+        max-width: 100%;
+    }
+    
+    .productos-layout {
+        flex-direction: column;
+    }
+    
+    .productos-sidebar {
+        width: 100%;
+        flex: 0 0 auto;
+        margin-bottom: 20px;
+        position: static;
+        max-width: 100%;
     }
     
     .productos-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
-     .productos-sidebar, 
-    .productos-main {
-        width: 100%;
-        max-width: 100%;
+    
+    .productos-pagination {
+        flex-direction: column;
+        gap: 15px;
     }
-}
 }
 
 @media (max-width: 480px) {
     .productos-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
     }
     
     .producto-card {
-        padding: 10px;
+        padding: 15px;
     }
     
     .producto-imagen {
-        height: 120px;
+        height: 140px;
+    }
+    
+    .producto-precio {
+        font-size: 16px;
+    }
+    
+    .producto-titulo {
+        font-size: 14px;
     }
 }
-';
+
+/* ===== 10. ANIMACIONES Y EFECTOS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.productos-grid {
+    animation: fadeIn 0.5s ease;
+}
+
+/* Efecto de carga */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+
+/* ===== 11. MENSAJES DE NOTIFICACIÓN ===== */
+.wc-message-success {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #e6f4ea;
+    color: #137333;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    animation: fadeIn 0.3s, fadeOut 0.3s 2.7s forwards;
+    font-size: 14px;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+}
+
+/* Mejoras para accesibilidad */
+.filtro-option input[type="checkbox"]:focus + label {
+    text-decoration: underline;
+}
+
+.productos-search input:focus,
+.producto-boton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.25);
+}
+
+/* Personalización de la barra de jQuery UI */
+.ui-slider-horizontal .ui-slider-handle {
+    margin-left: -8px;
+}
+
+/* Sombra para resaltar el sidebar cuando hay scroll */
+@media (min-width: 769px) {
+    .productos-container.scrolled .productos-sidebar {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+}
+    ';
 }
 
 /**
