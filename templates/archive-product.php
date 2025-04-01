@@ -15,6 +15,7 @@
         </div>
     </div>
     
+    <!-- Nueva estructura con filtros y productos al mismo nivel -->
     <div class="productos-content">
         <!-- Sidebar de filtros -->
         <div class="productos-sidebar">
@@ -105,7 +106,7 @@
             </div>
             
             <!-- Listado de productos -->
-            <div class="productos-list">
+            <div class="productos-grid">
                 <?php
                 if (have_posts()) {
                     while (have_posts()) {
