@@ -602,7 +602,13 @@ if (!class_exists('WC_Productos_Template')) {
             }
         ';
     }
-
+/**
+ * Función para incluir este archivo desde el plugin principal
+ */
+function wc_productos_template_include_metabox() {
+    // Esta función será llamada desde el archivo principal del plugin
+    require_once plugin_dir_path(__FILE__) . 'includes/class-productos-metabox.php';
+}
     /**
      * JavaScript por defecto
      */
