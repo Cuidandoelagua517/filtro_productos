@@ -15,10 +15,10 @@
         </div>
     </div>
     
-    <!-- Nueva estructura con filtros y productos al mismo nivel -->
+    <!-- Layout de dos columnas -->
     <div class="productos-layout">
-        <!-- Sidebar de filtros -->
-        <div class="productos-sidebar">
+        <!-- Sidebar de filtros (columna izquierda) -->
+        <aside class="productos-sidebar">
             <h3><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h3>
             
             <!-- Filtro de categorías -->
@@ -97,10 +97,10 @@
                     <input type="hidden" name="max_volume" value="5000" />
                 </div>
             </div>
-        </div>
+        </aside>
         
-        <!-- Contenido principal -->
-        <div class="productos-main">
+        <!-- Contenido principal (columna derecha) -->
+        <main class="productos-main">
             <!-- Breadcrumbs -->
             <div class="productos-breadcrumb">
                 <?php woocommerce_breadcrumb(); ?>
@@ -129,44 +129,7 @@
                 if ($products_query->have_posts()) {
                     while ($products_query->have_posts()) {
                         $products_query->the_post();
-                        global $product;
-                        ?>
-                        <div class="producto-card">
-                            <div class="producto-imagen">
-                                <?php if ($product->is_in_stock()) : ?>
-                                    <span class="producto-badge badge-stock"><?php esc_html_e('En stock', 'wc-productos-template'); ?></span>
-                                <?php endif; ?>
-                                
-                                <?php if (has_post_thumbnail()) : ?>
-                                    <?php the_post_thumbnail('woocommerce_thumbnail'); ?>
-                                <?php else : ?>
-                                    <?php echo wc_placeholder_img(); ?>
-                                <?php endif; ?>
-                            </div>
-                            
-                            <h3 class="producto-titulo"><?php the_title(); ?></h3>
-                            
-                            <p class="producto-detalles">
-                                <?php
-                                $volumen = $product->get_attribute('pa_volumen') ?: get_post_meta($product->get_id(), '_volumen_ml', true);
-                                if ($volumen) {
-                                    echo esc_html($volumen) . ' ml';
-                                }
-                                
-                                $grado = $product->get_attribute('pa_grado');
-                                if ($grado) {
-                                    echo ' - ' . esc_html__('Grado', 'wc-productos-template') . ' ' . esc_html($grado);
-                                }
-                                ?>
-                            </p>
-                            
-                            <div class="producto-precio"><?php echo $product->get_price_html(); ?></div>
-                            
-                            <button class="producto-boton" data-product-id="<?php echo esc_attr($product->get_id()); ?>">
-                                <?php esc_html_e('Agregar al carrito', 'wc-productos-template'); ?>
-                            </button>
-                        </div>
-                        <?php
+                        wc_get_template_part('content', 'product');
                     }
                     
                     wp_reset_postdata();
@@ -207,6 +170,6 @@
                     </div>
                 </div>
             <?php endif; ?>
-        </div>
+        </main>
     </div>
 </div>
