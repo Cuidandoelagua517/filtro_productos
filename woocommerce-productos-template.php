@@ -10,6 +10,19 @@
  * Domain Path: /languages
  * WC requires at least: 5.0.0
  * WC tested up to: 8.0.0
+ * Requires PHP: 7.2
+ * Requires at least: 5.6
+ *
+ * @package WC_Productos_Template
+ *
+ * Woo: 12345:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+ *
+ * This plugin is compatible with WooCommerce HPOS (Custom Order Tables)
+ *
+ * WC tested up to: 8.0
+ * Woo: 12345:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+ * WC requires at least: 5.0
+ * WC requires PHP: 7.2
  */
 
 // Si este archivo es llamado directamente, abortar.
@@ -31,6 +44,9 @@ if (!class_exists('WC_Productos_Template')) {
                 define('WC_PRODUCTOS_TEMPLATE_URL', plugin_dir_url(__FILE__));
                 define('WC_PRODUCTOS_TEMPLATE_PATH', plugin_dir_path(__FILE__));
                 
+                // Declarar compatibilidad con HPOS
+                add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
+                
                 // Inicializar el plugin
                 add_action('init', array($this, 'init'));
                 
@@ -46,6 +62,15 @@ if (!class_exists('WC_Productos_Template')) {
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
+            }
+        }
+        
+        /**
+         * Declarar compatibilidad con HPOS (High-Performance Order Storage)
+         */
+        public function declare_hpos_compatibility() {
+            if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+                \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
             }
         }
 
@@ -602,13 +627,7 @@ if (!class_exists('WC_Productos_Template')) {
             }
         ';
     }
-/**
- * Función para incluir este archivo desde el plugin principal
- */
-function wc_productos_template_include_metabox() {
-    // Esta función será llamada desde el archivo principal del plugin
-    require_once plugin_dir_path(__FILE__) . 'includes/class-productos-metabox.php';
-}
+
     /**
      * JavaScript por defecto
      */
