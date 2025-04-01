@@ -15,6 +15,7 @@
         </div>
     </div>
     
+    <!-- Nueva estructura con filtros y productos al mismo nivel -->
     <div class="productos-content">
         <!-- Sidebar de filtros -->
         <div class="productos-sidebar">
@@ -105,8 +106,8 @@
                 <?php woocommerce_breadcrumb(); ?>
             </div>
             
-            <!-- Listado de productos -->
-            <div class="productos-list">
+            <!-- Listado de productos en formato grid -->
+            <div class="productos-grid">
                 <?php
                 $args = array(
                     'post_type' => 'product',
