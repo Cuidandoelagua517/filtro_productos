@@ -333,11 +333,18 @@ if (!class_exists('WC_Productos_Template')) {
         return '
             /* Estilos para el template personalizado de productos */
             .productos-container {
-                display: flex;
-                flex-wrap: wrap;
-                font-family: Arial, sans-serif;
-            }
-            
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.productos-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 20px;
+}            
             /* Header */
             .productos-header {
                 width: 100%;
@@ -387,14 +394,17 @@ if (!class_exists('WC_Productos_Template')) {
             }
             
             /* Filtros laterales */
-            .productos-sidebar {
-                width: 200px;
-                padding: 20px;
-                background-color: #ffffff;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                margin-right: 20px;
-            }
+           .productos-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    align-self: flex-start;
+    position: sticky;
+    top: 20px;
+}
             
             .productos-sidebar h3 {
                 font-size: 16px;
@@ -456,9 +466,18 @@ if (!class_exists('WC_Productos_Template')) {
             
             /* Contenedor principal */
             .productos-main {
-                flex: 1;
-            }
-            
+    flex: 1;
+    min-width: 0; /* Evita que el contenido se desborde */
+}
+      .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 20px;
+}      
             /* Breadcrumbs */
             .productos-breadcrumb {
                 margin-bottom: 10px;
@@ -479,29 +498,37 @@ if (!class_exists('WC_Productos_Template')) {
             
             /* Tarjeta de producto */
             .producto-card {
-                width: calc(50% - 10px);
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 20px;
-                position: relative;
-                transition: all 0.3s ease;
-            }
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
             
-            .producto-card:hover {
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            }
+          .producto-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
             
-            .producto-imagen {
-                height: 140px;
-                background-color: #f8f9fa;
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 20px;
-                position: relative;
-            }
-            
+          .producto-imagen {
+    height: 180px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+}
+.producto-imagen img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}            
             .producto-badge {
                 position: absolute;
                 top: -10px;
@@ -601,21 +628,28 @@ if (!class_exists('WC_Productos_Template')) {
             
             /* Responsive */
             @media (max-width: 992px) {
-                .productos-container {
-                    flex-direction: column;
-                }
-                
-                .productos-sidebar {
-                    width: 100%;
-                    margin-right: 0;
-                    margin-bottom: 20px;
-                }
-                
-                .productos-search {
-                    width: 300px;
-                }
-            }
-            
+        .productos-content {
+        flex-direction: column;
+    }
+    
+    .productos-sidebar {
+        width: 100%;
+        position: static;
+    }
+    
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+@media (max-width: 576px) {
+    .productos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .productos-search {
+        width: 100%;
+    }
+}            
             @media (max-width: 768px) {
                 .producto-card {
                     width: 100%;
