@@ -106,35 +106,39 @@ if (!class_exists('WC_Productos_Template')) {
         /**
          * Registrar scripts y estilos
          */
-  public function register_scripts() {
-    // Solo cargar en la página de tienda y categorías de productos
-    if (is_shop() || is_product_category() || is_product_tag() || has_shortcode(get_post()->post_content, 'productos_personalizados')) {
-        // CSS
+public function register_scripts() {
+    // Modificar la condición para asegurar que los estilos se carguen
+    if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
+        has_shortcode(get_post()->post_content ?? '', 'productos_personalizados') || 
+        is_woocommerce()) {
+        
+        // CSS - Aumentar la prioridad para evitar sobreescrituras
         wp_enqueue_style('wc-productos-template-styles', 
             WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
             array(), 
-            '1.0.1' // Incrementar versión para evitar caché
+            '1.0.2', // Incrementar versión para forzar recarga
+            'all'    // Asegurar que se cargue en todos los medios
         );
                 
-                // JavaScript con jQuery como dependencia
-                wp_enqueue_script('wc-productos-template-script', 
-                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
-                    array('jquery'), 
-                    '1.0.0', 
-                    true
-                );
+        // JavaScript con jQuery como dependencia
+        wp_enqueue_script('wc-productos-template-script', 
+            WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
+            array('jquery'), 
+            '1.0.1', 
+            true
+        );
                 
-                // Localizar script para AJAX
-                wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
-                    'ajaxurl' => admin_url('admin-ajax.php'),
-                    'nonce' => wp_create_nonce('productos_filter_nonce')
-                ));
+        // Localizar script para AJAX
+        wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('productos_filter_nonce')
+        ));
                 
-                // Agregar soporte para la barra de rango
-                wp_enqueue_script('jquery-ui-slider');
-                wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
-            }
-        }
+        // Agregar soporte para la barra de rango
+        wp_enqueue_script('jquery-ui-slider');
+        wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
+    }
+}
 
         /**
          * Sobreescribir templates de WooCommerce
