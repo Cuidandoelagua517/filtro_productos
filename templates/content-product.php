@@ -1,6 +1,7 @@
 <?php
 /**
  * Template para cada producto individual
+ * Versión modificada para incluir namespace y evitar conflictos
  * 
  * @package WC_Productos_Template
  */
@@ -11,8 +12,14 @@ global $product;
 if (!$product || !($product instanceof WC_Product)) {
     return;
 }
+
+// Añadir clases al producto
+$classes = array('producto-card');
+if (!in_array('wc-productos-template', $classes)) {
+    $classes[] = 'wc-productos-template';
+}
 ?>
-<li <?php wc_product_class('producto-card', $product); ?>>
+<li <?php wc_product_class($classes, $product); ?>>
     <div class="producto-interior">
         <?php
         // Imagen del producto con enlace
@@ -100,9 +107,17 @@ if (!$product || !($product instanceof WC_Product)) {
         // Botón de añadir al carrito
         echo '<div class="producto-accion">';
         
-        woocommerce_template_loop_add_to_cart(array(
-            'class' => 'producto-boton'
-        ));
+        // Utilizar el botón estándar de WooCommerce pero con nuestra clase
+        // Esto asegura que WooCommerce pueda añadir sus propios handlers
+        echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
+               class="producto-boton ' . ($product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button' : '') . '"
+               data-product_id="' . esc_attr($product->get_id()) . '"
+               data-product_sku="' . esc_attr($product->get_sku()) . '"
+               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '">';
+        echo esc_html($product->is_purchasable() && $product->is_in_stock() ? 
+              __('Añadir al carrito', 'wc-productos-template') : 
+              __('Leer más', 'wc-productos-template'));
+        echo '</a>';
         
         echo '</div>'; // Fin acciones
         
