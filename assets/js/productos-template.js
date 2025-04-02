@@ -4,6 +4,7 @@ jQuery(document).ready(function($) {
         return;
     }
     
+    
     // Lazy loading de imágenes para mejorar rendimiento
     function lazyLoadProductImages() {
         $('.wc-productos-template .producto-imagen img').each(function() {
@@ -23,30 +24,7 @@ jQuery(document).ready(function($) {
     
     // Llamar a lazy load al inicio
     lazyLoadProductImages();
-  // Modifica esta parte en assets/js/productos-template.js
-$(document).off('click', '.page-number, .woocommerce-pagination a').on('click', '.page-number, .woocommerce-pagination a', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
     
-    // Obtener número de página
-    var page = $(this).data('page') || $(this).text() || 1;
-    // Si es un enlace con texto "2", etc.
-    if (isNaN(page) && $(this).attr('href')) {
-        // Extraer número de página de la URL
-        var matches = $(this).attr('href').match(/page\/(\d+)/);
-        if (matches) {
-            page = matches[1];
-        } else {
-            matches = $(this).attr('href').match(/paged=(\d+)/);
-            if (matches) {
-                page = matches[1];
-            }
-        }
-    }
-    
-    filterProducts(parseInt(page));
-    return false;
-});  
     // Llamar nuevamente después de filtrar productos
     $(document).on('productos_filtered', function() {
         lazyLoadProductImages();
@@ -293,21 +271,42 @@ $(document).off('click', '.page-number, .woocommerce-pagination a').on('click', 
         e.preventDefault();
         filterProducts();
     });
+$(document).off('click', '.page-number, .woocommerce-pagination a').on('click', '.page-number, .woocommerce-pagination a', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     
-    // Delegación de eventos para paginación con prevención de doble binding
-    $(document).off('click', '.wc-productos-template .page-number').on('click', '.wc-productos-template .page-number', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // No hacer nada si ya está en la página activa
-        if ($(this).hasClass('active')) {
-            return false;
-        }
-        
-        var page = $(this).data('page') || 1;
-        filterProducts(page);
+    // No hacer nada si ya está en la página activa
+    if ($(this).hasClass('active')) {
         return false;
-    });
+    }
+    
+    // Obtener número de página
+    var page = $(this).data('page') || 1;
+    
+    // Si es un enlace con texto "2", etc.
+    if (isNaN(page) && $(this).attr('href')) {
+        // Extraer número de página de la URL
+        var matches = $(this).attr('href').match(/page\/(\d+)/);
+        if (matches) {
+            page = matches[1];
+        } else {
+            matches = $(this).attr('href').match(/paged=(\d+)/);
+            if (matches) {
+                page = matches[1];
+            }
+        }
+    }
+    
+    // Convertir a entero
+    page = parseInt(page);
+    
+    // Verificar que la página ha cambiado antes de hacer la petición
+    if (page && page !== parseInt(WCProductosParams.current_page)) {
+        filterProducts(page);
+    }
+    
+    return false;
+});
     
     // Delegación de eventos para botón Agregar al carrito (compatibilidad)
     $(document).on('click', '.wc-productos-template .producto-boton', function(e) {
