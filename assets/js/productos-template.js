@@ -154,7 +154,7 @@ jQuery(document).ready(function($) {
     // Ejecutar cuando cambie el tamaño de la ventana
     $(window).on('resize', forceGridLayout);
 });
-// Script para eliminar cualquier elemento que aparezca en la cuarta fila
+// Reemplazar la función limpiarCuartaFila en assets/js/productos-template.js
 jQuery(document).ready(function($) {
     function limpiarCuartaFila() {
         // Esperar a que el DOM esté completamente cargado
@@ -182,13 +182,32 @@ jQuery(document).ready(function($) {
             // Ocultar todos los productos después del número máximo
             $grid.find('li.product:nth-child(n+' + (maxProductos + 1) + ')').hide();
             
-            // Eliminar cualquier div.producto-interior que esté fuera de un li.product
+            // IMPORTANTE: Eliminar cualquier div.producto-interior huérfano
+            // Buscar directamente en el contenedor de productos
             $grid.children('div.producto-interior').remove();
             
-            // Si por alguna razón hay una cuarta fila visible, ocultarla
-            var alturaFila = $grid.find('li.product:first-child').outerHeight(true);
-            $grid.css('max-height', (alturaFila * 3 + 40) + 'px');
-            $grid.css('overflow', 'hidden');
+            // También verificar después de cada actualización de AJAX
+            $(document).ajaxComplete(function() {
+                $grid.children('div.producto-interior').remove();
+            });
+            
+            // Agregar una clase específica al contenedor para limitar la altura
+            $grid.addClass('rows-limited');
+            
+            // Usar grid-template-rows para limitar filas
+            $grid.css({
+                'grid-template-rows': 'repeat(3, auto)',
+                'overflow': 'hidden',
+                'max-height': 'none', // Dejar que grid-template-rows controle la altura
+                'display': 'grid',
+                'grid-template-columns': 'repeat(' + productosPorFila + ', 1fr)'
+            });
+            
+            // Eliminar específicamente elementos huérfanos
+            $('body').find('> div.producto-interior').remove();
+            $('.entry-content').find('> div.producto-interior').remove();
+            $('.page-content').find('> div.producto-interior').remove();
+            $('article').find('> div.producto-interior').remove();
         }, 100);
     }
     
@@ -203,4 +222,7 @@ jQuery(document).ready(function($) {
     
     // Ejecutar cuando cambie el tamaño de la ventana
     $(window).on('resize', limpiarCuartaFila);
+    
+    // Ejecutar periódicamente para prevenir elementos añadidos dinámicamente
+    setInterval(limpiarCuartaFila, 2000);
 });
