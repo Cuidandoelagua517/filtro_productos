@@ -113,9 +113,12 @@ public function register_scripts() {
         wp_enqueue_style(
             'wc-productos-template-styles', 
             WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-            array('woocommerce-general'), // Depender de los estilos de WooCommerce
-            WC_PRODUCTOS_TEMPLATE_VERSION
+            array(), // Quitar dependencia de WooCommerce para control total
+            WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time() // Agregar timestamp para forzar recarga
         );
+        
+        // Establecer alta prioridad para nuestros estilos
+        wp_style_add_data('wc-productos-template-styles', 'priority', 100);
         
         // Agregar soporte para la barra de rango
         wp_enqueue_script('jquery-ui-slider');
@@ -131,7 +134,7 @@ public function register_scripts() {
             'wc-productos-template-script', 
             WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
             array('jquery', 'jquery-ui-slider'), 
-            WC_PRODUCTOS_TEMPLATE_VERSION, 
+            WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(), // Agregar timestamp para forzar recarga
             true
         );
         
@@ -151,6 +154,31 @@ public function register_scripts() {
             $classes[] = 'wc-productos-template';
             return $classes;
         });
+        
+        // Añadir estilos inline para corregir problemas específicos
+        $inline_css = "
+            .woocommerce ul.products li.product {
+                background-color: #fff !important;
+                border: 1px solid #e2e2e2 !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+                transition: all 0.3s ease !important;
+                margin-bottom: 20px !important;
+            }
+            .woocommerce ul.products li.product:hover {
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+                transform: translateY(-3px) !important;
+            }
+            .woocommerce ul.products li.product a img {
+                margin: 0 !important;
+            }
+            .woocommerce ul.products {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+                gap: 20px !important;
+            }
+        ";
+        wp_add_inline_style('wc-productos-template-styles', $inline_css);
     }
 }
 
