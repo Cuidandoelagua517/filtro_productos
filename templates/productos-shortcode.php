@@ -1,6 +1,8 @@
 <?php
 /**
- * Template para productos-shortcode.php
+ * Template para mostrar productos mediante shortcode
+ * 
+ * @package WC_Productos_Template
  */
 ?>
 <div class="productos-container">
@@ -10,8 +12,10 @@
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
-            <input type="text" placeholder="Buscar por nombre, referencia o características..." />
-            <button><i class="fas fa-search"></i></button>
+            <input type="text" placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" />
+            <button type="button" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
+                <i class="fas fa-search" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
     
@@ -19,11 +23,11 @@
     <div class="productos-layout">
         <!-- Sidebar de filtros (columna izquierda) -->
         <aside class="productos-sidebar">
-            <h3><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h3>
+            <h2><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h2>
             
             <!-- Filtro de categorías -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h3>
                 <?php
                 $product_categories = get_terms(array(
                     'taxonomy' => 'product_cat',
@@ -36,7 +40,7 @@
                         <div class="filtro-option">
                             <input type="checkbox" id="cat-<?php echo esc_attr($category->slug); ?>" 
                                 class="filtro-category" value="<?php echo esc_attr($category->slug); ?>" 
-                                <?php checked($atts['category'] === $category->slug, true); ?> />
+                                <?php if (isset($atts['category']) && $atts['category'] === $category->slug) echo 'checked'; ?> />
                             <label for="cat-<?php echo esc_attr($category->slug); ?>">
                                 <?php echo esc_html($category->name); ?>
                             </label>
@@ -49,7 +53,7 @@
             
             <!-- Filtro de grado -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Grado', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Grado', 'wc-productos-template'); ?></h3>
                 <?php
                 $grado_terms = get_terms(array(
                     'taxonomy' => 'pa_grado',
@@ -86,7 +90,7 @@
             
             <!-- Filtro de volumen -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Volumen', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Volumen', 'wc-productos-template'); ?></h3>
                 <div class="volumen-slider">
                     <div class="volumen-range"></div>
                     <div class="volumen-values">
@@ -134,7 +138,7 @@
                     
                     wp_reset_postdata();
                 } else {
-                    echo '<p>' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
+                    echo '<p class="productos-no-results">' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
                 }
                 ?>
             </div>
@@ -157,14 +161,15 @@
                         for ($i = 1; $i <= min(4, $products_query->max_num_pages); $i++) {
                             $class = $i === 1 ? 'active' : '';
                             printf(
-                                '<div class="page-number %1$s" data-page="%2$d">%2$d</div>',
+                                '<button class="page-number %1$s" data-page="%2$d">%2$d</button>',
                                 esc_attr($class),
                                 esc_attr($i)
                             );
                         }
                         
                         if ($products_query->max_num_pages > 4) {
-                            echo '<div class="page-number" data-page="2">→</div>';
+                            echo '<button class="page-number page-next" data-page="2" aria-label="' . 
+                                 esc_attr__('Siguiente página', 'wc-productos-template') . '">→</button>';
                         }
                         ?>
                     </div>
