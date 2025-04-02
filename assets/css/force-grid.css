@@ -60,7 +60,67 @@ html body .productos-grid li.product,
     display: flex !important;
     flex-direction: column !important;
 }
+/**
+ * Solución CSS para limitar la cuadrícula a 3 filas exactas
+ * Este código debe agregarse al final del archivo force-grid.css
+ */
 
+/* Limitar la cuadrícula a 3 filas usando grid-template-rows */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+.wc-productos-template ul.products,
+.productos-grid {
+    grid-template-rows: repeat(3, auto) !important;
+    max-height: calc(3 * (220px + 180px + 40px)) !important; /* Altura estimada de 3 filas */
+    overflow: hidden !important;
+}
+
+/* Asegurar que todos los productos en las 3 primeras filas sean visibles */
+body ul.products li.product:nth-child(-n+12),
+body.woocommerce ul.products li.product:nth-child(-n+12),
+body.woocommerce-page ul.products li.product:nth-child(-n+12),
+body .woocommerce ul.products li.product:nth-child(-n+12),
+.wc-productos-template ul.products li.product:nth-child(-n+12),
+.productos-grid li.product:nth-child(-n+12) {
+    display: flex !important;
+}
+
+/* Ocultar cualquier producto después del número 12 (asumiendo 4 columnas × 3 filas) */
+body ul.products li.product:nth-child(n+13),
+body.woocommerce ul.products li.product:nth-child(n+13),
+body.woocommerce-page ul.products li.product:nth-child(n+13),
+body .woocommerce ul.products li.product:nth-child(n+13),
+.wc-productos-template ul.products li.product:nth-child(n+13),
+.productos-grid li.product:nth-child(n+13) {
+    display: none !important;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 991px) {
+    /* Para 3 columnas en pantallas medianas (3 columnas × 3 filas = 9 productos) */
+    body ul.products li.product:nth-child(n+10),
+    body.woocommerce ul.products li.product:nth-child(n+10),
+    body.woocommerce-page ul.products li.product:nth-child(n+10),
+    body .woocommerce ul.products li.product:nth-child(n+10),
+    .wc-productos-template ul.products li.product:nth-child(n+10),
+    .productos-grid li.product:nth-child(n+10) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Para 2 columnas en pantallas pequeñas (2 columnas × 3 filas = 6 productos) */
+    body ul.products li.product:nth-child(n+7),
+    body.woocommerce ul.products li.product:nth-child(n+7),
+    body.woocommerce-page ul.products li.product:nth-child(n+7),
+    body .woocommerce ul.products li.product:nth-child(n+7),
+    .wc-productos-template ul.products li.product:nth-child(n+7),
+    .productos-grid li.product:nth-child(n+7) {
+        display: none !important;
+    }
+}
 /* Media queries para responsividad */
 @media (max-width: 768px) {
     body ul.products,
