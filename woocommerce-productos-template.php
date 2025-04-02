@@ -344,145 +344,165 @@ public function override_woocommerce_templates($template, $template_name, $templ
             return get_terms($args);
         }
 
-        /**
-         * AJAX handler para filtrar productos - corregido para preservar la consulta principal
-         */
-        public function ajax_filter_products() {
-            // Verificar nonce
-            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
-                wp_send_json_error('Nonce inválido');
-                exit;
-            }
-            
-            // Obtener página actual
-            $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
-            
-            // Configurar argumentos base de la consulta
-            $args = array(
-                'post_type'      => 'product',
-                'posts_per_page' => -1,  // Change from get_option('posts_per_page') to -1
-                'paged'          => $page,
-                'post_status'    => 'publish',
+       /**
+ * AJAX handler para filtrar productos - corregido para preservar la consulta principal
+ */
+public function ajax_filter_products() {
+    // Verificar nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
+        wp_send_json_error('Nonce inválido');
+        exit;
+    }
+    
+    // Obtener página actual
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    
+    // Configurar argumentos base de la consulta
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => get_option('posts_per_page'),
+        'paged'          => $page,
+        'post_status'    => 'publish',
+    );
+        
+    // Importante: Comprobar si hay filtros activados antes de añadirlos a la consulta
+    $has_filters = false;
+    
+    // Inicializar arrays para taxonomías y meta
+    $tax_query = array('relation' => 'AND');
+    $meta_query = array('relation' => 'AND');
+    
+    // Filtrar por categoría
+    if (isset($_POST['category']) && !empty($_POST['category'])) {
+        $categories = explode(',', sanitize_text_field($_POST['category']));
+        if (!empty($categories)) {
+            $tax_query[] = array(
+                'taxonomy' => 'product_cat',
+                'field'    => 'slug',
+                'terms'    => $categories,
+                'operator' => 'IN'
             );
-                
-            // Importante: Comprobar si hay filtros activados antes de añadirlos a la consulta
-            $has_filters = false;
-            
-            // Inicializar arrays para taxonomías y meta
-            $tax_query = array('relation' => 'AND');
-            $meta_query = array('relation' => 'AND');
-            
-            // Filtrar por categoría
-            if (isset($_POST['category']) && !empty($_POST['category'])) {
-                $categories = explode(',', sanitize_text_field($_POST['category']));
-                if (!empty($categories)) {
-                    $tax_query[] = array(
-                        'taxonomy' => 'product_cat',
-                        'field'    => 'slug',
-                        'terms'    => $categories,
-                        'operator' => 'IN'
-                    );
-                    $has_filters = true;
-                }
-            }
-            
-            // Filtrar por grado (atributo personalizado)
-            if (isset($_POST['grade']) && !empty($_POST['grade'])) {
-                $grades = explode(',', sanitize_text_field($_POST['grade']));
-                if (!empty($grades)) {
-                    $tax_query[] = array(
-                        'taxonomy' => 'pa_grado',
-                        'field'    => 'slug',
-                        'terms'    => $grades,
-                        'operator' => 'IN'
-                    );
-                    $has_filters = true;
-                }
-            }
-            
-            // Filtrar por volumen (rango)
-            if (isset($_POST['min_volume']) && isset($_POST['max_volume']) && 
-                (intval($_POST['min_volume']) > 100 || intval($_POST['max_volume']) < 5000)) {
-                $meta_query[] = array(
-                    'key'     => '_volumen_ml',
-                    'value'   => array(intval($_POST['min_volume']), intval($_POST['max_volume'])),
-                    'type'    => 'NUMERIC',
-                    'compare' => 'BETWEEN'
-                );
-                $has_filters = true;
-            }
-            
-            // Búsqueda
-            if (isset($_POST['search']) && !empty($_POST['search'])) {
-                $args['s'] = sanitize_text_field($_POST['search']);
-                $has_filters = true;
-            }
-            
-            // Añadir las consultas de taxonomía y meta solo si hay filtros activos
-            if (count($tax_query) > 1) {
-                $args['tax_query'] = $tax_query;
-            }
-            
-            if (count($meta_query) > 1) {
-                $args['meta_query'] = $meta_query;
-            }
-            
-            // Aplicar filtros de WooCommerce
-            $args = apply_filters('woocommerce_product_query_args', $args);
-            
-            // Ejecutar la consulta
-            $products_query = new WP_Query($args);
-            
-            // Configurar las propiedades del bucle de WooCommerce
-            wc_set_loop_prop('current_page', $page);
-            wc_set_loop_prop('is_paginated', true);
-            wc_set_loop_prop('page_template', 'productos-template');
-            wc_set_loop_prop('per_page', get_option('posts_per_page'));
-            wc_set_loop_prop('total', $products_query->found_posts);
-            wc_set_loop_prop('total_pages', $products_query->max_num_pages);
-            wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
-            
-            ob_start();
-            
-            if ($products_query->have_posts()) {
-                echo '<ul class="productos-grid products wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
-                
-                while ($products_query->have_posts()) {
-                    $products_query->the_post();
-                    wc_get_template_part('content', 'product');
-                }
-                
-                echo '</ul>';
-            } else {
-                echo '<div class="woocommerce-info">' . 
-                    esc_html__('No se encontraron productos que coincidan con tu selección.', 'wc-productos-template') . 
-                    '</div>';
-            }
-            
-            $products_html = ob_get_clean();
-            
-            // Generar paginación
-            ob_start();
-            
-            $this->render_pagination($products_query->max_num_pages, $page);
-            
-            $pagination = ob_get_clean();
-            
-            // Resetear datos de consulta
-            wp_reset_postdata();
-            
-            // Enviar respuesta
-            wp_send_json_success(array(
-                'products'     => $products_html,
-                'pagination'   => $pagination,
-                'total'        => $products_query->found_posts,
-                'current_page' => $page,
-                'max_pages'    => $products_query->max_num_pages,
-                'has_filters'  => $has_filters
-            ));
-            
-            exit;
+            $has_filters = true;
         }
+    }
+    
+    // Filtrar por grado (atributo personalizado)
+    if (isset($_POST['grade']) && !empty($_POST['grade'])) {
+        $grades = explode(',', sanitize_text_field($_POST['grade']));
+        if (!empty($grades)) {
+            $tax_query[] = array(
+                'taxonomy' => 'pa_grado',
+                'field'    => 'slug',
+                'terms'    => $grades,
+                'operator' => 'IN'
+            );
+            $has_filters = true;
+        }
+    }
+    
+    // Filtrar por volumen (rango)
+    if (isset($_POST['min_volume']) && isset($_POST['max_volume']) && 
+        (intval($_POST['min_volume']) > 100 || intval($_POST['max_volume']) < 5000)) {
+        $meta_query[] = array(
+            'key'     => '_volumen_ml',
+            'value'   => array(intval($_POST['min_volume']), intval($_POST['max_volume'])),
+            'type'    => 'NUMERIC',
+            'compare' => 'BETWEEN'
+        );
+        $has_filters = true;
+    }
+    
+    // Búsqueda - Mejorado para buscar por SKU/REF y otros meta fields
+    if (isset($_POST['search']) && !empty($_POST['search'])) {
+        $search_term = sanitize_text_field($_POST['search']);
+        
+        // Crear un meta query para búsqueda en SKU
+        $meta_query[] = array(
+            'relation' => 'OR',
+            array(
+                'key'     => '_sku',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            ),
+            array(
+                'key'     => '_volumen_ml',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            )
+        );
+        
+        // También buscar en el título y contenido del producto
+        $args['s'] = $search_term;
+        
+        $has_filters = true;
+    }
+    
+    // Añadir las consultas de taxonomía y meta solo si hay filtros activos
+    if (count($tax_query) > 1) {
+        $args['tax_query'] = $tax_query;
+    }
+    
+    if (count($meta_query) > 1) {
+        $args['meta_query'] = $meta_query;
+    }
+    
+    // Aplicar filtros de WooCommerce
+    $args = apply_filters('woocommerce_product_query_args', $args);
+    
+    // Ejecutar la consulta
+    $products_query = new WP_Query($args);
+    
+    // Configurar las propiedades del bucle de WooCommerce
+    wc_set_loop_prop('current_page', $page);
+    wc_set_loop_prop('is_paginated', true);
+    wc_set_loop_prop('page_template', 'productos-template');
+    wc_set_loop_prop('per_page', get_option('posts_per_page'));
+    wc_set_loop_prop('total', $products_query->found_posts);
+    wc_set_loop_prop('total_pages', $products_query->max_num_pages);
+    wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
+    
+    ob_start();
+    
+    if ($products_query->have_posts()) {
+        echo '<ul class="productos-grid products wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
+        
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            wc_get_template_part('content', 'product');
+        }
+        
+        echo '</ul>';
+    } else {
+        echo '<div class="woocommerce-info">' . 
+            esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+            '</div>';
+    }
+    
+    $products_html = ob_get_clean();
+    
+    // Generar paginación
+    ob_start();
+    
+    $this->render_pagination($products_query->max_num_pages, $page);
+    
+    $pagination = ob_get_clean();
+    
+    // Resetear datos de consulta
+    wp_reset_postdata();
+    
+    // Enviar respuesta
+    wp_send_json_success(array(
+        'products'     => $products_html,
+        'pagination'   => $pagination,
+        'total'        => $products_query->found_posts,
+        'current_page' => $page,
+        'max_pages'    => $products_query->max_num_pages,
+        'has_filters'  => $has_filters,
+        'search_term'  => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''
+    ));
+    
+    exit;
+}
 
         /**
          * Renderiza la paginación de manera consistente
