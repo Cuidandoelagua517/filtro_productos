@@ -5,6 +5,9 @@
  * 
  * @package WC_Productos_Template
  */
+
+// Obtener la página actual desde la URL
+$current_page = get_query_var('paged') ? get_query_var('paged') : 1;
 ?>
 <div class="productos-container wc-productos-template">
     <!-- Header -->
@@ -119,10 +122,15 @@
             <!-- Listado de productos -->
             <div class="productos-list">
                 <?php
-             $args = array(
-    'post_type' => 'product',
-    'posts_per_page' => isset($atts['per_page']) ? intval($atts['per_page']) : -1, // Show all products by default
-);
+                // Establecer un valor por defecto razonable para posts_per_page
+                $posts_per_page = isset($atts['per_page']) ? intval($atts['per_page']) : get_option('posts_per_page', 12);
+                
+                $args = array(
+                    'post_type' => 'product',
+                    'posts_per_page' => $posts_per_page,
+                    'paged' => $current_page,
+                    'post_status' => 'publish',
+                );
                 
                 if (!empty($atts['category'])) {
                     $args['tax_query'] = array(
@@ -136,8 +144,17 @@
                 
                 $products_query = new WP_Query($args);
                 
+                // Configurar propiedades importantes para WooCommerce
+                wc_set_loop_prop('current_page', $current_page);
+                wc_set_loop_prop('is_paginated', true);
+                wc_set_loop_prop('page_template', 'productos-template');
+                wc_set_loop_prop('per_page', $posts_per_page);
+                wc_set_loop_prop('total', $products_query->found_posts);
+                wc_set_loop_prop('total_pages', $products_query->max_num_pages);
+                wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
+                
                 if ($products_query->have_posts()) {
-                    echo '<ul class="productos-grid products">';
+                    echo '<ul class="productos-grid products columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
                     while ($products_query->have_posts()) {
                         $products_query->the_post();
                         wc_get_template_part('content', 'product');
@@ -156,9 +173,13 @@
                 <div class="productos-pagination">
                     <div class="pagination-info">
                         <?php
+                        $start = (($current_page - 1) * $posts_per_page) + 1;
+                        $end = min($products_query->found_posts, $current_page * $posts_per_page);
+                        
                         printf(
-                            esc_html__('Mostrando 1-%1$d de %2$d resultados', 'wc-productos-template'),
-                            min($products_query->found_posts, $atts['per_page']),
+                            esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
+                            $start,
+                            $end,
                             $products_query->found_posts
                         );
                         ?>
@@ -166,18 +187,53 @@
                     
                     <div class="pagination-links">
                         <?php
-                        for ($i = 1; $i <= min(4, $products_query->max_num_pages); $i++) {
-                            $class = $i === 1 ? 'active' : '';
+                        // Botón "Anterior" si no estamos en la primera página
+                        if ($current_page > 1) {
                             printf(
-                                '<button class="page-number %1$s" data-page="%2$d">%2$d</button>',
-                                esc_attr($class),
-                                esc_attr($i)
+                                '<button class="page-number page-prev" data-page="%d" aria-label="%s">←</button>',
+                                $current_page - 1,
+                                esc_attr__('Página anterior', 'wc-productos-template')
                             );
                         }
                         
-                        if ($products_query->max_num_pages > 4) {
-                            echo '<button class="page-number page-next" data-page="2" aria-label="' . 
-                                 esc_attr__('Siguiente página', 'wc-productos-template') . '">→</button>';
+                        // Mostrar números de página
+                        $start_page = max(1, $current_page - 2);
+                        $end_page = min($products_query->max_num_pages, $current_page + 2);
+                        
+                        if ($start_page > 1) {
+                            echo '<button class="page-number" data-page="1">1</button>';
+                            if ($start_page > 2) {
+                                echo '<span class="page-dots">...</span>';
+                            }
+                        }
+                        
+                        for ($i = $start_page; $i <= $end_page; $i++) {
+                            printf(
+                                '<button class="page-number%s" data-page="%d">%d</button>',
+                                $i === $current_page ? ' active' : '',
+                                $i,
+                                $i
+                            );
+                        }
+                        
+                        if ($end_page < $products_query->max_num_pages) {
+                            if ($end_page < $products_query->max_num_pages - 1) {
+                                echo '<span class="page-dots">...</span>';
+                            }
+                            printf(
+                                '<button class="page-number" data-page="%d">%d</button>',
+                                $products_query->max_num_pages,
+                                $products_query->max_num_pages
+                            );
+                        }
+                        
+                        // Botón "Siguiente" si no estamos en la última página
+                        if ($current_page < $products_query->max_num_pages) {
+                            printf(
+                                '<button class="page-number page-next" data-page="%d" aria-label="%s">→</button>',
+                                $current_page + 1,
+                                esc_attr__('Página siguiente', 'wc-productos-template')
+                            );
                         }
                         ?>
                     </div>
