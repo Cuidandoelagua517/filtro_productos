@@ -188,9 +188,36 @@ jQuery(document).ready(function($) {
             // Buscar directamente en el contenedor de productos
             $grid.children('div.producto-interior').remove();
             
+            // NUEVO: Buscar en toda la página para eliminar cualquier div.producto-interior huérfano
+            // que pudiera estar en la cuarta fila o en cualquier parte del DOM
+            $('.page-wrapper div.producto-interior').each(function() {
+                var $div = $(this);
+                // Si este div no está dentro de un li.product, eliminarlo
+                if ($div.parents('li.product').length === 0) {
+                    $div.remove();
+                }
+            });
+            
+            // NUEVO: Buscar en todo el documento para ser exhaustivos
+            $('body div.producto-interior').each(function() {
+                var $div = $(this);
+                // Si este div no está dentro de un li.product o está después de la tercera fila, eliminarlo
+                if ($div.parents('li.product').length === 0 || 
+                    $div.parents('li.product').index() >= maxProductos) {
+                    $div.remove();
+                }
+            });
+            
             // También verificar después de cada actualización de AJAX
             $(document).ajaxComplete(function() {
                 $grid.children('div.producto-interior').remove();
+                $('body div.producto-interior').each(function() {
+                    var $div = $(this);
+                    if ($div.parents('li.product').length === 0 || 
+                        $div.parents('li.product').index() >= maxProductos) {
+                        $div.remove();
+                    }
+                });
             });
             
             // Agregar una clase específica al contenedor para limitar la altura
@@ -200,16 +227,15 @@ jQuery(document).ready(function($) {
             $grid.css({
                 'grid-template-rows': 'repeat(3, auto)',
                 'overflow': 'hidden',
-                'max-height': 'none', // Dejar que grid-template-rows controle la altura
+                'max-height': '1200px', // Establecer una altura máxima segura
                 'display': 'grid',
                 'grid-template-columns': 'repeat(' + productosPorFila + ', 1fr)'
             });
             
-            // Eliminar específicamente elementos huérfanos
-            $('body').find('> div.producto-interior').remove();
-            $('.entry-content').find('> div.producto-interior').remove();
-            $('.page-content').find('> div.producto-interior').remove();
-            $('article').find('> div.producto-interior').remove();
+            // NUEVO: Agregar un clearfix después de la tercera fila para asegurar que nada aparezca después
+            if (!$grid.next().hasClass('grid-clearfix')) {
+                $grid.after('<div class="grid-clearfix" style="clear:both; height:0; overflow:hidden;"></div>');
+            }
         }, 100);
     }
     
@@ -226,5 +252,5 @@ jQuery(document).ready(function($) {
     $(window).on('resize', limpiarCuartaFila);
     
     // Ejecutar periódicamente para prevenir elementos añadidos dinámicamente
-    setInterval(limpiarCuartaFila, 2000);
+    setInterval(limpiarCuartaFila, 1000); // Reducido a 1 segundo para mayor frecuencia
 });
