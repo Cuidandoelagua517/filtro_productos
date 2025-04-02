@@ -1,10 +1,8 @@
 <?php
-// Add to the top of content-product.php, archive-product.php, etc.
-echo "<!-- Custom template loaded: " . __FILE__ . " -->";
-?>
-<?php
 /**
- * Template para el archivo de productos (archive-product.php) reforzado
+ * Template para el archivo de productos (archive-product.php)
+ * 
+ * @package WC_Productos_Template
  */
 
 // Eliminar hooks por defecto de WooCommerce que podrían interferir
@@ -12,10 +10,6 @@ remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wra
 remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
 remove_action('woocommerce_before_shop_loop', 'woocommerce_result_count', 20);
 remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
-
-// Asegurarse de que los estilos de WooCommerce no interfieran
-wp_dequeue_style('woocommerce-layout');
-wp_dequeue_style('woocommerce-smallscreen');
 ?>
 
 <div class="productos-container wc-productos-template">
@@ -25,8 +19,10 @@ wp_dequeue_style('woocommerce-smallscreen');
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
-            <input type="text" placeholder="Buscar por nombre, referencia o características..." />
-            <button><i class="fas fa-search"></i></button>
+            <input type="text" placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" />
+            <button type="button" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
+                <i class="fas fa-search" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
     
@@ -34,11 +30,11 @@ wp_dequeue_style('woocommerce-smallscreen');
     <div class="productos-layout">
         <!-- Sidebar de filtros (columna izquierda) -->
         <aside class="productos-sidebar">
-            <h3><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h3>
+            <h2><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h2>
             
             <!-- Filtro de categorías -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h3>
                 <?php
                 $product_categories = get_terms(array(
                     'taxonomy' => 'product_cat',
@@ -46,6 +42,7 @@ wp_dequeue_style('woocommerce-smallscreen');
                 ));
                 
                 if (!empty($product_categories) && !is_wp_error($product_categories)) {
+                    echo '<div class="filtro-lista">';
                     foreach ($product_categories as $category) {
                         ?>
                         <div class="filtro-option">
@@ -57,13 +54,14 @@ wp_dequeue_style('woocommerce-smallscreen');
                         </div>
                         <?php
                     }
+                    echo '</div>';
                 }
                 ?>
             </div>
             
             <!-- Filtro de grado (usando atributos de producto) -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Grado', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Grado', 'wc-productos-template'); ?></h3>
                 <?php
                 $grado_terms = get_terms(array(
                     'taxonomy' => 'pa_grado',
@@ -71,6 +69,7 @@ wp_dequeue_style('woocommerce-smallscreen');
                 ));
                 
                 if (!empty($grado_terms) && !is_wp_error($grado_terms)) {
+                    echo '<div class="filtro-lista">';
                     foreach ($grado_terms as $term) {
                         ?>
                         <div class="filtro-option">
@@ -82,8 +81,10 @@ wp_dequeue_style('woocommerce-smallscreen');
                         </div>
                         <?php
                     }
+                    echo '</div>';
                 } else {
                     // Fallback para demostración
+                    echo '<div class="filtro-lista">';
                     ?>
                     <div class="filtro-option">
                         <input type="checkbox" id="grade-analitico" class="filtro-grade" value="analitico" />
@@ -94,13 +95,14 @@ wp_dequeue_style('woocommerce-smallscreen');
                         <label for="grade-reactivo"><?php esc_html_e('Reactivo', 'wc-productos-template'); ?></label>
                     </div>
                     <?php
+                    echo '</div>';
                 }
                 ?>
             </div>
             
             <!-- Filtro de volumen -->
             <div class="filtro-grupo">
-                <h4><?php esc_html_e('Volumen', 'wc-productos-template'); ?></h4>
+                <h3><?php esc_html_e('Volumen', 'wc-productos-template'); ?></h3>
                 <div class="volumen-slider">
                     <div class="volumen-range"></div>
                     <div class="volumen-values">
@@ -121,7 +123,7 @@ wp_dequeue_style('woocommerce-smallscreen');
             </div>
             
             <!-- Listado de productos en formato grid -->
-            <div class="productos-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+            <div class="productos-grid">
                 <?php
                 if (have_posts()) {
                     while (have_posts()) {
@@ -129,7 +131,7 @@ wp_dequeue_style('woocommerce-smallscreen');
                         wc_get_template_part('content', 'product');
                     }
                 } else {
-                    echo '<p>' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
+                    echo '<p class="productos-no-results">' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
                 }
                 ?>
             </div>
@@ -159,14 +161,16 @@ wp_dequeue_style('woocommerce-smallscreen');
                     for ($i = 1; $i <= min(4, $total_pages); $i++) {
                         $class = $i === $current ? 'active' : '';
                         printf(
-                            '<div class="page-number %1$s" data-page="%2$d">%2$d</div>',
+                            '<button class="page-number %1$s" data-page="%2$d">%2$d</button>',
                             esc_attr($class),
                             esc_attr($i)
                         );
                     }
                     
                     if ($total_pages > 4) {
-                        echo '<div class="page-number" data-page="' . esc_attr($current + 1) . '">→</div>';
+                        echo '<button class="page-number page-next" data-page="' . 
+                             esc_attr($current + 1) . '" aria-label="' . 
+                             esc_attr__('Siguiente página', 'wc-productos-template') . '">→</button>';
                     }
                     ?>
                 </div>
