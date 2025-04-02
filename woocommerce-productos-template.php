@@ -14,21 +14,15 @@
  * Requires at least: 5.6
  *
  * @package WC_Productos_Template
- *
- * Woo: 12345:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
- *
- * This plugin is compatible with WooCommerce HPOS (Custom Order Tables)
- *
- * WC tested up to: 8.0
- * Woo: 12345:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
- * WC requires at least: 5.0
- * WC requires PHP: 7.2
  */
 
 // Si este archivo es llamado directamente, abortar.
 if (!defined('WPINC')) {
     die;
 }
+
+// Definir constante de versión
+define('WC_PRODUCTOS_TEMPLATE_VERSION', '1.0.0');
 
 if (!class_exists('WC_Productos_Template')) {
 
@@ -60,7 +54,7 @@ if (!class_exists('WC_Productos_Template')) {
                 add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
                 add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
                 // Método alternativo para cargar templates personalizados
-add_filter('template_include', array($this, 'template_loader'));
+                add_filter('template_include', array($this, 'template_loader'));
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
@@ -104,104 +98,105 @@ add_filter('template_include', array($this, 'template_loader'));
             // Aquí podrías añadir código para copiar templates predeterminados
             // de tu plugin a la carpeta de templates
         }
-
+ 
         /**
          * Registrar scripts y estilos
          */
-/**
- * Registrar scripts y estilos
- */
-public function register_scripts() {
-    // Sólo cargar en páginas de WooCommerce o con el shortcode
-    if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
-        is_woocommerce() || 
-        (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
-        
-        // Enqueue CSS con versión para evitar caché
-        wp_enqueue_style(
-            'wc-productos-template-styles', 
-            WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-            array(), 
-            WC_PRODUCTOS_TEMPLATE_VERSION
-        );
-        
-        // Agregar soporte para la barra de rango
-        wp_enqueue_script('jquery-ui-slider');
-        wp_enqueue_style(
-            'jquery-ui-style', 
-            '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
-            array(),
-            '1.12.1'
-        );
-        
-        // JavaScript con jQuery como dependencia
-        wp_enqueue_script(
-            'wc-productos-template-script', 
-            WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
-            array('jquery', 'jquery-ui-slider'), 
-            WC_PRODUCTOS_TEMPLATE_VERSION, 
-            true
-        );
-        
-        // Localizar script para AJAX
-        wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('productos_filter_nonce'),
-            'i18n' => array(
-                'loading' => __('Cargando productos...', 'wc-productos-template'),
-                'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
-                'added' => __('Producto añadido al carrito', 'wc-productos-template')
-            )
-        ));
-    }
-}
+        public function register_scripts() {
+            // Sólo cargar en páginas de WooCommerce o con el shortcode
+            if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
+                is_woocommerce() || 
+                (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
+                
+                // Enqueue CSS con versión para evitar caché
+                wp_enqueue_style(
+                    'wc-productos-template-styles', 
+                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
+                    array(), 
+                    WC_PRODUCTOS_TEMPLATE_VERSION
+                );
+                
+                // Agregar soporte para la barra de rango
+                wp_enqueue_script('jquery-ui-slider');
+                wp_enqueue_style(
+                    'jquery-ui-style', 
+                    '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
+                    array(),
+                    '1.12.1'
+                );
+                
+                // JavaScript con jQuery como dependencia
+                wp_enqueue_script(
+                    'wc-productos-template-script', 
+                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
+                    array('jquery', 'jquery-ui-slider'), 
+                    WC_PRODUCTOS_TEMPLATE_VERSION, 
+                    true
+                );
+                
+                // Localizar script para AJAX
+                wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
+                    'ajaxurl' => admin_url('admin-ajax.php'),
+                    'nonce' => wp_create_nonce('productos_filter_nonce'),
+                    'i18n' => array(
+                        'loading' => __('Cargando productos...', 'wc-productos-template'),
+                        'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
+                        'added' => __('Producto añadido al carrito', 'wc-productos-template')
+                    )
+                ));
+            }
+        }
 
-public function add_critical_styles() {
-    if (is_shop() || is_product_category() || is_product_tag() || is_product() || is_woocommerce()) {
-        echo '<style>
-        /* Estilos críticos para tarjetas de productos */
-        .producto-card, 
-        .type-product {
-            background-color: #fff !important;
-            border: 2px solid red !important;
-            padding: 20px !important;
-            margin-bottom: 20px !important;
-            display: flex !important;
-            flex-direction: column !important;
+        /**
+         * Agregar estilos críticos inline
+         */
+        public function add_critical_styles() {
+            if (is_shop() || is_product_category() || is_product_tag() || is_product() || is_woocommerce()) {
+                echo '<style>
+                /* Estilos críticos para tarjetas de productos */
+                .producto-card, 
+                .type-product {
+                    background-color: #fff !important;
+                    padding: 20px !important;
+                    margin-bottom: 20px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                }
+                
+                .producto-imagen {
+                    height: 180px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                }
+                
+                .producto-titulo {
+                    font-size: 16px !important;
+                    font-weight: 600 !important;
+                    color: #333 !important;
+                }
+                </style>';
+            }
         }
-        
-        .producto-imagen {
-            height: 180px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        
-        .producto-titulo {
-            font-size: 16px !important;
-            font-weight: 600 !important;
-            color: #333 !important;
-        }
-        </style>';
-    }
-}
+
         /**
          * Sobreescribir templates de WooCommerce
          */
-public function override_woocommerce_templates($template, $template_name, $template_path) {
-    // Activar logging para depuración
-    error_log('Template solicitado: ' . $template_name);
-    
-    $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
-    
-    // Verifica si existe nuestra versión del template
-    if (file_exists($plugin_template)) {
-        error_log('Usando template personalizado: ' . $plugin_template);
-        return $plugin_template;
-    }
-    
-    return $template;
-}
+        public function override_woocommerce_templates($template, $template_name, $template_path) {
+            // Activar logging para depuración
+            error_log('Template solicitado: ' . $template_name);
+            
+            $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
+            
+            // Verifica si existe nuestra versión del template
+            if (file_exists($plugin_template)) {
+                error_log('Usando template personalizado: ' . $plugin_template);
+                return $plugin_template;
+            }
+            
+            return $template;
+        }
+
         /**
          * Obtener categorías de productos
          */
@@ -305,21 +300,26 @@ public function override_woocommerce_templates($template, $template_name, $templ
             wp_send_json_success($response);
             exit;
         }
-public function template_loader($template) {
-    if (is_product_category() || is_product_tag() || is_product() || is_shop()) {
-        $file = 'archive-product.php';
-        if (is_product()) {
-            $file = 'single-product.php';
+
+        /**
+         * Cargador de templates personalizados
+         */
+        public function template_loader($template) {
+            if (is_product_category() || is_product_tag() || is_product() || is_shop()) {
+                $file = 'archive-product.php';
+                if (is_product()) {
+                    $file = 'single-product.php';
+                }
+                
+                $custom_template = plugin_dir_path(__FILE__) . 'templates/' . $file;
+                if (file_exists($custom_template)) {
+                    error_log('Cargando template personalizado: ' . $custom_template);
+                    return $custom_template;
+                }
+            }
+            return $template;
         }
-        
-        $custom_template = plugin_dir_path(__FILE__) . 'templates/' . $file;
-        if (file_exists($custom_template)) {
-            error_log('Cargando template personalizado: ' . $custom_template);
-            return $custom_template;
-        }
-    }
-    return $template;
-}
+
         /**
          * Shortcode para mostrar productos con el nuevo template
          */
@@ -341,45 +341,59 @@ public function template_loader($template) {
 
     // Activación del plugin
     register_activation_hook(__FILE__, 'wc_productos_template_activate');
-    function wc_productos_template_activate() {
-        // Asegurarse de que WooCommerce está activo
-        if (!is_plugin_active('woocommerce/woocommerce.php') && current_user_can('activate_plugins')) {
-            // Desactivar este plugin
-            deactivate_plugins(plugin_basename(__FILE__));
-            wp_die('Este plugin requiere que WooCommerce esté instalado y activado.');
-        }
-        // Añade a la función wc_productos_template_activate()
-$css_file = plugin_dir_path(__FILE__) . 'assets/css/productos-template.css';
-if (!file_exists($css_file)) {
-    file_put_contents($css_file, wc_productos_template_get_default_css());
 }
 
-        // Crear directorios necesarios
-        $template_path = plugin_dir_path(__FILE__) . 'templates';
-        $css_path = plugin_dir_path(__FILE__) . 'assets/css';
-        $js_path = plugin_dir_path(__FILE__) . 'assets/js';
-        
-        if (!file_exists($template_path)) {
-            mkdir($template_path, 0755, true);
-        }
-        
-        if (!file_exists($css_path)) {
-            mkdir($css_path, 0755, true);
-        }
-        
-        if (!file_exists($js_path)) {
-            mkdir($js_path, 0755, true);
-        }
-        
-        // Crear archivos iniciales si no existen
-        if (!file_exists($css_path . '/productos-template.css')) {
-            file_put_contents($css_path . '/productos-template.css', wc_productos_template_get_default_css());
-        }
-        
-        if (!file_exists($js_path . '/productos-template.js')) {
-            file_put_contents($js_path . '/productos-template.js', wc_productos_template_get_default_js());
-        }
+/**
+ * Función para activar el plugin
+ */
+function wc_productos_template_activate() {
+    // Asegurarse de que WooCommerce está activo
+    if (!function_exists('is_plugin_active')) {
+        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
     
+    if (!is_plugin_active('woocommerce/woocommerce.php') && current_user_can('activate_plugins')) {
+        // Desactivar este plugin
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die('Este plugin requiere que WooCommerce esté instalado y activado.');
+    }
+    
+    // Crear CSS predeterminado si no existe
+    $css_file = plugin_dir_path(__FILE__) . 'assets/css/productos-template.css';
+    if (!file_exists($css_file)) {
+        file_put_contents($css_file, wc_productos_template_get_default_css());
+    }
+
+    // Crear directorios necesarios
+    $template_path = plugin_dir_path(__FILE__) . 'templates';
+    $css_path = plugin_dir_path(__FILE__) . 'assets/css';
+    $js_path = plugin_dir_path(__FILE__) . 'assets/js';
+    
+    if (!file_exists($template_path)) {
+        mkdir($template_path, 0755, true);
+    }
+    
+    if (!file_exists($css_path)) {
+        mkdir($css_path, 0755, true);
+    }
+    
+    if (!file_exists($js_path)) {
+        mkdir($js_path, 0755, true);
+    }
+    
+    // Crear archivos iniciales si no existen
+    if (!file_exists($css_path . '/productos-template.css')) {
+        file_put_contents($css_path . '/productos-template.css', wc_productos_template_get_default_css());
+    }
+    
+    if (!file_exists($js_path . '/productos-template.js')) {
+        file_put_contents($js_path . '/productos-template.js', wc_productos_template_get_default_js());
+    }
+}
+
+/**
+ * Mostrar diagnósticos en el admin
+ */
 function wc_productos_admin_diagnostics() {
     ?>
     <div class="notice notice-info is-dismissible">
@@ -396,42 +410,75 @@ function wc_productos_admin_diagnostics() {
     <?php
 }
 
+// Añadir diagnósticos al admin
 add_action('admin_notices', 'wc_productos_admin_diagnostics');
- function wc_productos_template_get_default_css() {
-    return '
-   /**
 
-/* ===== 1. RESETEO Y BASE ===== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/**
+ * Obtener CSS predeterminado
+ */
+function wc_productos_template_get_default_css() {
+    return '
+/**
+ * CSS para WooCommerce Productos Template
+ * Diseño moderno, minimalista y optimizado para UX
+ */
+
+/* ===== 1. RESETEO Y VARIABLES ===== */
+:root {
+    --primary-color: #0056b3;
+    --primary-hover: #004494;
+    --light-bg: #f8f9fa;
+    --border-color: #e2e2e2;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-muted: #777;
+    --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
+    --shadow-md: 0 5px 15px rgba(0,0,0,0.08);
+    --transition: all 0.3s ease;
+    --radius: 6px;
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
 }
 
-/* ===== 2. CONTENEDOR PRINCIPAL ===== */
-.productos-container {
+/* Importante: limitar a las áreas específicas de productos */
+.productos-container *, 
+.woocommerce-products-header *,
+.woocommerce ul.products *, 
+.wc-productos-template * {
+    box-sizing: border-box;
+}
+
+/* Solo modificar el área específica de catálogo de productos */
+.productos-container,
+.wc-productos-template,
+.woocommerce ul.products,
+.woocommerce-products-header {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 var(--spacing-lg);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    color: #333;
+    color: var(--text-primary);
+    line-height: 1.5;
 }
 
-/* ===== 3. HEADER CON TÍTULO Y BUSCADOR ===== */
+/* ===== HEADER CON TÍTULO Y BUSCADOR ===== */
 .productos-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 0;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #e2e2e2;
+    padding: var(--spacing-xl) 0;
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .productos-header h1 {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 600;
     margin: 0;
-    color: #333;
+    color: var(--text-primary);
 }
 
 /* Barra de búsqueda */
@@ -442,16 +489,16 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
 
 .productos-search input {
     width: 100%;
-    padding: 10px 40px 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: var(--spacing-sm) 40px var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
     font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: var(--transition);
 }
 
 .productos-search input:focus {
     outline: none;
-    border-color: #0056b3;
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
@@ -461,70 +508,78 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     top: 0;
     height: 100%;
     width: 40px;
-    background-color: #0056b3;
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: var(--transition);
 }
 
 .productos-search button:hover {
-    background-color: #004494;
+    background-color: var(--primary-hover);
 }
 
-/* ===== 4. LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
+/* ===== LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
 .productos-layout {
     display: flex;
-    gap: 30px;
-    margin-bottom: 40px;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
 }
 
-/* ===== 5. SIDEBAR DE FILTROS ===== */
+/* ===== SIDEBAR DE FILTROS ===== */
 .productos-sidebar {
-    flex: 0 0 250px;
-    width: 250px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    padding: 20px;
-    border: 1px solid #e2e2e2;
+    flex: 0 0 260px;
+    width: 260px;
+    background-color: var(--light-bg);
+    border-radius: var(--radius);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
     position: sticky;
     top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.productos-sidebar h2 {
+    font-size: 18px;
+    margin: 0 0 var(--spacing-lg) 0;
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .productos-sidebar h3 {
-    font-size: 18px;
-    margin: 0 0 20px 0;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2e2e2;
-    color: #333;
+    font-size: 16px;
     font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text-secondary);
 }
 
 /* Grupos de filtros */
 .filtro-grupo {
-    margin-bottom: 25px;
+    margin-bottom: var(--spacing-xl);
 }
 
 .filtro-grupo:last-child {
     margin-bottom: 0;
 }
 
-.filtro-grupo h4 {
-    font-size: 15px;
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: #555;
+.filtro-lista {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: var(--spacing-sm);
 }
 
 .filtro-option {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .filtro-option input[type="checkbox"] {
-    margin-right: 10px;
+    margin-right: var(--spacing-sm);
     cursor: pointer;
 }
 
@@ -532,32 +587,37 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     font-size: 14px;
     cursor: pointer;
     user-select: none;
+    color: var(--text-secondary);
+}
+
+.filtro-option label:hover {
+    color: var(--primary-color);
 }
 
 /* Slider de volumen */
 .volumen-slider {
-    margin-top: 15px;
+    margin-top: var(--spacing-md);
 }
 
 .volumen-range {
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
     height: 4px;
     background: #ddd;
     border-radius: 2px;
 }
 
 .ui-slider-range {
-    background-color: #0056b3;
+    background-color: var(--primary-color);
 }
 
 .ui-slider-handle {
     width: 16px !important;
     height: 16px !important;
     border-radius: 50% !important;
-    background-color: #0056b3 !important;
+    background-color: var(--primary-color) !important;
     border: 2px solid #fff !important;
     cursor: pointer !important;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     top: -0.5em !important;
 }
 
@@ -569,23 +629,23 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: #777;
+    color: var(--text-muted);
 }
 
-/* ===== 6. ÁREA PRINCIPAL DE PRODUCTOS ===== */
+/* ===== ÁREA PRINCIPAL DE PRODUCTOS ===== */
 .productos-main {
     flex: 1;
     min-width: 0; /* Importante para flex */
 }
 
 .productos-breadcrumb {
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-lg);
     font-size: 13px;
-    color: #777;
+    color: var(--text-muted);
 }
 
 .productos-breadcrumb a {
-    color: #0056b3;
+    color: var(--primary-color);
     text-decoration: none;
 }
 
@@ -597,25 +657,42 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
 .productos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    min-height: 200px; /* Para evitar saltos durante AJAX */
+    position: relative;
 }
 
-/* ===== 7. TARJETA DE PRODUCTO ===== */
+/* Mensaje sin resultados */
+.productos-no-results,
+.productos-error {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-muted);
+    font-style: italic;
+    background: var(--light-bg);
+    border-radius: var(--radius);
+}
+
+/* ===== TARJETA DE PRODUCTO ===== */
+.woocommerce ul.products li.producto-card,
+.productos-container .producto-card,
 .producto-card {
     background-color: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    padding: 20px;
-    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: var(--spacing-lg);
+    transition: var(--transition);
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    position: relative;
 }
 
 .producto-card:hover {
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     transform: translateY(-3px);
 }
 
@@ -624,7 +701,7 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
     position: relative;
     overflow: hidden;
 }
@@ -642,9 +719,9 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
 
 .producto-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 4px 10px;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: 4px var(--spacing-sm);
     border-radius: 30px;
     font-size: 11px;
     font-weight: 600;
@@ -666,30 +743,30 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
 .producto-titulo {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 10px 0;
-    color: #333;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text-primary);
     line-height: 1.4;
 }
 
 .producto-detalles {
     font-size: 13px;
-    color: #777;
-    margin: 0 0 15px 0;
+    color: var(--text-muted);
+    margin: 0 0 var(--spacing-md) 0;
     line-height: 1.4;
 }
 
 .producto-precio {
     font-size: 18px;
     font-weight: 700;
-    color: #0056b3;
-    margin: auto 0 15px 0;
+    color: var(--primary-color);
+    margin: auto 0 var(--spacing-md) 0;
 }
 
 .producto-precio del {
     font-size: 14px;
-    color: #999;
+    color: var(--text-muted);
     font-weight: normal;
-    margin-right: 5px;
+    margin-right: var(--spacing-xs);
 }
 
 .producto-precio ins {
@@ -697,36 +774,44 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
 }
 
 .producto-boton {
-    background-color: #0056b3;
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 10px;
+    border-radius: var(--radius);
+    padding: var(--spacing-sm);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: var(--transition);
     width: 100%;
     text-align: center;
+    display: block;
+    text-decoration: none;
 }
 
 .producto-boton:hover {
-    background-color: #004494;
+    background-color: var(--primary-hover);
 }
 
-/* ===== 8. PAGINACIÓN ===== */
+.producto-boton.loading {
+    opacity: 0.8;
+    cursor: wait;
+    background-color: var(--text-secondary);
+}
+
+/* ===== PAGINACIÓN ===== */
 .productos-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e2e2;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
 }
 
 .pagination-info {
     font-size: 14px;
-    color: #777;
+    color: var(--text-muted);
 }
 
 .pagination-links {
@@ -740,43 +825,136 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     align-items: center;
     justify-content: center;
     margin: 0 3px;
-    border-radius: 4px;
+    border-radius: var(--radius);
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
+    background: none;
+    border: 1px solid var(--border-color);
 }
 
 .page-number.active {
-    background-color: #0056b3;
+    background-color: var(--primary-color);
     color: white;
     font-weight: 600;
+    border-color: var(--primary-color);
 }
 
 .page-number:not(.active) {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    color: #555;
+    background-color: var(--light-bg);
+    color: var(--text-secondary);
 }
 
 .page-number:not(.active):hover {
     background-color: #e9ecef;
 }
 
-/* ===== 9. RESPONSIVE ===== */
-@media (max-width: 991px) {
+.page-next {
+    font-weight: bold;
+}
+
+/* ===== ANIMACIONES Y EFECTOS ===== */
+.productos-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.loader-icon {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--light-bg);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-sm);
+}
+
+.loader-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.productos-grid {
+    animation: fadeIn 0.5s ease;
+}
+
+/* ===== MENSAJES DE NOTIFICACIÓN ===== */
+.wc-message-success {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #e6f4ea;
+    color: #137333;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    z-index: 9999;
+    animation: fadeIn 0.3s, fadeOut 0.3s 2.7s forwards;
+    font-size: 14px;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+}
+
+/* ===== MEJORAS DE ACCESIBILIDAD ===== */
+.filtro-option input[type="checkbox"]:focus + label {
+    text-decoration: underline;
+    color: var(--primary-color);
+}
+
+.productos-search input:focus,
+.producto-boton:focus,
+.page-number:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.25);
+}
+
+/* ===== PERSONALIZACIÓN DE JQUERY UI ===== */
+.ui-slider-horizontal .ui-slider-handle {
+    margin-left: -8px;
+}
+
+/* ===== EFECTOS ADICIONALES ===== */
+.productos-container.scrolled .productos-sidebar {
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
     .productos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 868px) {
     .productos-header {
         flex-direction: column;
         align-items: flex-start;
     }
     
     .productos-header h1 {
-        margin-bottom: 15px;
+        margin-bottom: var(--spacing-md);
     }
     
     .productos-search {
@@ -791,105 +969,48 @@ add_action('admin_notices', 'wc_productos_admin_diagnostics');
     .productos-sidebar {
         width: 100%;
         flex: 0 0 auto;
-        margin-bottom: 20px;
+        margin-bottom: var(--spacing-lg);
         position: static;
         max-width: 100%;
+        max-height: none;
     }
     
     .productos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-    
-    .productos-pagination {
-        flex-direction: column;
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+    .productos-pagination {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: flex-start;
+    }
+    
+    .pagination-links {
+        margin-top: var(--spacing-sm);
+    }
+    
     .productos-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: var(--spacing-md);
     }
     
     .producto-card {
-        padding: 15px;
+        padding: var(--spacing-md);
     }
     
     .producto-imagen {
         height: 140px;
     }
-    
-    .producto-precio {
-        font-size: 16px;
-    }
-    
-    .producto-titulo {
-        font-size: 14px;
+}
+
+@media (max-width: 400px) {
+    .productos-grid {
+        grid-template-columns: 1fr;
     }
 }
-
-/* ===== 10. ANIMACIONES Y EFECTOS ===== */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.productos-grid {
-    animation: fadeIn 0.5s ease;
-}
-
-/* Efecto de carga */
-.loading {
-    text-align: center;
-    padding: 20px;
-    color: #777;
-    font-style: italic;
-}
-
-/* ===== 11. MENSAJES DE NOTIFICACIÓN ===== */
-.wc-message-success {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #e6f4ea;
-    color: #137333;
-    padding: 12px 20px;
-    border-radius: 4px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    z-index: 9999;
-    animation: fadeIn 0.3s, fadeOut 0.3s 2.7s forwards;
-    font-size: 14px;
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(20px); }
-}
-
-/* Mejoras para accesibilidad */
-.filtro-option input[type="checkbox"]:focus + label {
-    text-decoration: underline;
-}
-
-.productos-search input:focus,
-.producto-boton:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.25);
-}
-
-/* Personalización de la barra de jQuery UI */
-.ui-slider-horizontal .ui-slider-handle {
-    margin-left: -8px;
-}
-
-/* Sombra para resaltar el sidebar cuando hay scroll */
-@media (min-width: 769px) {
-    .productos-container.scrolled .productos-sidebar {
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-}
-    ';
+';
 }
 
 /**
@@ -918,12 +1039,24 @@ function wc_productos_template_get_default_js() {
             var timer;
             var ajaxRunning = false;
             
+            // Función para mostrar indicador de carga
+            function showLoader() {
+                $('.productos-grid').append('<div class=\"productos-loading\"><span class=\"loader-icon\"></span><span class=\"loader-text\">Cargando productos...</span></div>');
+            }
+            
+            // Función para ocultar el indicador de carga
+            function hideLoader() {
+                $('.productos-loading').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+            
             // Función para filtrar productos
             function filterProducts(page = 1) {
                 if (ajaxRunning) return;
                 
                 // Mostrar indicador de carga
-                $('.productos-list').append('<div class=\"loading\">Cargando productos...</div>');
+                showLoader();
                 
                 // Obtener valores de filtros
                 var categoryFilter = [];
@@ -962,37 +1095,50 @@ function wc_productos_template_get_default_js() {
                     data: data,
                     success: function(response) {
                         if (response.success) {
-                            // Actualizar lista de productos
-                            $('.productos-list').html(response.data.products);
+                            // Actualizar lista de productos con animación
+                            $('.productos-grid').fadeOut(200, function() {
+                                $(this).html(response.data.products).fadeIn(200);
+                            });
                             
                             // Actualizar paginación
-                            $('.productos-pagination').html(response.data.pagination);
+                            if (response.data.pagination) {
+                                $('.productos-pagination').fadeOut(200, function() {
+                                    $(this).html(response.data.pagination).fadeIn(200);
+                                });
+                            }
                             
                             // Actualizar contador de resultados
-                            $('.pagination-info').text('Mostrando 1-' + 
-                                Math.min(response.data.total, $('.producto-card').length) + 
-                                ' de ' + response.data.total + ' resultados');
+                            var itemsShown = Math.min(response.data.total, $('.producto-card').length);
+                            $('.pagination-info').text('Mostrando 1-' + itemsShown + ' de ' + 
+                                response.data.total + ' resultados');
                             
-                            // Animar scroll hacia arriba
-                            $('html, body').animate({
-                                scrollTop: $('.productos-list').offset().top - 100
-                            }, 500);
+                            // Animar scroll hacia arriba suavemente si estamos en otra página
+                            if (page > 1) {
+                                $('html, body').animate({
+                                    scrollTop: $('.productos-grid').offset().top - 80
+                                }, 400);
+                            }
                         } else {
-                            console.error('Error al filtrar productos');
+                            // Mostrar mensaje de error
+                            $('.productos-grid').html('<p class=\"productos-error\">' + 
+                                WCProductosParams.i18n.error + '</p>');
                         }
                         
-                        // Marcar que AJAX ha terminado
+                        // Ocultar loader y marcar AJAX como terminado
+                        hideLoader();
                         ajaxRunning = false;
                     },
-                    error: function() {
-                        console.error('Error en la petición AJAX');
-                        $('.loading').remove();
+                    error: function(xhr, status, error) {
+                        console.error('Error en la petición AJAX: ' + error);
+                        $('.productos-grid').html('<p class=\"productos-error\">' + 
+                            WCProductosParams.i18n.error + '</p>');
+                        hideLoader();
                         ajaxRunning = false;
                     }
                 });
             }
             
-            // Event listeners para filtros
+            // Event listeners para filtros con debounce
             $('.filtro-option input[type=\"checkbox\"]').on('change', function() {
                 filterProducts();
             });
@@ -1005,7 +1151,7 @@ function wc_productos_template_get_default_js() {
                 }, 500);
             });
             
-            // Evento para búsqueda
+            // Evento para búsqueda con debounce
             $('.productos-search input').on('keyup', function() {
                 clearTimeout(timer);
                 timer = setTimeout(function() {
@@ -1020,15 +1166,24 @@ function wc_productos_template_get_default_js() {
             });
             
             // Delegación de eventos para paginación
-            $(document).on('click', '.page-number:not(.active)', function() {
+            $(document).on('click', '.page-number:not(.active)', function(e) {
+                e.preventDefault();
                 var page = $(this).data('page') || 1;
                 filterProducts(page);
+                
+                // Actualizar clases de paginación
+                $('.page-number').removeClass('active');
+                $(this).addClass('active');
             });
             
             // Delegación de eventos para botón Agregar al carrito
             $(document).on('click', '.producto-boton', function(e) {
                 e.preventDefault();
                 var productId = $(this).data('product-id');
+                var $button = $(this);
+                
+                // Cambiar estado del botón
+                $button.addClass('loading').text('Agregando...');
                 
                 // Añadir al carrito usando AJAX de WooCommerce
                 $.ajax({
@@ -1046,16 +1201,48 @@ function wc_productos_template_get_default_js() {
                                 $(key).replaceWith(value);
                             });
                             
-                            // Mostrar mensaje de éxito
-                            $('body').append('<div class=\"wc-message-success\">Producto añadido al carrito</div>');
+                            // Restaurar botón
+                            $button.removeClass('loading').text('Agregado al carrito');
                             setTimeout(function() {
-                                $('.wc-message-success').fadeOut().remove();
+                                $button.text('Agregar al carrito');
+                            }, 2000);
+                            
+                            // Mostrar mensaje de éxito
+                            if ($('.wc-message-success').length) {
+                                $('.wc-message-success').remove();
+                            }
+                            
+                            $('body').append('<div class=\"wc-message-success\">' + WCProductosParams.i18n.added + '</div>');
+                            setTimeout(function() {
+                                $('.wc-message-success').fadeOut(300, function() {
+                                    $(this).remove();
+                                });
                             }, 3000);
+                        } else {
+                            // Restaurar botón en caso de error
+                            $button.removeClass('loading').text('Agregar al carrito');
                         }
+                    },
+                    error: function() {
+                        console.error('Error al agregar al carrito');
+                        $button.removeClass('loading').text('Error al agregar');
+                        setTimeout(function() {
+                            $button.text('Agregar al carrito');
+                        }, 2000);
                     }
                 });
             });
+            
+            // Efecto de scroll para sidebar
+            $(window).on('scroll', function() {
+                if ($(window).width() > 768) {
+                    if ($(window).scrollTop() > 100) {
+                        $('.productos-container').addClass('scrolled');
+                    } else {
+                        $('.productos-container').removeClass('scrolled');
+                    }
+                }
+            });
         });
     ";
-}
 }
