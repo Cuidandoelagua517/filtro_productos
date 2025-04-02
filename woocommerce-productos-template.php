@@ -261,12 +261,12 @@ public function ajax_filter_products() {
     $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
     
     // Configurar argumentos base de la consulta
-    $args = array(
-        'post_type'      => 'product',
-        'posts_per_page' => get_option('posts_per_page'),
-        'paged'          => $page,
-        'post_status'    => 'publish',
-    );
+$args = array(
+    'post_type'      => 'product',
+    'posts_per_page' => -1,  // Change from get_option('posts_per_page') to -1
+    'paged'          => $page,
+    'post_status'    => 'publish',
+);
     
     // Importante: Comprobar si hay filtros activados antes de añadirlos a la consulta
     $has_filters = false;
@@ -462,9 +462,9 @@ public function render_pagination($max_pages, $current_page = 1) {
     echo '</div></div>';
 }
 
-      /**
+ /**
  * Cargador de templates personalizado más selectivo
- * Reemplaza la función existente
+ * Permite cargar el template completo para el shortcode
  */
 public function template_loader($template) {
     // Detectar si estamos mostrando el shortcode
@@ -485,21 +485,26 @@ public function template_loader($template) {
 }
 
         /**
-         * Shortcode para mostrar productos con el nuevo template
-         */
-        public function productos_shortcode($atts) {
-            $atts = shortcode_atts(array(
-                'category' => '',
-                'per_page' => get_option('posts_per_page')
-            ), $atts, 'productos_personalizados');
-            
-            // Incluir template de página de productos
-            ob_start();
-            include(WC_PRODUCTOS_TEMPLATE_PATH . 'templates/productos-shortcode.php');
-            return ob_get_clean();
-        }
+ * Shortcode modificado para mostrar productos con el nuevo template y paginación adecuada
+ */
+public function productos_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'category' => '',
+        'per_page' => get_option('posts_per_page')
+    ), $atts, 'productos_personalizados');
+    
+    // Asegurarse de que se puedan obtener parámetros de paginación
+    global $wp_query;
+    if (!isset($wp_query->query_vars['paged'])) {
+        $wp_query->query_vars['paged'] = get_query_var('paged', 1);
     }
-
+    
+    // Incluir template de página de productos
+    ob_start();
+    include(WC_PRODUCTOS_TEMPLATE_PATH . 'templates/productos-shortcode.php');
+    return ob_get_clean();
+}
+}
     // Instanciar la clase
     new WC_Productos_Template();
 
