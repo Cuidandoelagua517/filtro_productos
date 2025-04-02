@@ -214,7 +214,7 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             ?>
             
             <!-- Mostrar productos -->
-           <div class="productos-grid">
+ <div class="productos-grid">
     <?php
     if ($products_query->have_posts()) {
         // Forzar formato de cuadrícula manualmente en lugar de usar woocommerce_product_loop_start()
@@ -222,6 +222,11 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
         
         while ($products_query->have_posts()) {
             $products_query->the_post();
+            
+            // Explicitly set the global $product variable
+            global $product;
+            $product = wc_get_product(get_the_ID());
+            
             wc_get_template_part('content', 'product');
         }
         
@@ -231,8 +236,7 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
         echo '<p class="no-products-found">' . esc_html__('No se encontraron productos que coincidan con los criterios de búsqueda.', 'wc-productos-template') . '</p>';
     }
     ?>
-</div>
-  
+    </div>
             <!-- Paginación -->
             <?php if ($products_query->max_num_pages > 1) : ?>
             <div class="productos-pagination">
