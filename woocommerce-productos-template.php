@@ -147,7 +147,6 @@ public function register_scripts() {
         wp_enqueue_script('jquery-ui-slider');
         wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
     }
-}
 
         /**
          * Sobreescribir templates de WooCommerce
