@@ -1,7 +1,7 @@
 <?php
 /**
  * Template para mostrar productos mediante shortcode
- * Versión modificada para evitar conflictos
+ * Versión corregida para visualización en cuadrícula
  * 
  * @package WC_Productos_Template
  */
@@ -120,10 +120,6 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             </div>
 
             <?php
-            /**
-             * Reemplazar la sección de consulta de productos en templates/productos-shortcode.php
-             */
-
             // Obtener la página actual desde la URL
             $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
 
@@ -176,7 +172,6 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
                 $min_volume = intval($_GET['min_volume']);
                 $max_volume = intval($_GET['max_volume']);
                 
-                // Solo aplicar si los valores son diferentes de los predeterminados
                 if ($min_volume > 100 || $max_volume < 5000) {
                     $args['meta_query'][] = array(
                         'key' => '_volumen_ml',
@@ -187,7 +182,7 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
                 }
             }
 
-            // Configurar orden y ordenamiento (opcional)
+            // Configurar orden 
             if (isset($_GET['orderby'])) {
                 $orderby = sanitize_text_field($_GET['orderby']);
                 $args['orderby'] = $orderby;
@@ -211,32 +206,37 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             wc_set_loop_prop('total', $products_query->found_posts);
             wc_set_loop_prop('total_pages', $products_query->max_num_pages);
             wc_set_loop_prop('columns', 4); // Ajustar según el diseño
+            
+            // IMPORTANTE: Eliminamos el div.productos-grid sobrante que causa conflictos
+            if ($products_query->have_posts()) {
+                // Forzar formato de cuadrícula directamente con HTML y estilos inline
+                echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" 
+                      style="display:grid !important; 
+                             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; 
+                             gap: 20px !important;
+                             width: 100% !important;
+                             margin: 0 !important;
+                             padding: 0 !important;
+                             list-style: none !important;
+                             float: none !important;">';
+                
+                while ($products_query->have_posts()) {
+                    $products_query->the_post();
+                    
+                    // Configurar la variable global $product
+                    global $product;
+                    $product = wc_get_product(get_the_ID());
+                    
+                    wc_get_template_part('content', 'product');
+                }
+                
+                echo '</ul>';
+                wp_reset_postdata();
+            } else {
+                echo '<p class="no-products-found">' . esc_html__('No se encontraron productos que coincidan con los criterios de búsqueda.', 'wc-productos-template') . '</p>';
+            }
             ?>
             
-            <!-- Mostrar productos -->
- <div class="productos-grid">
-    <?php
-    if ($products_query->have_posts()) {
-        // Forzar formato de cuadrícula manualmente en lugar de usar woocommerce_product_loop_start()
-        echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" style="display:grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important;">';
-        
-        while ($products_query->have_posts()) {
-            $products_query->the_post();
-            
-            // Explicitly set the global $product variable
-            global $product;
-            $product = wc_get_product(get_the_ID());
-            
-            wc_get_template_part('content', 'product');
-        }
-        
-        echo '</ul>';
-        wp_reset_postdata();
-    } else {
-        echo '<p class="no-products-found">' . esc_html__('No se encontraron productos que coincidan con los criterios de búsqueda.', 'wc-productos-template') . '</p>';
-    }
-    ?>
-    </div>
             <!-- Paginación -->
             <?php if ($products_query->max_num_pages > 1) : ?>
             <div class="productos-pagination">
@@ -331,6 +331,4 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             <?php endif; ?>
         </main>
     </div>
-</div><?php
-// Fin del template
-?>
+</div>
