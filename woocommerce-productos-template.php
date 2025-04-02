@@ -51,7 +51,7 @@ if (!class_exists('WC_Productos_Template')) {
                 add_action('init', array($this, 'init'));
                 
                 // Registrar scripts y estilos
-                add_action('wp_enqueue_scripts', array($this, 'register_scripts'));
+                add_action('wp_enqueue_scripts', array($this, 'register_scripts'), 999);
                 
                 // Sobreescribir templates de WooCommerce
                 add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 10, 3);
@@ -107,6 +107,10 @@ if (!class_exists('WC_Productos_Template')) {
          * Registrar scripts y estilos
          */
 public function register_scripts() {
+    // Añadir al inicio de la función register_scripts()
+wp_dequeue_style('woocommerce-general');
+wp_dequeue_style('woocommerce-layout');
+wp_dequeue_style('woocommerce-smallscreen');
     // Modificar la condición para asegurar que los estilos se carguen
     if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
         has_shortcode(get_post()->post_content ?? '', 'productos_personalizados') || 
