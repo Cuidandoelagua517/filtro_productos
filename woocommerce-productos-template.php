@@ -296,7 +296,15 @@ if (!class_exists('WC_Productos_Template')) {
         /**
          * Sobreescribir templates de WooCommerce de manera más selectiva
          */
-        public function override_woocommerce_templates($template, $template_name, $template_path) {
+public function override_woocommerce_templates($template, $template_name, $template_path) {
+    // Forzar sobrescritura para archivos críticos para la cuadrícula
+    if ($template_name == 'loop/loop-start.php' || $template_name == 'archive-product.php') {
+        $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
+        
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
             // Lista ampliada de templates que queremos sobrescribir
             $override_templates = array(
                 'content-product.php',           // Template de producto individual
