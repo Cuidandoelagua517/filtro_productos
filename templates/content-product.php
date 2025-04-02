@@ -1,4 +1,9 @@
 <?php
+// Add to the top of content-product.php, archive-product.php, etc.
+echo "<!-- Custom template loaded: " . __FILE__ . " -->";
+?>
+
+<?php
 /**
  * Template para cada producto individual
  */
