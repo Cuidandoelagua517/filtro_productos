@@ -78,45 +78,7 @@ html body .productos-grid li.product,
     visibility: visible !important;
 }
 
-/* ===== 2. ELIMINAR ELEMENTOS HUÉRFANOS ===== */
 
-/* Ocultar cualquier elemento que no sea un li.product dentro del contenedor */
-body ul.products > :not(li.product),
-body.woocommerce ul.products > :not(li.product),
-body.woocommerce-page ul.products > :not(li.product),
-body .woocommerce ul.products > :not(li.product),
-.wc-productos-template ul.products > :not(li.product),
-.productos-grid > :not(li.product) {
-    display: none !important;
-    height: 0 !important;
-    width: 0 !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    overflow: hidden !important;
-    position: absolute !important;
-    z-index: -9999 !important;
-    pointer-events: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Eliminar específicamente cualquier div.producto-interior huérfano */
-body ul.products > div.producto-interior,
-body.woocommerce ul.products > div.producto-interior,
-.woocommerce ul.products > div.producto-interior,
-.wc-productos-template ul.products > div.producto-interior,
-.productos-grid > div.producto-interior,
-div.producto-interior:not(:has(> *)),
-body div.producto-interior:not(li.product div.producto-interior) {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    z-index: -9999 !important;
-    pointer-events: none !important;
-}
 
 /* ===== 3. CONTROL DE FILAS (PANTALLAS GRANDES - 4 COLUMNAS) ===== */
 @media (min-width: 992px) {
