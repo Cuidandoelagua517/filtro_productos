@@ -1,29 +1,11 @@
-<?php
-/**
- * Template para cada producto individual
- * Versión modificada para incluir namespace y evitar conflictos
- * 
- * @package WC_Productos_Template
- */
-
-global $product;
-
-// Asegurarse de que estamos trabajando con un producto
-if (!$product || !($product instanceof WC_Product)) {
-    return;
-}
-
-// Añadir clases al producto
-$classes = array('producto-card');
-if (!in_array('wc-productos-template', $classes)) {
-    $classes[] = 'wc-productos-template';
-}
-?>
 <li <?php wc_product_class($classes, $product); ?>>
     <div class="producto-interior">
         <?php
         // Imagen del producto con enlace
         echo '<div class="producto-imagen">';
+        
+        // Badges en contenedor separado para mejor posicionamiento
+        echo '<div class="producto-badges">';
         
         // Badge de estado de stock
         if ($product->is_in_stock()) {
@@ -43,6 +25,8 @@ if (!in_array('wc-productos-template', $classes)) {
                 esc_html__('Peligroso', 'wc-productos-template') . '</span>';
         }
         
+        echo '</div>'; // Fin de badges
+        
         // Enlace a la imagen
         echo '<a href="' . esc_url(get_permalink()) . '" class="producto-imagen-link">';
         
@@ -58,12 +42,20 @@ if (!in_array('wc-productos-template', $classes)) {
         // Información del producto
         echo '<div class="producto-info">';
         
+        // SKU o ID (movido arriba para destacar la referencia)
+        $sku = $product->get_sku();
+        if ($sku) {
+            echo '<div class="producto-sku">';
+            echo '<strong>' . esc_html__('REF:', 'wc-productos-template') . '</strong> ';
+            echo esc_html($sku) . '</div>';
+        }
+        
         // Título con enlace
         echo '<h2 class="producto-titulo">';
         echo '<a href="' . esc_url(get_permalink()) . '">' . get_the_title() . '</a>';
         echo '</h2>';
         
-        // Detalles del producto
+        // Detalles del producto en formato de tabla para mejor organización
         echo '<div class="producto-detalles">';
         
         // Volumen (desde atributo o meta)
@@ -81,14 +73,6 @@ if (!in_array('wc-productos-template', $classes)) {
             echo esc_html($volumen) . '</div>';
         }
         
-        // SKU o ID
-        $sku = $product->get_sku();
-        if ($sku) {
-            echo '<div class="producto-sku">';
-            echo '<strong>' . esc_html__('REF:', 'wc-productos-template') . '</strong> ';
-            echo esc_html($sku) . '</div>';
-        }
-        
         // Grado (desde atributo)
         $grado = $product->get_attribute('pa_grado');
         if ($grado) {
@@ -99,6 +83,9 @@ if (!in_array('wc-productos-template', $classes)) {
         
         echo '</div>'; // Fin detalles
         
+        // Contenedor de precio y acción
+        echo '<div class="producto-footer">';
+        
         // Precio
         if ($price_html = $product->get_price_html()) {
             echo '<div class="producto-precio">' . $price_html . '</div>';
@@ -107,10 +94,8 @@ if (!in_array('wc-productos-template', $classes)) {
         // Botón de añadir al carrito
         echo '<div class="producto-accion">';
         
-        // Utilizar el botón estándar de WooCommerce pero con nuestra clase
-        // Esto asegura que WooCommerce pueda añadir sus propios handlers
         echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
-               class="producto-boton ' . ($product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button' : '') . '"
+               class="producto-boton ' . ($product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button ajax_add_to_cart' : '') . '"
                data-product_id="' . esc_attr($product->get_id()) . '"
                data-product_sku="' . esc_attr($product->get_sku()) . '"
                aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '">';
@@ -120,6 +105,8 @@ if (!in_array('wc-productos-template', $classes)) {
         echo '</a>';
         
         echo '</div>'; // Fin acciones
+        
+        echo '</div>'; // Fin footer
         
         echo '</div>'; // Fin info
         ?>
