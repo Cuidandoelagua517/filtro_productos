@@ -68,17 +68,7 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Trigger evento después del filtrado
-    const originalFilterProducts = window.filterProducts || function() {};
-    window.filterProducts = function(page = 1) {
-        originalFilterProducts(page);
-        $(document).trigger('productos_filtered');
-    };
-});
-
-// Estilos adicionales para el feedback de añadir al carrito
-jQuery(document).ready(function($) {
-    // Añadir estos estilos al DOM para animaciones
+    // Estilos adicionales para el feedback de añadir al carrito
     $('<style>')
         .prop('type', 'text/css')
         .html(`
@@ -104,7 +94,6 @@ jQuery(document).ready(function($) {
             }
         `)
         .appendTo('head');
-});
     
     // Inicializar slider de volumen
     if ($('.wc-productos-template .volumen-slider').length) {
@@ -127,11 +116,11 @@ jQuery(document).ready(function($) {
     var ajaxRunning = false;
     
     // Función para filtrar productos
-    function filterProducts(page = 1) {
+    window.filterProducts = function(page = 1) {
         if (ajaxRunning) return;
         
         // Mostrar indicador de carga
-        $('.wc-productos-template .productos-list').append('<div class="loading">Cargando productos...</div>');
+        $('.wc-productos-template .productos-grid').append('<div class="loading">Cargando productos...</div>');
         
         // Obtener valores de filtros
         var categoryFilter = [];
@@ -171,7 +160,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     // Actualizar lista de productos
-                    $('.wc-productos-template .productos-list').html(response.data.products);
+                    $('.wc-productos-template .productos-grid').html(response.data.products);
                     
                     // Actualizar paginación
                     $('.wc-productos-template .productos-pagination').html(response.data.pagination);
@@ -181,15 +170,37 @@ jQuery(document).ready(function($) {
                         Math.min(response.data.total, $('.wc-productos-template .producto-card').length) + 
                         ' de ' + response.data.total + ' resultados');
                     
+                    // Actualizar URL para permitir la recarga y navegación directa
+                    if(history.pushState) {
+                        var newurl = window.location.protocol + "//" + window.location.host + 
+                                    window.location.pathname + '?paged=' + page;
+                        
+                        // Añadir otros parámetros de filtro a la URL
+                        if(categoryFilter.length) {
+                            newurl += '&category=' + categoryFilter.join(',');
+                        }
+                        if(gradeFilter.length) {
+                            newurl += '&grade=' + gradeFilter.join(',');
+                        }
+                        if(searchQuery) {
+                            newurl += '&search=' + encodeURIComponent(searchQuery);
+                        }
+                        
+                        window.history.pushState({path:newurl}, '', newurl);
+                    }
+                    
                     // Animar scroll hacia arriba si hay productos
-                    if ($('.wc-productos-template .productos-list').length) {
+                    if ($('.wc-productos-template .productos-grid').length) {
                         $('html, body').animate({
-                            scrollTop: $('.wc-productos-template .productos-list').offset().top - 100
+                            scrollTop: $('.wc-productos-template .productos-grid').offset().top - 100
                         }, 500);
                     }
+                    
+                    // Trigger evento personalizado después de filtrar
+                    $(document).trigger('productos_filtered');
                 } else {
                     console.error('Error al filtrar productos');
-                    $('.wc-productos-template .productos-list').html('<p>' + WCProductosParams.i18n.error + '</p>');
+                    $('.wc-productos-template .productos-grid').html('<p>' + WCProductosParams.i18n.error + '</p>');
                 }
                 
                 // Marcar que AJAX ha terminado
@@ -199,13 +210,13 @@ jQuery(document).ready(function($) {
             error: function() {
                 console.error('Error en la petición AJAX');
                 $('.wc-productos-template .loading').remove();
-                $('.wc-productos-template .productos-list').html('<p>' + WCProductosParams.i18n.error + '</p>');
+                $('.wc-productos-template .productos-grid').html('<p>' + WCProductosParams.i18n.error + '</p>');
                 ajaxRunning = false;
             }
         });
-    }
+    };
     
-    // Event listeners para filtros (solo para elementos dentro de wc-productos-template)
+    // Event listeners para filtros
     $('.wc-productos-template .filtro-option input[type="checkbox"]').on('change', function() {
         filterProducts();
     });
@@ -232,8 +243,8 @@ jQuery(document).ready(function($) {
         filterProducts();
     });
     
-    // Delegación de eventos para paginación (usando namespace)
-    $(document).on('click', '.wc-productos-template .page-number:not(.active)', function() {
+    // Delegación de eventos para paginación con verificación de doble binding
+    $(document).off('click', '.wc-productos-template .page-number:not(.active)').on('click', '.wc-productos-template .page-number:not(.active)', function() {
         var page = $(this).data('page') || 1;
         filterProducts(page);
     });
@@ -295,6 +306,17 @@ jQuery(document).ready(function($) {
             $('.wc-productos-template').addClass('scrolled');
         } else {
             $('.wc-productos-template').removeClass('scrolled');
+        }
+    });
+    
+    // Comprobar si hay parámetros en la URL al cargar
+    $(window).on('load', function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var page = urlParams.get('paged');
+        
+        if (page) {
+            // Si hay una página especificada, cargar esa página
+            filterProducts(parseInt(page));
         }
     });
 });
