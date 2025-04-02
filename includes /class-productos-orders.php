@@ -16,7 +16,7 @@ if (!class_exists('WC_Productos_Template_Orders')) {
          * Constructor
          */
         public function __construct() {
-            // Registrar hooks para interactuar con pedidos si es necesario
+            // Registrar hooks para interactuar con pedidos
             add_action('woocommerce_checkout_create_order', array($this, 'add_custom_order_meta'), 10, 2);
             add_action('woocommerce_admin_order_data_after_order_details', array($this, 'display_custom_order_meta'), 10, 1);
         }
@@ -29,7 +29,7 @@ if (!class_exists('WC_Productos_Template_Orders')) {
          * @param array $data Datos del pedido del checkout
          */
         public function add_custom_order_meta($order, $data) {
-            // Ejemplo: guardar información sobre productos peligrosos en el pedido
+            // Guardar información sobre productos peligrosos en el pedido
             $cart = WC()->cart->get_cart();
             $has_dangerous_products = false;
             
@@ -59,11 +59,13 @@ if (!class_exists('WC_Productos_Template_Orders')) {
             $has_dangerous = $order->get_meta('_has_dangerous_products');
             
             if ($has_dangerous === 'yes') {
-                echo '<p class="form-field form-field-wide">';
-                echo '<mark class="order-status tips dangerous" data-tip="' . esc_attr__('Este pedido contiene productos peligrosos', 'wc-productos-template') . '">';
-                echo esc_html__('¡Atención! Este pedido contiene productos peligrosos', 'wc-productos-template');
+                echo '<div class="wc-productos-order-alert">';
+                echo '<mark class="order-status tips dangerous" data-tip="' . 
+                     esc_attr__('Este pedido contiene productos peligrosos', 'wc-productos-template') . '">';
+                echo '<span class="dangerous-icon"></span> ' . 
+                     esc_html__('¡Atención! Este pedido contiene productos peligrosos', 'wc-productos-template');
                 echo '</mark>';
-                echo '</p>';
+                echo '</div>';
             }
         }
         
@@ -172,12 +174,4 @@ if (!class_exists('WC_Productos_Template_Orders')) {
     
     // Inicializar la clase
     new WC_Productos_Template_Orders();
-}
-
-/**
- * Función para incluir este archivo desde el plugin principal
- */
-function wc_productos_template_include_orders() {
-    // Esta función será llamada desde el archivo principal del plugin
-    require_once plugin_dir_path(__FILE__) . 'includes/class-productos-orders.php';
 }
