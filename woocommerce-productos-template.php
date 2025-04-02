@@ -599,7 +599,37 @@ if (!class_exists('WC_Productos_Template')) {
     // Activación del plugin
     register_activation_hook(__FILE__, 'wc_productos_template_activate');
 }
-
+// Añade este código en el archivo functions.php de tu tema o en un plugin personalizado
+function force_productos_grid_styles() {
+    wp_enqueue_style(
+        'force-productos-grid', 
+        plugin_dir_url(__FILE__) . 'assets/css/force-grid.css',
+        array(),
+        time()
+    );
+    
+    $inline_css = "
+    .woocommerce ul.products,
+    .woocommerce-page ul.products {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+        gap: 20px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .woocommerce ul.products li.product,
+    .woocommerce-page ul.products li.product {
+        width: 100% !important;
+        margin: 0 0 20px 0 !important;
+        float: none !important;
+        clear: none !important;
+    }";
+    
+    wp_add_inline_style('force-productos-grid', $inline_css);
+}
+add_action('wp_enqueue_scripts', 'force_productos_grid_styles', 9999);
 /**
  * Función para activar el plugin
  */
