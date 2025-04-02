@@ -23,7 +23,30 @@ jQuery(document).ready(function($) {
     
     // Llamar a lazy load al inicio
     lazyLoadProductImages();
+  // Modifica esta parte en assets/js/productos-template.js
+$(document).off('click', '.page-number, .woocommerce-pagination a').on('click', '.page-number, .woocommerce-pagination a', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     
+    // Obtener número de página
+    var page = $(this).data('page') || $(this).text() || 1;
+    // Si es un enlace con texto "2", etc.
+    if (isNaN(page) && $(this).attr('href')) {
+        // Extraer número de página de la URL
+        var matches = $(this).attr('href').match(/page\/(\d+)/);
+        if (matches) {
+            page = matches[1];
+        } else {
+            matches = $(this).attr('href').match(/paged=(\d+)/);
+            if (matches) {
+                page = matches[1];
+            }
+        }
+    }
+    
+    filterProducts(parseInt(page));
+    return false;
+});  
     // Llamar nuevamente después de filtrar productos
     $(document).on('productos_filtered', function() {
         lazyLoadProductImages();
