@@ -43,16 +43,18 @@ if (!class_exists('WC_Productos_Template_Metabox')) {
             $is_dangerous = get_post_meta($post->ID, '_is_dangerous', true);
             
             ?>
-            <p>
-                <label for="wc_producto_is_dangerous">
-                    <input type="checkbox" id="wc_producto_is_dangerous" name="wc_producto_is_dangerous" 
-                        value="yes" <?php checked($is_dangerous, 'yes'); ?> />
-                    <?php esc_html_e('Producto Peligroso', 'wc-productos-template'); ?>
-                </label>
-            </p>
-            <p class="description">
-                <?php esc_html_e('Marcar si el producto requiere advertencias especiales', 'wc-productos-template'); ?>
-            </p>
+            <div class="wc-productos-options-container">
+                <p>
+                    <label for="wc_producto_is_dangerous" class="option-label">
+                        <input type="checkbox" id="wc_producto_is_dangerous" name="wc_producto_is_dangerous" 
+                            value="yes" <?php checked($is_dangerous, 'yes'); ?> />
+                        <?php esc_html_e('Producto Peligroso', 'wc-productos-template'); ?>
+                    </label>
+                </p>
+                <p class="description">
+                    <?php esc_html_e('Marcar si el producto requiere advertencias especiales', 'wc-productos-template'); ?>
+                </p>
+            </div>
             <?php
         }
         
@@ -133,12 +135,4 @@ if (!class_exists('WC_Productos_Template_Metabox')) {
     
     // Inicializar la clase
     new WC_Productos_Template_Metabox();
-}
-
-/**
- * Función para incluir este archivo desde el plugin principal
- */
-function wc_productos_template_include_metabox() {
-    // Esta función será llamada desde el archivo principal del plugin
-    require_once plugin_dir_path(__FILE__) . 'includes/class-productos-metabox.php';
 }
