@@ -248,7 +248,7 @@ public function override_woocommerce_templates($template, $template_name, $templ
 
        /**
  /**
- * AJAX handler para filtrar productos - corregido para mejor integración con WooCommerce
+ * AJAX handler para filtrar productos - corregido para preservar la consulta principal
  */
 public function ajax_filter_products() {
     // Verificar nonce
@@ -260,25 +260,32 @@ public function ajax_filter_products() {
     // Obtener página actual
     $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
     
-    // Configurar argumentos de búsqueda
+    // Configurar argumentos base de la consulta
     $args = array(
-        'post_type' => 'product',
+        'post_type'      => 'product',
         'posts_per_page' => get_option('posts_per_page'),
-        'paged' => $page,
-        'tax_query' => array('relation' => 'AND'),
-        'meta_query' => array('relation' => 'AND')
+        'paged'          => $page,
+        'post_status'    => 'publish',
     );
+    
+    // Importante: Comprobar si hay filtros activados antes de añadirlos a la consulta
+    $has_filters = false;
+    
+    // Inicializar arrays para taxonomías y meta
+    $tax_query = array('relation' => 'AND');
+    $meta_query = array('relation' => 'AND');
     
     // Filtrar por categoría
     if (isset($_POST['category']) && !empty($_POST['category'])) {
         $categories = explode(',', sanitize_text_field($_POST['category']));
         if (!empty($categories)) {
-            $args['tax_query'][] = array(
+            $tax_query[] = array(
                 'taxonomy' => 'product_cat',
-                'field' => 'slug',
-                'terms' => $categories,
+                'field'    => 'slug',
+                'terms'    => $categories,
                 'operator' => 'IN'
             );
+            $has_filters = true;
         }
     }
     
@@ -286,52 +293,73 @@ public function ajax_filter_products() {
     if (isset($_POST['grade']) && !empty($_POST['grade'])) {
         $grades = explode(',', sanitize_text_field($_POST['grade']));
         if (!empty($grades)) {
-            $args['tax_query'][] = array(
+            $tax_query[] = array(
                 'taxonomy' => 'pa_grado',
-                'field' => 'slug',
-                'terms' => $grades,
+                'field'    => 'slug',
+                'terms'    => $grades,
                 'operator' => 'IN'
             );
+            $has_filters = true;
         }
     }
     
     // Filtrar por volumen (rango)
-    if (isset($_POST['min_volume']) && isset($_POST['max_volume'])) {
-        $args['meta_query'][] = array(
-            'key' => '_volumen_ml',
-            'value' => array(intval($_POST['min_volume']), intval($_POST['max_volume'])),
-            'type' => 'NUMERIC',
+    if (isset($_POST['min_volume']) && isset($_POST['max_volume']) && 
+        (intval($_POST['min_volume']) > 100 || intval($_POST['max_volume']) < 5000)) {
+        $meta_query[] = array(
+            'key'     => '_volumen_ml',
+            'value'   => array(intval($_POST['min_volume']), intval($_POST['max_volume'])),
+            'type'    => 'NUMERIC',
             'compare' => 'BETWEEN'
         );
+        $has_filters = true;
     }
     
     // Búsqueda
     if (isset($_POST['search']) && !empty($_POST['search'])) {
         $args['s'] = sanitize_text_field($_POST['search']);
+        $has_filters = true;
     }
     
-    // Configurar las propiedades del bucle de WooCommerce
-    wc_set_loop_prop('current_page', $page);
+    // Añadir las consultas de taxonomía y meta solo si hay filtros activos
+    if (count($tax_query) > 1) {
+        $args['tax_query'] = $tax_query;
+    }
+    
+    if (count($meta_query) > 1) {
+        $args['meta_query'] = $meta_query;
+    }
+    
+    // Aplicar filtros de WooCommerce
+    $args = apply_filters('woocommerce_product_query_args', $args);
     
     // Ejecutar la consulta
     $products_query = new WP_Query($args);
     
-    // Establecer propiedades del bucle de WooCommerce para la paginación
-    wc_set_loop_prop('total', $products_query->found_posts);
+    // Configurar las propiedades del bucle de WooCommerce
+    wc_set_loop_prop('current_page', $page);
+    wc_set_loop_prop('is_paginated', true);
+    wc_set_loop_prop('page_template', 'productos-template');
     wc_set_loop_prop('per_page', get_option('posts_per_page'));
+    wc_set_loop_prop('total', $products_query->found_posts);
     wc_set_loop_prop('total_pages', $products_query->max_num_pages);
+    wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
     
     ob_start();
     
     if ($products_query->have_posts()) {
         echo '<ul class="productos-grid products columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
+        
         while ($products_query->have_posts()) {
             $products_query->the_post();
             wc_get_template_part('content', 'product');
         }
+        
         echo '</ul>';
     } else {
-        echo '<p class="woocommerce-info">' . esc_html__('No se encontraron productos que coincidan con tu selección.', 'wc-productos-template') . '</p>';
+        echo '<div class="woocommerce-info">' . 
+             esc_html__('No se encontraron productos que coincidan con tu selección.', 'wc-productos-template') . 
+             '</div>';
     }
     
     $products_html = ob_get_clean();
@@ -348,18 +376,18 @@ public function ajax_filter_products() {
     
     // Enviar respuesta
     wp_send_json_success(array(
-        'products' => $products_html,
-        'pagination' => $pagination,
-        'total' => $products_query->found_posts,
+        'products'     => $products_html,
+        'pagination'   => $pagination,
+        'total'        => $products_query->found_posts,
         'current_page' => $page,
-        'max_pages' => $products_query->max_num_pages
+        'max_pages'    => $products_query->max_num_pages,
+        'has_filters'  => $has_filters
     ));
     
     exit;
-}
 /**
- * Renderiza la paginación de manera consistente tanto para AJAX como para cargas normales
- * 
+ * Renderiza la paginación de manera consistente
+ *
  * @param int $max_pages Número total de páginas
  * @param int $current_page Página actual
  */
@@ -393,43 +421,31 @@ public function render_pagination($max_pages, $current_page = 1) {
         );
     }
     
-    // Determinar rango de páginas a mostrar
-    $range = 3; // Mostrar 3 páginas en cada lado
-    $showitems = ($range * 2) + 1;
+    // Mostrar números de página (con límite para evitar demasiados botones)
+    $start = max(1, $current_page - 2);
+    $end = min($max_pages, $current_page + 2);
     
-    // Primera página siempre visible
-    if ($current_page > 1) {
+    if ($start > 1) {
         echo '<button class="page-number" data-page="1">1</button>';
-    } else {
-        echo '<button class="page-number active" data-page="1">1</button>';
-    }
-    
-    // Puntos suspensivos después de la primera página si es necesario
-    if ($current_page > $range + 1) {
-        echo '<span class="page-dots">...</span>';
-    }
-    
-    // Bucle para páginas intermedias
-    for ($i = max(2, $current_page - $range); $i <= min($current_page + $range, $max_pages - 1); $i++) {
-        if ($i == $current_page) {
-            printf('<button class="page-number active" data-page="%d">%d</button>', $i, $i);
-        } else {
-            printf('<button class="page-number" data-page="%d">%d</button>', $i, $i);
+        if ($start > 2) {
+            echo '<span class="page-dots">...</span>';
         }
     }
     
-    // Puntos suspensivos antes de la última página si es necesario
-    if ($current_page < $max_pages - $range) {
-        echo '<span class="page-dots">...</span>';
+    for ($i = $start; $i <= $end; $i++) {
+        printf(
+            '<button class="page-number%s" data-page="%d">%d</button>',
+            $i === $current_page ? ' active' : '',
+            $i,
+            $i
+        );
     }
     
-    // Última página siempre visible si hay más de una página
-    if ($max_pages > 1) {
-        if ($current_page == $max_pages) {
-            printf('<button class="page-number active" data-page="%d">%d</button>', $max_pages, $max_pages);
-        } else {
-            printf('<button class="page-number" data-page="%d">%d</button>', $max_pages, $max_pages);
+    if ($end < $max_pages) {
+        if ($end < $max_pages - 1) {
+            echo '<span class="page-dots">...</span>';
         }
+        printf('<button class="page-number" data-page="%d">%d</button>', $max_pages, $max_pages);
     }
     
     // Botón "Siguiente" si no estamos en la última página
