@@ -96,7 +96,54 @@ body .woocommerce ul.products li.product:nth-child(n+13),
 .productos-grid li.product:nth-child(n+13) {
     display: none !important;
 }
+/**
+ * Solución específica para el problema de div.producto-interior en la cuarta fila
+ * Añadir este código al final del archivo assets/css/force-grid.css
+ */
 
+/* Asegurar que ningún elemento de producto aparezca después de 3 filas, incluyendo div.producto-interior */
+body ul.products li.product:nth-child(n+13),
+body.woocommerce ul.products li.product:nth-child(n+13),
+body.woocommerce-page ul.products li.product:nth-child(n+13),
+body .woocommerce ul.products li.product:nth-child(n+13),
+.wc-productos-template ul.products li.product:nth-child(n+13),
+.productos-grid li.product:nth-child(n+13),
+/* Selectores específicos para el div.producto-interior */
+body ul.products li.product:nth-child(n+13) .producto-interior,
+body.woocommerce ul.products li.product:nth-child(n+13) .producto-interior,
+body.woocommerce-page ul.products li.product:nth-child(n+13) .producto-interior,
+body .woocommerce ul.products li.product:nth-child(n+13) .producto-interior,
+.wc-productos-template ul.products li.product:nth-child(n+13) .producto-interior,
+.productos-grid li.product:nth-child(n+13) .producto-interior {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+}
+
+/* Ocultar también cualquier div.producto-interior que pueda estar fuera de un li.product */
+.wc-productos-template .productos-grid > div.producto-interior,
+.woocommerce ul.products > div.producto-interior,
+ul.products > div.producto-interior {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Forzar que no haya cuarta fila en el grid con grid-template-rows explícito */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+.wc-productos-template ul.products,
+.productos-grid {
+    grid-template-rows: repeat(3, auto) !important;
+    overflow: hidden !important;
+    max-height: calc(3 * 500px) !important; /* Estimación del alto máximo de 3 filas */
+}
 /* Ajustes responsivos */
 @media (max-width: 991px) {
     /* Para 3 columnas en pantallas medianas (3 columnas × 3 filas = 9 productos) */
