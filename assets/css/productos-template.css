@@ -204,11 +204,13 @@
 }
 
 /* ===== 7. TARJETA DE PRODUCTO ===== */
+.woocommerce .producto-card,
+.productos-container .producto-card,
 .producto-card {
-    background-color: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    padding: 20px;
+    background-color: #fff !important;
+    border: 1px solid #e2e2e2 !important;
+    border-radius: 6px !important;
+    padding: 20px !important;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
