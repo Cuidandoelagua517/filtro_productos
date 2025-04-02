@@ -808,7 +808,101 @@ if (function_exists('force_productos_grid_styles')) {
 if (function_exists('wc_productos_fix_grid_display')) {
     remove_action('wp_enqueue_scripts', 'wc_productos_fix_grid_display', 99999);
 }
+/**
+ * Calcular y ajustar el número de productos para mostrar exactamente 3 filas
+ * basado en el ancho de la pantalla y el número de columnas
+ */
+function wc_productos_ajustar_productos_por_fila() {
+    // Función para determinar productos por fila según el ancho de la ventana
+    $script = "
+    <script>
+    jQuery(document).ready(function($) {
+        function calcularProductosPorFila() {
+            // Detectar cuántas columnas hay actualmente
+            var $grid = $('.productos-grid, ul.products');
+            if ($grid.length === 0) return;
+            
+            // Contar cuántos productos hay por fila
+            var productosPorFila = 4; // Valor por defecto
+            
+            // Determinar por el ancho de la ventana
+            if (window.innerWidth <= 480) {
+                productosPorFila = 2; // Móviles: 2 columnas
+            } else if (window.innerWidth <= 768) {
+                productosPorFila = 3; // Tablets: 3 columnas
+            } else if (window.innerWidth <= 991) {
+                productosPorFila = 3; // Pantallas medianas: 3 columnas
+            } else {
+                productosPorFila = 4; // Pantallas grandes: 4 columnas
+            }
+            
+            // Calcular el número total de productos para 3 filas exactas
+            var productosTotal = productosPorFila * 3;
+            
+            // Guardar en una cookie para que PHP pueda acceder
+            document.cookie = 'wc_productos_por_fila=' + productosPorFila + '; path=/';
+            document.cookie = 'wc_productos_max=' + productosTotal + '; path=/';
+            
+            return productosTotal;
+        }
+        
+        // Calcular al cargar
+        calcularProductosPorFila();
+        
+        // Recalcular cuando cambie el tamaño de la ventana
+        $(window).on('resize', function() {
+            calcularProductosPorFila();
+        });
+    });
+    </script>
+    ";
+    
+    // Añadir el script al footer
+    add_action('wp_footer', function() use ($script) {
+        echo $script;
+    });
+    
+    // Modificar la consulta de productos para limitar a 3 filas
+    add_action('woocommerce_product_query', 'limitar_productos_a_tres_filas');
+    
+    // También modificar la consulta para el shortcode
+    add_filter('woocommerce_shortcode_products_query', 'limitar_productos_a_tres_filas_array');
+}
 
+/**
+ * Limitar la consulta de productos a exactamente 3 filas completas
+ */
+function limitar_productos_a_tres_filas($query) {
+    // Determinar cuántos productos por fila basado en la cookie o usar valor predeterminado
+    $productos_por_fila = isset($_COOKIE['wc_productos_por_fila']) ? intval($_COOKIE['wc_productos_por_fila']) : 4;
+    
+    // Calcular para 3 filas exactas
+    $productos_total = $productos_por_fila * 3;
+    
+    // Establecer posts_per_page
+    $query->set('posts_per_page', $productos_total);
+    
+    return $query;
+}
+
+/**
+ * Versión para array de argumentos (usado en shortcodes)
+ */
+function limitar_productos_a_tres_filas_array($args) {
+    // Determinar cuántos productos por fila basado en la cookie o usar valor predeterminado
+    $productos_por_fila = isset($_COOKIE['wc_productos_por_fila']) ? intval($_COOKIE['wc_productos_por_fila']) : 4;
+    
+    // Calcular para 3 filas exactas
+    $productos_total = $productos_por_fila * 3;
+    
+    // Establecer posts_per_page
+    $args['posts_per_page'] = $productos_total;
+    
+    return $args;
+}
+
+// Iniciar la función
+add_action('init', 'wc_productos_ajustar_productos_por_fila');
 /**
  * Función para solucionar problemas con las plantillas
  * Añadir al archivo woocommerce-productos-template.php
