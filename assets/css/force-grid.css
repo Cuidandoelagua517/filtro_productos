@@ -1,8 +1,10 @@
 /**
- * Estilos forzados para cuadrícula de productos
- * Aplicados con alta especificidad y !important
+ * FORCE-GRID.CSS (VERSIÓN FINAL)
+ * Estilos forzados para cuadrícula de productos WooCommerce
+ * Optimizado para evitar elementos huérfanos y limitar a 3 filas exactas
  */
-/* Forzar estilo de cuadrícula en todas las listas de productos */
+
+/* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
 body ul.products,
 body.woocommerce ul.products,
 body.woocommerce-page ul.products,
@@ -13,19 +15,30 @@ html body .productos-grid,
 .woocommerce .products,
 .wc-productos-template ul.products,
 .productos-grid {
+    /* Configuración principal del grid */
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    grid-template-rows: repeat(3, auto) !important;
+    grid-auto-rows: 0px !important; /* Crucial: fuerza filas adicionales a tener altura cero */
     gap: 20px !important;
+    
+    /* Limitar altura y ocultar desbordamiento */
+    max-height: 1500px !important; /* Valor seguro para tres filas en cualquier resolución */
+    overflow: hidden !important;
+    
+    /* Resetear estilos que puedan interferir */
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    margin: 0 0 30px 0 !important;
     padding: 0 !important;
     list-style: none !important;
     float: none !important;
     clear: both !important;
+    box-sizing: border-box !important;
+    position: relative !important; /* Para posicionamiento absoluto de elementos huérfanos */
 }
 
-/* Eliminar flotadores que pueden romper la cuadrícula */
+/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
 body ul.products::before,
 body ul.products::after,
 body.woocommerce ul.products::before,
@@ -39,7 +52,7 @@ body.woocommerce ul.products::after,
     clear: none !important;
 }
 
-/* Forzar estilo correcto para cada producto */
+/* Estilo base para cada producto */
 body ul.products li.product,
 body.woocommerce ul.products li.product,
 body.woocommerce-page ul.products li.product,
@@ -59,203 +72,245 @@ html body .productos-grid li.product,
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
-}
-/**
- * Solución CSS para limitar la cuadrícula a 3 filas exactas
- * Este código debe agregarse al final del archivo force-grid.css
- */
-
-/* Limitar la cuadrícula a 3 filas usando grid-template-rows */
-body ul.products,
-body.woocommerce ul.products,
-body.woocommerce-page ul.products,
-body .woocommerce ul.products,
-.wc-productos-template ul.products,
-.productos-grid {
-    grid-template-rows: repeat(3, auto) !important;
-    max-height: calc(3 * (220px + 180px + 40px)) !important; /* Altura estimada de 3 filas */
-    overflow: hidden !important;
+    height: 100% !important; /* Asegurar altura completa */
+    opacity: 1 !important; /* Asegurar visibilidad */
+    position: relative !important;
+    visibility: visible !important;
 }
 
-/* Asegurar que todos los productos en las 3 primeras filas sean visibles */
-body ul.products li.product:nth-child(-n+12),
-body.woocommerce ul.products li.product:nth-child(-n+12),
-body.woocommerce-page ul.products li.product:nth-child(-n+12),
-body .woocommerce ul.products li.product:nth-child(-n+12),
-.wc-productos-template ul.products li.product:nth-child(-n+12),
-.productos-grid li.product:nth-child(-n+12) {
-    display: flex !important;
-}
+/* ===== 2. ELIMINAR ELEMENTOS HUÉRFANOS ===== */
 
-/* Ocultar cualquier producto después del número 12 (asumiendo 4 columnas × 3 filas) */
-body ul.products li.product:nth-child(n+13),
-body.woocommerce ul.products li.product:nth-child(n+13),
-body.woocommerce-page ul.products li.product:nth-child(n+13),
-body .woocommerce ul.products li.product:nth-child(n+13),
-.wc-productos-template ul.products li.product:nth-child(n+13),
-.productos-grid li.product:nth-child(n+13) {
+/* Ocultar cualquier elemento que no sea un li.product dentro del contenedor */
+body ul.products > :not(li.product),
+body.woocommerce ul.products > :not(li.product),
+body.woocommerce-page ul.products > :not(li.product),
+body .woocommerce ul.products > :not(li.product),
+.wc-productos-template ul.products > :not(li.product),
+.productos-grid > :not(li.product) {
     display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    z-index: -9999 !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
-/**
- * Solución específica para el problema de div.producto-interior en la cuarta fila
- * Añadir este código al final del archivo assets/css/force-grid.css
- */
 
-/* Asegurar que ningún elemento de producto aparezca después de 3 filas, incluyendo div.producto-interior */
-body ul.products li.product:nth-child(n+13),
-body.woocommerce ul.products li.product:nth-child(n+13),
-body.woocommerce-page ul.products li.product:nth-child(n+13),
-body .woocommerce ul.products li.product:nth-child(n+13),
-.wc-productos-template ul.products li.product:nth-child(n+13),
-.productos-grid li.product:nth-child(n+13),
-/* Selectores específicos para el div.producto-interior */
-body ul.products li.product:nth-child(n+13) .producto-interior,
-body.woocommerce ul.products li.product:nth-child(n+13) .producto-interior,
-body.woocommerce-page ul.products li.product:nth-child(n+13) .producto-interior,
-body .woocommerce ul.products li.product:nth-child(n+13) .producto-interior,
-.wc-productos-template ul.products li.product:nth-child(n+13) .producto-interior,
-.productos-grid li.product:nth-child(n+13) .producto-interior {
+/* Eliminar específicamente cualquier div.producto-interior huérfano */
+body ul.products > div.producto-interior,
+body.woocommerce ul.products > div.producto-interior,
+.woocommerce ul.products > div.producto-interior,
+.wc-productos-template ul.products > div.producto-interior,
+.productos-grid > div.producto-interior,
+div.producto-interior:not(:has(> *)),
+body div.producto-interior:not(li.product div.producto-interior) {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
     width: 0 !important;
-    overflow: hidden !important;
-    position: absolute !important;
-    pointer-events: none !important;
     opacity: 0 !important;
+    position: absolute !important;
+    z-index: -9999 !important;
+    pointer-events: none !important;
 }
 
-/* Ocultar también cualquier div.producto-interior que pueda estar fuera de un li.product */
-.wc-productos-template .productos-grid > div.producto-interior,
-.woocommerce ul.products > div.producto-interior,
-ul.products > div.producto-interior {
-    display: none !important;
-    visibility: hidden !important;
+/* ===== 3. CONTROL DE FILAS (PANTALLAS GRANDES - 4 COLUMNAS) ===== */
+@media (min-width: 992px) {
+    /* Asegurar que los primeros 12 productos (4x3) se muestren */
+    body ul.products li.product:nth-child(-n+12),
+    body.woocommerce ul.products li.product:nth-child(-n+12),
+    body.woocommerce-page ul.products li.product:nth-child(-n+12),
+    body .woocommerce ul.products li.product:nth-child(-n+12),
+    .wc-productos-template ul.products li.product:nth-child(-n+12),
+    .productos-grid li.product:nth-child(-n+12) {
+        display: flex !important;
+        visibility: visible !important;
+        height: auto !important;
+    }
+    
+    /* Ocultar cualquier producto después del 12 (4 columnas x 3 filas) */
+    body ul.products li.product:nth-child(n+13),
+    body.woocommerce ul.products li.product:nth-child(n+13),
+    body.woocommerce-page ul.products li.product:nth-child(n+13),
+    body .woocommerce ul.products li.product:nth-child(n+13),
+    .wc-productos-template ul.products li.product:nth-child(n+13),
+    .productos-grid li.product:nth-child(n+13),
+    /* También ocultar divs dentro de estos productos */
+    body ul.products li.product:nth-child(n+13) *,
+    body.woocommerce ul.products li.product:nth-child(n+13) *,
+    body.woocommerce-page ul.products li.product:nth-child(n+13) *,
+    body .woocommerce ul.products li.product:nth-child(n+13) *,
+    .wc-productos-template ul.products li.product:nth-child(n+13) *,
+    .productos-grid li.product:nth-child(n+13) * {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+        opacity: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
 }
 
-/* Forzar que no haya cuarta fila en el grid con grid-template-rows explícito */
-body ul.products,
-body.woocommerce ul.products,
-body.woocommerce-page ul.products,
-body .woocommerce ul.products,
-.wc-productos-template ul.products,
-.productos-grid {
-    grid-template-rows: repeat(3, auto) !important;
-    overflow: hidden !important;
-    max-height: calc(3 * 500px) !important; /* Estimación del alto máximo de 3 filas */
-}
-/* Ajustes responsivos */
-@media (max-width: 991px) {
-    /* Para 3 columnas en pantallas medianas (3 columnas × 3 filas = 9 productos) */
+/* ===== 4. CONTROL DE FILAS (PANTALLAS MEDIANAS - 3 COLUMNAS) ===== */
+@media (max-width: 991px) and (min-width: 769px) {
+    /* Ajustar grid para 3 columnas */
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    /* Mostrar solo los primeros 9 productos (3x3) */
+    body ul.products li.product:nth-child(-n+9),
+    body.woocommerce ul.products li.product:nth-child(-n+9),
+    body.woocommerce-page ul.products li.product:nth-child(-n+9),
+    body .woocommerce ul.products li.product:nth-child(-n+9),
+    .wc-productos-template ul.products li.product:nth-child(-n+9),
+    .productos-grid li.product:nth-child(-n+9) {
+        display: flex !important;
+        visibility: visible !important;
+        height: auto !important;
+    }
+    
+    /* Ocultar desde el producto 10 en adelante */
     body ul.products li.product:nth-child(n+10),
     body.woocommerce ul.products li.product:nth-child(n+10),
     body.woocommerce-page ul.products li.product:nth-child(n+10),
     body .woocommerce ul.products li.product:nth-child(n+10),
     .wc-productos-template ul.products li.product:nth-child(n+10),
-    .productos-grid li.product:nth-child(n+10) {
+    .productos-grid li.product:nth-child(n+10),
+    /* También ocultar divs dentro de estos productos */
+    body ul.products li.product:nth-child(n+10) *,
+    body.woocommerce ul.products li.product:nth-child(n+10) *,
+    body.woocommerce-page ul.products li.product:nth-child(n+10) *,
+    body .woocommerce ul.products li.product:nth-child(n+10) *,
+    .wc-productos-template ul.products li.product:nth-child(n+10) *,
+    .productos-grid li.product:nth-child(n+10) * {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+        opacity: 0 !important;
     }
 }
 
+/* ===== 5. CONTROL DE FILAS (PANTALLAS PEQUEÑAS - 2 COLUMNAS) ===== */
 @media (max-width: 768px) {
-    /* Para 2 columnas en pantallas pequeñas (2 columnas × 3 filas = 6 productos) */
+    /* Ajustar grid para 2 columnas */
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+    }
+    
+    /* Mostrar solo los primeros 6 productos (2x3) */
+    body ul.products li.product:nth-child(-n+6),
+    body.woocommerce ul.products li.product:nth-child(-n+6),
+    body.woocommerce-page ul.products li.product:nth-child(-n+6),
+    body .woocommerce ul.products li.product:nth-child(-n+6),
+    .wc-productos-template ul.products li.product:nth-child(-n+6),
+    .productos-grid li.product:nth-child(-n+6) {
+        display: flex !important;
+        visibility: visible !important;
+        height: auto !important;
+    }
+    
+    /* Ocultar desde el producto 7 en adelante */
     body ul.products li.product:nth-child(n+7),
     body.woocommerce ul.products li.product:nth-child(n+7),
     body.woocommerce-page ul.products li.product:nth-child(n+7),
     body .woocommerce ul.products li.product:nth-child(n+7),
     .wc-productos-template ul.products li.product:nth-child(n+7),
-    .productos-grid li.product:nth-child(n+7) {
+    .productos-grid li.product:nth-child(n+7),
+    /* También ocultar divs dentro de estos productos */
+    body ul.products li.product:nth-child(n+7) *,
+    body.woocommerce ul.products li.product:nth-child(n+7) *,
+    body.woocommerce-page ul.products li.product:nth-child(n+7) *,
+    body .woocommerce ul.products li.product:nth-child(n+7) *,
+    .wc-productos-template ul.products li.product:nth-child(n+7) *,
+    .productos-grid li.product:nth-child(n+7) * {
         display: none !important;
-    }
-}
-/* Media queries para responsividad */
-@media (max-width: 768px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+        opacity: 0 !important;
     }
 }
 
+/* ===== 6. AJUSTES PARA DISPOSITIVOS MUY PEQUEÑOS ===== */
 @media (max-width: 480px) {
     body ul.products,
     body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
     .wc-productos-template ul.products,
     .productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
+        grid-template-columns: repeat(2, 1fr) !important; /* Mantener 2 columnas */
+        gap: 10px !important; /* Reducir el espacio entre items */
+    }
+    
+    /* Ajustar detalles visuales para pantallas pequeñas */
+    body ul.products li.product,
+    body.woocommerce ul.products li.product,
+    body.woocommerce-page ul.products li.product,
+    body .woocommerce ul.products li.product,
+    .wc-productos-template ul.products li.product,
+    .productos-grid li.product {
+        margin-bottom: 15px !important;
     }
 }
-/**
- * Solución para ocultar cualquier div.producto-interior huérfano en la cuarta fila
- * Añadir al final de assets/css/force-grid.css
- */
 
-/* Ocultar explícitamente cualquier div.producto-interior huérfano a nivel del contenedor */
-ul.products > div.producto-interior,
-.productos-grid > div.producto-interior,
-.wc-productos-template ul.products > div.producto-interior,
-.woocommerce ul.products > div.producto-interior {
+/* ===== 7. SOLUCIÓN FINAL PARA ELEMENTOS HUÉRFANOS ===== */
+/* Esta sección es crucial para evitar que aparezcan bloques huérfanos */
+
+/* Ocultar cualquier div.producto-interior que no sea descendiente directo de un li.product */
+html body div.producto-interior:not(li.product > div.producto-interior) {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
-    overflow: hidden !important;
-    opacity: 0 !important;
     width: 0 !important;
     position: absolute !important;
+    z-index: -9999 !important;
+    opacity: 0 !important;
     pointer-events: none !important;
-}
-
-/* Asegurar que el contenedor principal tenga establecida una altura máxima clara */
-ul.products,
-.productos-grid,
-.wc-productos-template ul.products,
-.woocommerce ul.products {
-    display: grid !important;
-    grid-template-rows: repeat(3, minmax(min-content, max-content)) !important;
     overflow: hidden !important;
-    max-height: 1200px !important; /* Valor máximo seguro para tres filas */
-    margin-bottom: 30px !important;
 }
 
-/* Asegurar que solo se muestren exactamente tres filas de productos */
-@media (min-width: 992px) {
-    /* 4 columnas x 3 filas = 12 productos */
-    ul.products > *:nth-child(n+13),
-    .productos-grid > *:nth-child(n+13),
-    .wc-productos-template ul.products > *:nth-child(n+13),
-    .woocommerce ul.products > *:nth-child(n+13) {
-        display: none !important;
-    }
+/* Regla universal para cualquier elemento huérfano en la estructura de productos */
+html body .wc-productos-template *:empty,
+html body .productos-grid *:empty,
+html body ul.products *:empty {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
 }
 
-@media (max-width: 991px) and (min-width: 769px) {
-    /* 3 columnas x 3 filas = 9 productos */
-    ul.products > *:nth-child(n+10),
-    .productos-grid > *:nth-child(n+10),
-    .wc-productos-template ul.products > *:nth-child(n+10),
-    .woocommerce ul.products > *:nth-child(n+10) {
-        display: none !important;
-    }
-}
-
-@media (max-width: 768px) and (min-width: 481px) {
-    /* 2 columnas x 3 filas = 6 productos */
-    ul.products > *:nth-child(n+7),
-    .productos-grid > *:nth-child(n+7),
-    .wc-productos-template ul.products > *:nth-child(n+7),
-    .woocommerce ul.products > *:nth-child(n+7) {
-        display: none !important;
-    }
-}
-
-@media (max-width: 480px) {
-    /* 2 columnas x 3 filas = 6 productos para móviles */
-    ul.products > *:nth-child(n+7),
-    .productos-grid > *:nth-child(n+7),
-    .wc-productos-template ul.products > *:nth-child(n+7),
-    .woocommerce ul.products > *:nth-child(n+7) {
-        display: none !important;
-    }
+/* Selectores de último recurso para cualquier elemento huérfano */
+html body div.wc-productos-template > div:not(.productos-container):not(.productos-layout):not(.productos-main):not(.productos-sidebar),
+html body main > div:not(.wc-productos-template):not(.entry-content):not(.site-main):empty {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    visibility: hidden !important;
 }
