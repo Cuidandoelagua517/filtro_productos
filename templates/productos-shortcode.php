@@ -214,23 +214,24 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             ?>
             
             <!-- Mostrar productos -->
-            <div class="productos-grid">
-                <?php
-                if ($products_query->have_posts()) {
-                    woocommerce_product_loop_start();
-                    
-                    while ($products_query->have_posts()) {
-                        $products_query->the_post();
-                        wc_get_template_part('content', 'product');
-                    }
-                    
-                    woocommerce_product_loop_end();
-                    wp_reset_postdata();
-                } else {
-                    echo '<p class="no-products-found">' . esc_html__('No se encontraron productos que coincidan con los criterios de búsqueda.', 'wc-productos-template') . '</p>';
-                }
-                ?>
-            </div>
+           <div class="productos-grid">
+    <?php
+    if ($products_query->have_posts()) {
+        // Forzar formato de cuadrícula manualmente en lugar de usar woocommerce_product_loop_start()
+        echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" style="display:grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important;">';
+        
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            wc_get_template_part('content', 'product');
+        }
+        
+        echo '</ul>';
+        wp_reset_postdata();
+    } else {
+        echo '<p class="no-products-found">' . esc_html__('No se encontraron productos que coincidan con los criterios de búsqueda.', 'wc-productos-template') . '</p>';
+    }
+    ?>
+</div>
   
             <!-- Paginación -->
             <?php if ($products_query->max_num_pages > 1) : ?>
