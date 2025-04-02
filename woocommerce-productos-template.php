@@ -385,6 +385,8 @@ public function ajax_filter_products() {
     ));
     
     exit;
+} // FALTABA ESTA LLAVE DE CIERRE
+
 /**
  * Renderiza la paginación de manera consistente
  *
@@ -574,4 +576,3 @@ function wc_productos_admin_diagnostics() {
 
 // Añadir diagnósticos al admin
 add_action('admin_notices', 'wc_productos_admin_diagnostics');
-
