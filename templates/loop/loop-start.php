@@ -1,13 +1,9 @@
 <?php
 /**
  * Product Loop Start
- *
- * Este template reemplaza el original de WooCommerce para asegurar que nuestra cuadrícula de productos
- * funcione correctamente.
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 ?>
-<ul class="products productos-grid wc-productos-template columns-<?php echo esc_attr( wc_get_loop_prop( 'columns' ) ); ?>">
+<ul class="products productos-grid wc-productos-template columns-<?php echo esc_attr(wc_get_loop_prop('columns')); ?>" style="display:grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important;">
