@@ -108,54 +108,54 @@ add_filter('template_include', array($this, 'template_loader'));
         /**
          * Registrar scripts y estilos
          */
+/**
+ * Registrar scripts y estilos
+ */
 public function register_scripts() {
-    // Debug: imprimir URL del CSS para verificar
-    error_log('URL de CSS: ' . plugin_dir_url(__FILE__) . 'assets/css/productos-template.css');
-    
-    if (is_shop() || is_product_category() || is_product_tag() || is_product() || has_shortcode(get_post()->post_content ?? '', 'productos_personalizados') || is_woocommerce()) {
+    // Sólo cargar en páginas de WooCommerce o con el shortcode
+    if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
+        is_woocommerce() || 
+        (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
         
-        // Desactivar estilos de WooCommerce
-        wp_dequeue_style('woocommerce-general');
-        wp_dequeue_style('woocommerce-layout');
-        wp_dequeue_style('woocommerce-smallscreen');
-        
-        // Enqueue con versión aleatoria para evitar caché
-        wp_enqueue_style('wc-productos-template-styles', 
-            plugin_dir_url(__FILE__) . 'assets/css/productos-template.css', 
+        // Enqueue CSS con versión para evitar caché
+        wp_enqueue_style(
+            'wc-productos-template-styles', 
+            WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
             array(), 
-            time(), // Usar timestamp para invalidar caché
-            'all'
+            WC_PRODUCTOS_TEMPLATE_VERSION
         );
-    }
-}
-                
+        
+        // Agregar soporte para la barra de rango
+        wp_enqueue_script('jquery-ui-slider');
+        wp_enqueue_style(
+            'jquery-ui-style', 
+            '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
+            array(),
+            '1.12.1'
+        );
+        
         // JavaScript con jQuery como dependencia
-        wp_enqueue_script('wc-productos-template-script', 
+        wp_enqueue_script(
+            'wc-productos-template-script', 
             WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
-            array('jquery'), 
-            '1.0.1', 
+            array('jquery', 'jquery-ui-slider'), 
+            WC_PRODUCTOS_TEMPLATE_VERSION, 
             true
         );
-                
+        
         // Localizar script para AJAX
         wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('productos_filter_nonce')
+            'nonce' => wp_create_nonce('productos_filter_nonce'),
+            'i18n' => array(
+                'loading' => __('Cargando productos...', 'wc-productos-template'),
+                'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
+                'added' => __('Producto añadido al carrito', 'wc-productos-template')
+            )
         ));
-              // Add inline CSS for testing
-    $custom_css = "
-        .producto-card {
-            border: 2px solid red !important;
-            background-color: #f8f9fa !important;
-            padding: 20px !important;
-        }
-    ";
-    wp_add_inline_style('wc-productos-template-styles', $custom_css);
-}      
-        // Agregar soporte para la barra de rango
-        wp_enqueue_script('jquery-ui-slider');
-        wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
     }
+}
+
 public function add_critical_styles() {
     if (is_shop() || is_product_category() || is_product_tag() || is_product() || is_woocommerce()) {
         echo '<style>
