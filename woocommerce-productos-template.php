@@ -112,15 +112,16 @@ if (!class_exists('WC_Productos_Template')) {
                 (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
                 
                 // Enqueue CSS con versión para evitar caché
-                wp_enqueue_style(
-                    'wc-productos-template-styles', 
-                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-                    array(), 
-                    WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time() // Agregar timestamp para forzar recarga
-                );
-                
-                // Establecer alta prioridad para nuestros estilos
-                wp_style_add_data('wc-productos-template-styles', 'priority', 100);
+      wp_enqueue_style(
+        'wc-productos-template-styles', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
+        array(), 
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
+        'all'  // Medio de estilo
+    );
+    
+    // Establecer prioridad más alta (100 → 999)
+    wp_style_add_data('wc-productos-template-styles', 'priority', 999);
                 
                 // Agregar soporte para la barra de rango
                 wp_enqueue_script('jquery-ui-slider');
