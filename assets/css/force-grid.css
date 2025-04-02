@@ -1,0 +1,82 @@
+/**
+ * Estilos forzados para cuadrícula de productos
+ * Aplicados con alta especificidad y !important
+ */
+/* Forzar estilo de cuadrícula en todas las listas de productos */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
+.wc-productos-template ul.products,
+.productos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+/* Eliminar flotadores que pueden romper la cuadrícula */
+body ul.products::before,
+body ul.products::after,
+body.woocommerce ul.products::before,
+body.woocommerce ul.products::after,
+.woocommerce .products::before,
+.woocommerce .products::after,
+.productos-grid::before,
+.productos-grid::after {
+    display: none !important;
+    content: none !important;
+    clear: none !important;
+}
+
+/* Forzar estilo correcto para cada producto */
+body ul.products li.product,
+body.woocommerce ul.products li.product,
+body.woocommerce-page ul.products li.product,
+body .woocommerce ul.products li.product,
+html body .productos-grid li.product,
+#main ul.products li.product,
+#content ul.products li.product,
+.woocommerce .products li.product,
+.wc-productos-template ul.products li.product,
+.productos-grid li.product {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+}
