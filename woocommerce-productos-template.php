@@ -1062,3 +1062,195 @@ function wc_productos_direct_grid_fix() {
 
 // Agregar con prioridad extremadamente alta
 add_action('wp_footer', 'wc_productos_direct_grid_fix', 99999);
+function wc_productos_fix_search_bar() {
+    // Solo ejecutar en páginas relevantes
+    if (!is_woocommerce() && !is_shop() && !is_product_category() && !is_product_tag() &&
+        !is_product() && !(is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
+        return;
+    }
+    
+    // 1. Cargar Font Awesome si no está cargado
+    if (!wp_script_is('font-awesome', 'registered')) {
+        wp_enqueue_style(
+            'font-awesome',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+            array(),
+            '5.15.4'
+        );
+    }
+    
+    // 2. CSS crítico para asegurar que la barra de búsqueda se muestre
+    $search_fix_css = "
+    /* CSS crítico para la barra de búsqueda */
+    .productos-header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 25px !important;
+        width: 100% !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }
+    
+    .productos-search {
+        position: relative !important;
+        width: 300px !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        z-index: 11 !important;
+    }
+    
+    .productos-search form {
+        display: flex !important;
+        width: 100% !important;
+        position: relative !important;
+        visibility: visible !important;
+    }
+    
+    .productos-search input {
+        width: 100% !important;
+        display: block !important;
+        padding: 10px 40px 10px 15px !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        font-size: 14px !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .productos-search button {
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        height: 100% !important;
+        width: 40px !important;
+        background-color: #0056b3 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0 4px 4px 0 !important;
+        cursor: pointer !important;
+        transition: background-color 0.2s !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .productos-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        .productos-search {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-top: 10px !important;
+        }
+    }
+    ";
+    
+    // Añadir CSS con prioridad extremadamente alta
+    wp_add_inline_style('wc-productos-template-styles', $search_fix_css);
+    
+    // 3. JavaScript que evita la eliminación accidental de la barra de búsqueda
+    ob_start();
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Proteger elementos críticos como la barra de búsqueda
+        function protectCriticalElements() {
+            // Asegurar que el header y la barra de búsqueda sean visibles
+            $('.productos-header, .productos-search').css({
+                'display': 'flex',
+                'visibility': 'visible',
+                'opacity': '1'
+            });
+            
+            // Proteger elementos del formulario de búsqueda
+            $('.productos-search form, .productos-search input, .productos-search button').css({
+                'display': 'block',
+                'visibility': 'visible',
+                'opacity': '1'
+            });
+            
+            // Prevenir que las funciones de limpieza eliminen elementos críticos
+            const originalRemove = $.fn.remove;
+            $.fn.remove = function() {
+                // No eliminar elementos críticos
+                if (this.hasClass('productos-header') || 
+                    this.hasClass('productos-search') || 
+                    this.parents('.productos-header').length > 0 ||
+                    this.parents('.productos-search').length > 0) {
+                    console.log('Prevented removal of critical element');
+                    return this;
+                }
+                return originalRemove.apply(this, arguments);
+            };
+        }
+        
+        // Ejecutar inmediatamente
+        protectCriticalElements();
+        
+        // Ejecutar después de cada AJAX
+        $(document).ajaxComplete(protectCriticalElements);
+        
+        // Verificar y recrear si es necesario
+        setTimeout(function() {
+            if ($('.productos-search').length === 0 || 
+                $('.productos-search').css('display') === 'none' ||
+                $('.productos-search').css('visibility') === 'hidden') {
+                
+                console.log('Fixing search bar');
+                
+                // Si no existe, recrear
+                if ($('.productos-header').length === 0) {
+                    $('.wc-productos-template').prepend(
+                        '<div class="productos-header">' +
+                        '<h1>' + $('.woocommerce-products-header__title').text() + '</h1>' +
+                        '<div class="productos-search">' +
+                        '<form role="search" method="get" id="productos-search-form" action="/">' +
+                        '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                        '<input type="hidden" name="post_type" value="product" />' +
+                        '<button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>' +
+                        '</form>' +
+                        '</div>' +
+                        '</div>'
+                    );
+                } else if ($('.productos-search').length === 0) {
+                    // Si existe el header pero no la barra de búsqueda
+                    $('.productos-header').append(
+                        '<div class="productos-search">' +
+                        '<form role="search" method="get" id="productos-search-form" action="/">' +
+                        '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                        '<input type="hidden" name="post_type" value="product" />' +
+                        '<button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>' +
+                        '</form>' +
+                        '</div>'
+                    );
+                }
+                
+                // Aplicar estilos inmediatamente
+                protectCriticalElements();
+            }
+        }, 500);
+    });
+    </script>
+    <?php
+    $search_fix_js = ob_get_clean();
+    
+    // 4. Añadir JavaScript al footer con prioridad alta
+    add_action('wp_footer', function() use ($search_fix_js) {
+        echo $search_fix_js;
+    }, 99999);
+}
+
+// Ejecutar la función
+add_action('wp_enqueue_scripts', 'wc_productos_fix_search_bar', 99999);
