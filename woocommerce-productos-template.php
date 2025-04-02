@@ -223,8 +223,8 @@ public function override_woocommerce_templates($template, $template_name, $templ
         }
 
        /**
- * AJAX handler para filtrar productos - más compatible
- * Reemplaza la función existente
+ /**
+ * AJAX handler para filtrar productos - corregido para mejor integración con WooCommerce
  */
 public function ajax_filter_products() {
     // Verificar nonce
@@ -233,19 +233,14 @@ public function ajax_filter_products() {
         exit;
     }
     
-    // Asegurar que tenemos un namespace para nuestros elementos
-    add_filter('post_class', function($classes) {
-        if (!in_array('wc-productos-template', $classes)) {
-            $classes[] = 'wc-productos-template';
-        }
-        return $classes;
-    });
+    // Obtener página actual
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
     
     // Configurar argumentos de búsqueda
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => get_option('posts_per_page'),
-        'paged' => isset($_POST['page']) ? absint($_POST['page']) : 1,
+        'paged' => $page,
         'tax_query' => array('relation' => 'AND'),
         'meta_query' => array('relation' => 'AND')
     );
@@ -291,65 +286,138 @@ public function ajax_filter_products() {
         $args['s'] = sanitize_text_field($_POST['search']);
     }
     
-    // Obtener productos
+    // Configurar las propiedades del bucle de WooCommerce
+    wc_set_loop_prop('current_page', $page);
+    
+    // Ejecutar la consulta
     $products_query = new WP_Query($args);
+    
+    // Establecer propiedades del bucle de WooCommerce para la paginación
+    wc_set_loop_prop('total', $products_query->found_posts);
+    wc_set_loop_prop('per_page', get_option('posts_per_page'));
+    wc_set_loop_prop('total_pages', $products_query->max_num_pages);
     
     ob_start();
     
     if ($products_query->have_posts()) {
+        echo '<ul class="productos-grid products columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
         while ($products_query->have_posts()) {
             $products_query->the_post();
             wc_get_template_part('content', 'product');
         }
+        echo '</ul>';
     } else {
-        echo '<p>' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
+        echo '<p class="woocommerce-info">' . esc_html__('No se encontraron productos que coincidan con tu selección.', 'wc-productos-template') . '</p>';
     }
     
     $products_html = ob_get_clean();
     
-    // Crear paginación
-    $pagination = '';
-    if ($products_query->max_num_pages > 1) {
-        ob_start();
-        echo '<div class="productos-pagination wc-productos-template">';
-        echo '<div class="pagination-info">';
-        printf(
-            esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
-            (absint($_POST['page']) - 1) * get_option('posts_per_page') + 1,
-            min($products_query->found_posts, absint($_POST['page']) * get_option('posts_per_page')),
-            $products_query->found_posts
-        );
-        echo '</div>';
-        
-        echo '<div class="pagination-links">';
-        for ($i = 1; $i <= min(4, $products_query->max_num_pages); $i++) {
-            $class = $i === absint($_POST['page']) ? 'active' : '';
-            printf(
-                '<button class="page-number %1$s" data-page="%2$d">%2$d</button>',
-                esc_attr($class),
-                esc_attr($i)
-            );
-        }
-        
-        if ($products_query->max_num_pages > 4) {
-            echo '<button class="page-number page-next" data-page="' . 
-                 esc_attr(absint($_POST['page']) + 1) . '" aria-label="' . 
-                 esc_attr__('Siguiente página', 'wc-productos-template') . '">→</button>';
-        }
-        echo '</div></div>';
-        $pagination = ob_get_clean();
-    }
+    // Generar paginación
+    ob_start();
     
-    // Resultado
-    $response = array(
+    $this->render_pagination($products_query->max_num_pages, $page);
+    
+    $pagination = ob_get_clean();
+    
+    // Resetear datos de consulta
+    wp_reset_postdata();
+    
+    // Enviar respuesta
+    wp_send_json_success(array(
         'products' => $products_html,
         'pagination' => $pagination,
-        'total' => $products_query->found_posts
+        'total' => $products_query->found_posts,
+        'current_page' => $page,
+        'max_pages' => $products_query->max_num_pages
+    ));
+    
+    exit;
+}
+/**
+ * Renderiza la paginación de manera consistente tanto para AJAX como para cargas normales
+ * 
+ * @param int $max_pages Número total de páginas
+ * @param int $current_page Página actual
+ */
+public function render_pagination($max_pages, $current_page = 1) {
+    if ($max_pages <= 1) {
+        return;
+    }
+    
+    echo '<div class="productos-pagination">';
+    echo '<div class="pagination-info">';
+    
+    $per_page = get_option('posts_per_page');
+    $total = wc_get_loop_prop('total', 0);
+    
+    printf(
+        esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
+        (($current_page - 1) * $per_page) + 1,
+        min($total, $current_page * $per_page),
+        $total
     );
     
-    wp_reset_postdata();
-    wp_send_json_success($response);
-    exit;
+    echo '</div>';
+    echo '<div class="pagination-links">';
+    
+    // Botón "Anterior" si no estamos en la primera página
+    if ($current_page > 1) {
+        printf(
+            '<button class="page-number page-prev" data-page="%d" aria-label="%s">←</button>',
+            $current_page - 1,
+            esc_attr__('Página anterior', 'wc-productos-template')
+        );
+    }
+    
+    // Determinar rango de páginas a mostrar
+    $range = 3; // Mostrar 3 páginas en cada lado
+    $showitems = ($range * 2) + 1;
+    
+    // Primera página siempre visible
+    if ($current_page > 1) {
+        echo '<button class="page-number" data-page="1">1</button>';
+    } else {
+        echo '<button class="page-number active" data-page="1">1</button>';
+    }
+    
+    // Puntos suspensivos después de la primera página si es necesario
+    if ($current_page > $range + 1) {
+        echo '<span class="page-dots">...</span>';
+    }
+    
+    // Bucle para páginas intermedias
+    for ($i = max(2, $current_page - $range); $i <= min($current_page + $range, $max_pages - 1); $i++) {
+        if ($i == $current_page) {
+            printf('<button class="page-number active" data-page="%d">%d</button>', $i, $i);
+        } else {
+            printf('<button class="page-number" data-page="%d">%d</button>', $i, $i);
+        }
+    }
+    
+    // Puntos suspensivos antes de la última página si es necesario
+    if ($current_page < $max_pages - $range) {
+        echo '<span class="page-dots">...</span>';
+    }
+    
+    // Última página siempre visible si hay más de una página
+    if ($max_pages > 1) {
+        if ($current_page == $max_pages) {
+            printf('<button class="page-number active" data-page="%d">%d</button>', $max_pages, $max_pages);
+        } else {
+            printf('<button class="page-number" data-page="%d">%d</button>', $max_pages, $max_pages);
+        }
+    }
+    
+    // Botón "Siguiente" si no estamos en la última página
+    if ($current_page < $max_pages) {
+        printf(
+            '<button class="page-number page-next" data-page="%d" aria-label="%s">→</button>',
+            $current_page + 1,
+            esc_attr__('Página siguiente', 'wc-productos-template')
+        );
+    }
+    
+    echo '</div></div>';
 }
 
       /**
