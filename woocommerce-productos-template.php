@@ -58,8 +58,8 @@ if (!class_exists('WC_Productos_Template')) {
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
-                add_action('template_redirect', array($this, 'initialize_output_buffer'));
-            }
+ 
+    }
         }
         
         /**
@@ -809,6 +809,7 @@ if (function_exists('force_productos_grid_styles')) {
 if (function_exists('wc_productos_fix_grid_display')) {
     remove_action('wp_enqueue_scripts', 'wc_productos_fix_grid_display', 99999);
 }
+
 /**
  * Calcular y ajustar el número de productos para mostrar exactamente 3 filas
  * basado en el ancho de la pantalla y el número de columnas
@@ -863,59 +864,18 @@ function wc_productos_ajustar_productos_por_fila() {
         echo $script;
     });
     
-    // Modificar la consulta de productos para limitar a 3 filas
-    add_action('woocommerce_product_query', 'limitar_productos_a_tres_filas');
+    // Verificar que las funciones existen antes de usarlas
+    if (function_exists('limitar_productos_a_tres_filas')) {
+        // Modificar la consulta de productos para limitar a 3 filas
+        add_action('woocommerce_product_query', 'limitar_productos_a_tres_filas');
+    }
     
-    // También modificar la consulta para el shortcode
-    add_filter('woocommerce_shortcode_products_query', 'limitar_productos_a_tres_filas_array');
-}
-/**
- * Buffer de salida para eliminar cualquier div.producto-interior huérfano
- * antes de que se envíe al navegador
- */
-public function clean_output_buffer() {
-    // Empezar a capturar la salida
-    ob_start(function($buffer) {
-        // Buscar cualquier div.producto-interior que no esté dentro de un li.product
-        $pattern = '/<div\s+class=["\']producto-interior["\'][^>]*>(?:(?!<\/div>).)*<\/div>/is';
-        $clean_buffer = $buffer;
-        
-        // Encontrar todos los div.producto-interior
-        preg_match_all($pattern, $buffer, $matches);
-        
-        if (!empty($matches[0])) {
-            foreach ($matches[0] as $match) {
-                // Verificar si este div.producto-interior está dentro de un li.product
-                $pos = strpos($buffer, $match);
-                $prev_content = substr($buffer, 0, $pos);
-                
-                // Contar aperturas y cierres de li
-                $open_li = substr_count($prev_content, '<li');
-                $close_li = substr_count($prev_content, '</li>');
-                
-                // Si hay más cierres que aperturas, este div está huérfano
-                if ($close_li >= $open_li) {
-                    // Eliminar este div huérfano del buffer
-                    $clean_buffer = str_replace($match, '', $clean_buffer);
-                }
-            }
-        }
-        
-        return $clean_buffer;
-    });
-}
-
-/**
- * Añadir esta función también al final de la clase
- */
-public function initialize_output_buffer() {
-    // Solo iniciar el buffer en páginas de WooCommerce o con el shortcode
-    if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
-        is_woocommerce() || 
-        (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
-        $this->clean_output_buffer();
+    if (function_exists('limitar_productos_a_tres_filas_array')) {
+        // También modificar la consulta para el shortcode
+        add_filter('woocommerce_shortcode_products_query', 'limitar_productos_a_tres_filas_array');
     }
 }
+ 
 /**
  * Limitar la consulta de productos a exactamente 3 filas completas
  */
@@ -952,7 +912,6 @@ function limitar_productos_a_tres_filas_array($args) {
 add_action('init', 'wc_productos_ajustar_productos_por_fila');
 /**
  * Función para solucionar problemas con las plantillas
- * Añadir al archivo woocommerce-productos-template.php
  */
 function wc_productos_fix_template_loading() {
     // Verificar que las plantillas críticas existen
