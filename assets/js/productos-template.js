@@ -111,3 +111,41 @@ jQuery(document).ready(function($) {
         });
     }
 });
+// Forzar disposición en cuadrícula cuando el DOM esté listo
+jQuery(document).ready(function($) {
+    // Forzar cuadrícula con JavaScript como respaldo al CSS
+    function forceGridLayout() {
+        $('.wc-productos-template ul.products, .productos-grid').css({
+            'display': 'grid',
+            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
+            'gap': '20px',
+            'width': '100%',
+            'margin': '0',
+            'padding': '0',
+            'list-style': 'none'
+        });
+        
+        $('.wc-productos-template ul.products li.product').css({
+            'width': '100%', 
+            'margin': '0 0 20px 0',
+            'float': 'none',
+            'clear': 'none'
+        });
+        
+        // Media query para móviles (aplicar después de un pequeño retraso)
+        if (window.innerWidth <= 480) {
+            $('.wc-productos-template ul.products, .productos-grid').css({
+                'grid-template-columns': 'repeat(2, 1fr)'
+            });
+        }
+    }
+    
+    // Ejecutar inmediatamente
+    forceGridLayout();
+    
+    // Ejecutar de nuevo después de que se carguen todas las imágenes
+    $(window).on('load', forceGridLayout);
+    
+    // Ejecutar cuando cambie el tamaño de la ventana
+    $(window).on('resize', forceGridLayout);
+});
