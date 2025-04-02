@@ -55,7 +55,7 @@ if (!class_exists('WC_Productos_Template')) {
                 
                 // Sobreescribir templates de WooCommerce
                 add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 10, 3);
-                
+                add_action('wp_head', array($this, 'add_critical_styles'), 999);
                 // Agregar AJAX handlers
                 add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
                 add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
@@ -109,22 +109,25 @@ add_filter('template_include', array($this, 'template_loader'));
          * Registrar scripts y estilos
          */
 public function register_scripts() {
-    // Añadir al inicio de la función register_scripts()
-wp_dequeue_style('woocommerce-general');
-wp_dequeue_style('woocommerce-layout');
-wp_dequeue_style('woocommerce-smallscreen');
-    // Modificar la condición para asegurar que los estilos se carguen
-    if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
-        has_shortcode(get_post()->post_content ?? '', 'productos_personalizados') || 
-        is_woocommerce()) {
+    // Debug: imprimir URL del CSS para verificar
+    error_log('URL de CSS: ' . plugin_dir_url(__FILE__) . 'assets/css/productos-template.css');
+    
+    if (is_shop() || is_product_category() || is_product_tag() || is_product() || has_shortcode(get_post()->post_content ?? '', 'productos_personalizados') || is_woocommerce()) {
         
-        // CSS - Aumentar la prioridad para evitar sobreescrituras
-      wp_enqueue_style('wc-productos-template-styles', 
-        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-        array(), 
-        '1.0.3', // Bump version number
-        'all'
-    );
+        // Desactivar estilos de WooCommerce
+        wp_dequeue_style('woocommerce-general');
+        wp_dequeue_style('woocommerce-layout');
+        wp_dequeue_style('woocommerce-smallscreen');
+        
+        // Enqueue con versión aleatoria para evitar caché
+        wp_enqueue_style('wc-productos-template-styles', 
+            plugin_dir_url(__FILE__) . 'assets/css/productos-template.css', 
+            array(), 
+            time(), // Usar timestamp para invalidar caché
+            'all'
+        );
+    }
+}
                 
         // JavaScript con jQuery como dependencia
         wp_enqueue_script('wc-productos-template-script', 
@@ -153,7 +156,35 @@ wp_dequeue_style('woocommerce-smallscreen');
         wp_enqueue_script('jquery-ui-slider');
         wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
     }
-
+public function add_critical_styles() {
+    if (is_shop() || is_product_category() || is_product_tag() || is_product() || is_woocommerce()) {
+        echo '<style>
+        /* Estilos críticos para tarjetas de productos */
+        .producto-card, 
+        .type-product {
+            background-color: #fff !important;
+            border: 2px solid red !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .producto-imagen {
+            height: 180px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .producto-titulo {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #333 !important;
+        }
+        </style>';
+    }
+}
         /**
          * Sobreescribir templates de WooCommerce
          */
@@ -349,7 +380,23 @@ if (!file_exists($css_file)) {
             file_put_contents($js_path . '/productos-template.js', wc_productos_template_get_default_js());
         }
     
+function wc_productos_admin_diagnostics() {
+    ?>
+    <div class="notice notice-info is-dismissible">
+        <p><strong>Diagnóstico de Filtro Productos:</strong></p>
+        <ul style="list-style: disc; padding-left: 20px;">
+            <li>Plugin URL: <?php echo esc_html(plugin_dir_url(__FILE__)); ?></li>
+            <li>Plugin Path: <?php echo esc_html(plugin_dir_path(__FILE__)); ?></li>
+            <li>CSS Path: <?php echo esc_html(plugin_dir_path(__FILE__) . 'assets/css/productos-template.css'); ?></li>
+            <li>CSS URL: <?php echo esc_html(plugin_dir_url(__FILE__) . 'assets/css/productos-template.css'); ?></li>
+            <li>CSS existe: <?php echo file_exists(plugin_dir_path(__FILE__) . 'assets/css/productos-template.css') ? 'Sí' : 'No'; ?></li>
+        </ul>
+        <p>Para forzar una recarga completa, añade <code>?nocache=<?php echo time(); ?></code> a la URL.</p>
+    </div>
+    <?php
+}
 
+add_action('admin_notices', 'wc_productos_admin_diagnostics');
  function wc_productos_template_get_default_css() {
     return '
    /**
