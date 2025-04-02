@@ -205,33 +205,40 @@
 .wc-productos-template .producto-card {
     background-color: #fff;
     border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    padding: 20px;
+    border-radius: 8px;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .wc-productos-template .producto-card:hover {
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transform: translateY(-3px);
 }
-
+.wc-productos-template .producto-interior {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px;
+}
 .wc-productos-template .producto-imagen {
+    position: relative;
     height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 15px;
-    position: relative;
+    background-color: #f9f9f9;
+    border-radius: 6px;
     overflow: hidden;
 }
 
 .wc-productos-template .producto-imagen img {
-    max-height: 100%;
-    max-width: 100%;
+    max-height: 85%;
+    max-width: 85%;
     object-fit: contain;
     transition: transform 0.3s ease;
 }
@@ -241,43 +248,144 @@
 }
 
 .wc-productos-template .producto-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
     padding: 4px 10px;
-    border-radius: 30px;
+    border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
-    z-index: 2;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .wc-productos-template .badge-stock {
     background-color: #e6f4ea;
     color: #137333;
 }
-
+.wc-productos-template .badge-out-stock {
+    background-color: #f8f9fa;
+    color: #5f6368;
+}
 .wc-productos-template .badge-danger {
     background-color: #fce8e6;
     color: #c5221f;
 }
-
+.wc-productos-template .producto-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.wc-productos-template .producto-sku {
+    font-size: 12px;
+    color: #5f6368;
+    margin-bottom: 6px;
+    font-family: monospace;
+}
 .wc-productos-template .producto-titulo {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 10px 0;
+    margin: 0 0 12px 0;
     color: #333;
     line-height: 1.4;
 }
-
+.wc-productos-template .producto-titulo a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.wc-productos-template .producto-titulo a:hover {
+    color: #0056b3;
+}
 .wc-productos-template .producto-detalles {
     font-size: 13px;
-    color: #777;
+    color: #5f6368;
     margin: 0 0 15px 0;
-    line-height: 1.4;
+    line-height: 1.5;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 12px;
+}
+.wc-productos-template .producto-detalles > div {
+    margin-bottom: 6px;
+}
+.wc-productos-template .producto-detalles strong {
+    display: inline-block;
+    min-width: 70px;
 }
 
+/* Footer de producto (precio y botón) */
+.wc-productos-template .producto-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 12px;
+}
+
+/* Precio */
+.wc-productos-template .producto-precio {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0056b3;
+}
+
+.wc-productos-template .producto-precio del {
+    font-size: 14px;
+    color: #999;
+    font-weight: normal;
+    margin-right: 5px;
+}
+
+.wc-productos-template .producto-precio ins {
+    text-decoration: none;
+}
+
+/* Botón de acción */
+.wc-productos-template .producto-boton {
+    display: inline-block;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+}
+
+.wc-productos-template .producto-boton:hover {
+    background-color: #004494;
+    text-decoration: none;
+    color: white;
+}
+
+/* Responsive para producto card */
+@media (max-width: 768px) {
+    .wc-productos-template .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .wc-productos-template .producto-interior {
+        padding: 12px;
+    }
+    
+    .wc-productos-template .producto-imagen {
+        height: 140px;
+    }
+    
+    .wc-productos-template .producto-titulo {
+        font-size: 14px;
+    }
+    
+    .wc-productos-template .producto-footer {
+        gap: 8px;
+    }
+}
 .wc-productos-template .producto-precio {
     font-size: 18px;
     font-weight: 700;
