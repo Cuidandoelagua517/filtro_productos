@@ -210,15 +210,7 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
             // IMPORTANTE: Eliminamos el div.productos-grid sobrante que causa conflictos
             if ($products_query->have_posts()) {
                 // Forzar formato de cuadrícula directamente con HTML y estilos inline
-                echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" 
-                      style="display:grid !important; 
-                             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; 
-                             gap: 20px !important;
-                             width: 100% !important;
-                             margin: 0 !important;
-                             padding: 0 !important;
-                             list-style: none !important;
-                             float: none !important;">';
+           echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
                 
                 while ($products_query->have_posts()) {
                     $products_query->the_post();
