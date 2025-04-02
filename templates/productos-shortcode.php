@@ -118,9 +118,9 @@ $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
                 }
                 ?>
             </div>
-            
-      <?php
-           **
+
+<?php
+/**
  * Reemplazar la sección de consulta de productos en templates/productos-shortcode.php
  */
 
