@@ -10,4 +10,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<ul class="products productos-grid columns-<?php echo esc_attr( wc_get_loop_prop( 'columns' ) ); ?>">
+<ul class="products productos-grid wc-productos-template columns-<?php echo esc_attr( wc_get_loop_prop( 'columns' ) ); ?>">
