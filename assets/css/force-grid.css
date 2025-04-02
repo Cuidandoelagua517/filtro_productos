@@ -187,3 +187,75 @@ body .woocommerce ul.products,
         gap: 10px !important;
     }
 }
+/**
+ * Solución para ocultar cualquier div.producto-interior huérfano en la cuarta fila
+ * Añadir al final de assets/css/force-grid.css
+ */
+
+/* Ocultar explícitamente cualquier div.producto-interior huérfano a nivel del contenedor */
+ul.products > div.producto-interior,
+.productos-grid > div.producto-interior,
+.wc-productos-template ul.products > div.producto-interior,
+.woocommerce ul.products > div.producto-interior {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+/* Asegurar que el contenedor principal tenga establecida una altura máxima clara */
+ul.products,
+.productos-grid,
+.wc-productos-template ul.products,
+.woocommerce ul.products {
+    display: grid !important;
+    grid-template-rows: repeat(3, minmax(min-content, max-content)) !important;
+    overflow: hidden !important;
+    max-height: 1200px !important; /* Valor máximo seguro para tres filas */
+    margin-bottom: 30px !important;
+}
+
+/* Asegurar que solo se muestren exactamente tres filas de productos */
+@media (min-width: 992px) {
+    /* 4 columnas x 3 filas = 12 productos */
+    ul.products > *:nth-child(n+13),
+    .productos-grid > *:nth-child(n+13),
+    .wc-productos-template ul.products > *:nth-child(n+13),
+    .woocommerce ul.products > *:nth-child(n+13) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 991px) and (min-width: 769px) {
+    /* 3 columnas x 3 filas = 9 productos */
+    ul.products > *:nth-child(n+10),
+    .productos-grid > *:nth-child(n+10),
+    .wc-productos-template ul.products > *:nth-child(n+10),
+    .woocommerce ul.products > *:nth-child(n+10) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 481px) {
+    /* 2 columnas x 3 filas = 6 productos */
+    ul.products > *:nth-child(n+7),
+    .productos-grid > *:nth-child(n+7),
+    .wc-productos-template ul.products > *:nth-child(n+7),
+    .woocommerce ul.products > *:nth-child(n+7) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* 2 columnas x 3 filas = 6 productos para móviles */
+    ul.products > *:nth-child(n+7),
+    .productos-grid > *:nth-child(n+7),
+    .wc-productos-template ul.products > *:nth-child(n+7),
+    .woocommerce ul.products > *:nth-child(n+7) {
+        display: none !important;
+    }
+}
