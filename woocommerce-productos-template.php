@@ -59,6 +59,8 @@ if (!class_exists('WC_Productos_Template')) {
                 // Agregar AJAX handlers
                 add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
                 add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
+                // Método alternativo para cargar templates personalizados
+add_filter('template_include', array($this, 'template_loader'));
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
@@ -156,26 +158,17 @@ wp_dequeue_style('woocommerce-smallscreen');
          * Sobreescribir templates de WooCommerce
          */
 public function override_woocommerce_templates($template, $template_name, $template_path) {
-    // Corregir la ruta de templates
-    $plugin_template_path = WC_PRODUCTOS_TEMPLATE_PATH . 'templates/';
+    // Activar logging para depuración
+    error_log('Template solicitado: ' . $template_name);
     
-    // Verificar si es un template que queremos sobrescribir
-    if (in_array($template_name, array(
-        'archive-product.php',
-        'content-product.php',
-        'loop/loop-start.php',
-        'loop/loop-end.php',
-        'loop/pagination.php'
-    ))) {
-        $custom_template = $plugin_template_path . $template_name;
-        
-        // Si el archivo existe en nuestro plugin, usarlo
-        if (file_exists($custom_template)) {
-            return $custom_template;
-        }
+    $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
+    
+    // Verifica si existe nuestra versión del template
+    if (file_exists($plugin_template)) {
+        error_log('Usando template personalizado: ' . $plugin_template);
+        return $plugin_template;
     }
     
-    // Si no, devolver el template original
     return $template;
 }
         /**
@@ -341,7 +334,21 @@ if (!file_exists($css_file)) {
             file_put_contents($js_path . '/productos-template.js', wc_productos_template_get_default_js());
         }
     }
-
+public function template_loader($template) {
+    if (is_product_category() || is_product_tag() || is_product() || is_shop()) {
+        $file = 'archive-product.php';
+        if (is_product()) {
+            $file = 'single-product.php';
+        }
+        
+        $custom_template = plugin_dir_path(__FILE__) . 'templates/' . $file;
+        if (file_exists($custom_template)) {
+            error_log('Cargando template personalizado: ' . $custom_template);
+            return $custom_template;
+        }
+    }
+    return $template;
+}
  function wc_productos_template_get_default_css() {
     return '
    /**
