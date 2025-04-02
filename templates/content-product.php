@@ -1,4 +1,10 @@
-<li <?php wc_product_class($classes, $product); ?>>
+<?php
+/**
+ * Plantilla para cada producto en la cuadrícula
+ * Versión corregida para asegurar la correcta aplicación de estilos
+ */
+?>
+<li <?php wc_product_class('producto-card', $product); ?>>
     <div class="producto-interior">
         <?php
         // Imagen del producto con enlace
@@ -51,7 +57,7 @@
         }
         
         // Título con enlace
-        echo '<h2 class="producto-titulo">';
+        echo '<h2 class="producto-titulo woocommerce-loop-product__title">';
         echo '<a href="' . esc_url(get_permalink()) . '">' . get_the_title() . '</a>';
         echo '</h2>';
         
@@ -88,14 +94,14 @@
         
         // Precio
         if ($price_html = $product->get_price_html()) {
-            echo '<div class="producto-precio">' . $price_html . '</div>';
+            echo '<div class="producto-precio price">' . $price_html . '</div>';
         }
         
         // Botón de añadir al carrito
         echo '<div class="producto-accion">';
         
         echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
-               class="producto-boton ' . ($product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button ajax_add_to_cart' : '') . '"
+               class="producto-boton button add_to_cart_button ' . ($product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '') . '"
                data-product_id="' . esc_attr($product->get_id()) . '"
                data-product_sku="' . esc_attr($product->get_sku()) . '"
                aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '">';
