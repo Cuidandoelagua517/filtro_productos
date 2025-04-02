@@ -25,6 +25,33 @@ jQuery(document).ready(function($) {
     // Llamar a lazy load al inicio
     lazyLoadProductImages();
     
+    // Es importante agregar este evento personalizado para el manejo de paginación en el shortcode
+$(document).on('productos_filtered', function(event, data) {
+    // Activar el botón de la página actual
+    $('.wc-productos-template .page-number').removeClass('active');
+    $('.wc-productos-template .page-number[data-page="' + data.current_page + '"]').addClass('active');
+    
+    // Actualizar la URL con el número de página
+    if (history.pushState) {
+        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        var urlParams = new URLSearchParams(window.location.search);
+        
+        // Actualizar o agregar el parámetro paged
+        if (data.current_page > 1) {
+            urlParams.set('paged', data.current_page);
+        } else {
+            urlParams.delete('paged');
+        }
+        
+        // Reconstruir la URL con los parámetros actualizados
+        var queryString = urlParams.toString();
+        if (queryString) {
+            newUrl += '?' + queryString;
+        }
+        
+        window.history.pushState({path: newUrl}, '', newUrl);
+    }
+});
     // Llamar nuevamente después de filtrar productos
     $(document).on('productos_filtered', function() {
         lazyLoadProductImages();
