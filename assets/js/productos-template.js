@@ -154,3 +154,53 @@ jQuery(document).ready(function($) {
     // Ejecutar cuando cambie el tamaño de la ventana
     $(window).on('resize', forceGridLayout);
 });
+// Script para eliminar cualquier elemento que aparezca en la cuarta fila
+jQuery(document).ready(function($) {
+    function limpiarCuartaFila() {
+        // Esperar a que el DOM esté completamente cargado
+        setTimeout(function() {
+            // Calcular cuántos productos por fila hay actualmente
+            var $grid = $('.productos-grid, ul.products');
+            if ($grid.length === 0) return;
+            
+            var productosPorFila = 4; // Valor por defecto
+            
+            // Determinar por el ancho de la ventana
+            if (window.innerWidth <= 480) {
+                productosPorFila = 2; // Móviles
+            } else if (window.innerWidth <= 768) {
+                productosPorFila = 3; // Tablets
+            } else if (window.innerWidth <= 991) {
+                productosPorFila = 3; // Pantallas medianas
+            } else {
+                productosPorFila = 4; // Pantallas grandes
+            }
+            
+            // Total de productos para 3 filas exactas
+            var maxProductos = productosPorFila * 3;
+            
+            // Ocultar todos los productos después del número máximo
+            $grid.find('li.product:nth-child(n+' + (maxProductos + 1) + ')').hide();
+            
+            // Eliminar cualquier div.producto-interior que esté fuera de un li.product
+            $grid.children('div.producto-interior').remove();
+            
+            // Si por alguna razón hay una cuarta fila visible, ocultarla
+            var alturaFila = $grid.find('li.product:first-child').outerHeight(true);
+            $grid.css('max-height', (alturaFila * 3 + 40) + 'px');
+            $grid.css('overflow', 'hidden');
+        }, 100);
+    }
+    
+    // Ejecutar al cargar la página
+    limpiarCuartaFila();
+    
+    // Ejecutar después de cualquier petición AJAX
+    $(document).ajaxComplete(limpiarCuartaFila);
+    
+    // Ejecutar cuando se carguen todas las imágenes
+    $(window).on('load', limpiarCuartaFila);
+    
+    // Ejecutar cuando cambie el tamaño de la ventana
+    $(window).on('resize', limpiarCuartaFila);
+});
