@@ -274,7 +274,21 @@ public function override_woocommerce_templates($template, $template_name, $templ
             wp_send_json_success($response);
             exit;
         }
-
+public function template_loader($template) {
+    if (is_product_category() || is_product_tag() || is_product() || is_shop()) {
+        $file = 'archive-product.php';
+        if (is_product()) {
+            $file = 'single-product.php';
+        }
+        
+        $custom_template = plugin_dir_path(__FILE__) . 'templates/' . $file;
+        if (file_exists($custom_template)) {
+            error_log('Cargando template personalizado: ' . $custom_template);
+            return $custom_template;
+        }
+    }
+    return $template;
+}
         /**
          * Shortcode para mostrar productos con el nuevo template
          */
@@ -308,6 +322,7 @@ $css_file = plugin_dir_path(__FILE__) . 'assets/css/productos-template.css';
 if (!file_exists($css_file)) {
     file_put_contents($css_file, wc_productos_template_get_default_css());
 }
+
         // Crear directorios necesarios
         $template_path = plugin_dir_path(__FILE__) . 'templates';
         $css_path = plugin_dir_path(__FILE__) . 'assets/css';
@@ -333,22 +348,8 @@ if (!file_exists($css_file)) {
         if (!file_exists($js_path . '/productos-template.js')) {
             file_put_contents($js_path . '/productos-template.js', wc_productos_template_get_default_js());
         }
-    }
-public function template_loader($template) {
-    if (is_product_category() || is_product_tag() || is_product() || is_shop()) {
-        $file = 'archive-product.php';
-        if (is_product()) {
-            $file = 'single-product.php';
-        }
-        
-        $custom_template = plugin_dir_path(__FILE__) . 'templates/' . $file;
-        if (file_exists($custom_template)) {
-            error_log('Cargando template personalizado: ' . $custom_template);
-            return $custom_template;
-        }
-    }
-    return $template;
-}
+    
+
  function wc_productos_template_get_default_css() {
     return '
    /**
