@@ -100,10 +100,12 @@ if (!class_exists('WC_Productos_Template')) {
         }
  
 /**
- * Función para registrar scripts y estilos modificada
- * Reemplaza la función existente en la clase WC_Productos_Template
+ * Función para registrar scripts y estilos
  */
 public function register_scripts() {
+    // Obtener la página actual para la paginación
+    $current_page = max(1, get_query_var('paged'));
+    
     // Sólo cargar en páginas de WooCommerce o con el shortcode
     if (is_shop() || is_product_category() || is_product_tag() || is_product() || 
         is_woocommerce() || 
@@ -113,7 +115,7 @@ public function register_scripts() {
         wp_enqueue_style(
             'wc-productos-template-styles', 
             WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-            array(), // Quitar dependencia de WooCommerce para control total
+            array(), 
             WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time() // Agregar timestamp para forzar recarga
         );
         
@@ -138,14 +140,28 @@ public function register_scripts() {
             true
         );
         
+        // Obtener datos para la paginación
+        $products_per_page = get_option('posts_per_page');
+        $total_products = wc_get_loop_prop('total', 0);
+        if (!$total_products) {
+            // Si no está definido, intentar obtener total desde query global
+            global $wp_query;
+            $total_products = $wp_query->found_posts;
+        }
+        
         // Localizar script para AJAX
         wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('productos_filter_nonce'),
+            'current_page' => $current_page,
+            'products_per_page' => $products_per_page,
+            'total_products' => $total_products,
+            'total_pages' => ceil($total_products / $products_per_page),
             'i18n' => array(
                 'loading' => __('Cargando productos...', 'wc-productos-template'),
                 'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
-                'added' => __('Producto añadido al carrito', 'wc-productos-template')
+                'added' => __('Producto añadido al carrito', 'wc-productos-template'),
+                'no_results' => __('No se encontraron productos.', 'wc-productos-template')
             )
         ));
         
@@ -177,11 +193,19 @@ public function register_scripts() {
                 grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
                 gap: 20px !important;
             }
+            /* Correcciones para paginación */
+            .page-number {
+                cursor: pointer;
+            }
+            .wc-productos-template .page-dots {
+                display: inline-block;
+                margin: 0 5px;
+                color: #666;
+            }
         ";
         wp_add_inline_style('wc-productos-template-styles', $inline_css);
     }
 }
-
 
      /**
  * Sobreescribir templates de WooCommerce de manera más selectiva
