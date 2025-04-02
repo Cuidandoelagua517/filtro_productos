@@ -1,13 +1,13 @@
 <?php
 /**
  * Plantilla para cada producto en la cuadrícula
- * Versión corregida para asegurar la correcta aplicación de estilos
+ * Versión corregida para evitar elementos huérfanos
  */
 
 // Ensure $product is defined and is a valid WooCommerce product
 global $product;
 if (!$product || !is_a($product, 'WC_Product')) {
-    return;
+    return; // No renderizar nada si no hay producto válido
 }
 ?>
 <li <?php wc_product_class('producto-card', $product); ?>>
