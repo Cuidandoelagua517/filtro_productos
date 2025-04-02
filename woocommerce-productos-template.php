@@ -113,12 +113,12 @@ public function register_scripts() {
         is_woocommerce()) {
         
         // CSS - Aumentar la prioridad para evitar sobreescrituras
-        wp_enqueue_style('wc-productos-template-styles', 
-            WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-            array(), 
-            '1.0.2', // Incrementar versión para forzar recarga
-            'all'    // Asegurar que se cargue en todos los medios
-        );
+      wp_enqueue_style('wc-productos-template-styles', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
+        array(), 
+        '1.0.3', // Bump version number
+        'all'
+    );
                 
         // JavaScript con jQuery como dependencia
         wp_enqueue_script('wc-productos-template-script', 
