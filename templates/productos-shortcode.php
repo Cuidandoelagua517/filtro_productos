@@ -119,10 +119,10 @@
             <!-- Listado de productos -->
             <div class="productos-list">
                 <?php
-                $args = array(
-                    'post_type' => 'product',
-                    'posts_per_page' => isset($atts['per_page']) ? intval($atts['per_page']) : get_option('posts_per_page'),
-                );
+             $args = array(
+    'post_type' => 'product',
+    'posts_per_page' => isset($atts['per_page']) ? intval($atts['per_page']) : -1, // Show all products by default
+);
                 
                 if (!empty($atts['category'])) {
                     $args['tax_query'] = array(
