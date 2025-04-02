@@ -143,7 +143,7 @@ $current_page = max(1, get_query_var('paged'));
             <?php
             if (have_posts()) {
                 // Inicio del loop con estilos forzados directamente
-                echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" style="display:grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important; width: 100% !important; margin: 0 !important; padding: 0 !important; list-style: none !important;">';
+               echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
                 
                 while (have_posts()) {
                     the_post();
