@@ -1,11 +1,12 @@
 <?php
 /**
  * Template para mostrar productos mediante shortcode
+ * Versión modificada para evitar conflictos
  * 
  * @package WC_Productos_Template
  */
 ?>
-<div class="productos-container">
+<div class="productos-container wc-productos-template">
     <!-- Header -->
     <div class="productos-header">
         <h1><?php echo esc_html__('Productos', 'wc-productos-template'); ?></h1>
@@ -107,15 +108,20 @@
         <main class="productos-main">
             <!-- Breadcrumbs -->
             <div class="productos-breadcrumb">
-                <?php woocommerce_breadcrumb(); ?>
+                <?php 
+                // Usar función de breadcrumb compatible
+                if (function_exists('woocommerce_breadcrumb')) {
+                    woocommerce_breadcrumb();
+                }
+                ?>
             </div>
             
-            <!-- Listado de productos en formato grid -->
-            <div class="productos-grid">
+            <!-- Listado de productos -->
+            <div class="productos-list">
                 <?php
                 $args = array(
                     'post_type' => 'product',
-                    'posts_per_page' => $atts['per_page'],
+                    'posts_per_page' => isset($atts['per_page']) ? intval($atts['per_page']) : get_option('posts_per_page'),
                 );
                 
                 if (!empty($atts['category'])) {
@@ -131,10 +137,12 @@
                 $products_query = new WP_Query($args);
                 
                 if ($products_query->have_posts()) {
+                    echo '<ul class="productos-grid products">';
                     while ($products_query->have_posts()) {
                         $products_query->the_post();
                         wc_get_template_part('content', 'product');
                     }
+                    echo '</ul>';
                     
                     wp_reset_postdata();
                 } else {
