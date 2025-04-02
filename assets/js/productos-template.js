@@ -331,3 +331,165 @@ jQuery(document).ready(function($) {
     // Ejecutar periódicamente como respaldo
     setInterval(limpiarElementosHuerfanos, 500);
 });
+jQuery(document).ready(function($) {
+    // Search functionality
+    function handleProductSearch() {
+        // Check if we're in a productos template page
+        if (!$('.wc-productos-template').length) {
+            return;
+        }
+
+        // Handle form submission via AJAX
+        $('#productos-search-form').on('submit', function(e) {
+            // Only intercept if we're using AJAX for filtering
+            if (!isShortcodePage) {
+                e.preventDefault();
+                var searchQuery = $('#productos-search-input').val();
+                filterProducts(1, searchQuery);
+            }
+        });
+
+        // Handle button click
+        $('.productos-search button').on('click', function(e) {
+            // Only intercept if we're using AJAX for filtering
+            if (!isShortcodePage) {
+                e.preventDefault();
+                var searchQuery = $('#productos-search-input').val();
+                filterProducts(1, searchQuery);
+            }
+        });
+
+        // Handle Enter key press
+        $('#productos-search-input').on('keypress', function(e) {
+            if (e.which === 13 && !isShortcodePage) {
+                e.preventDefault();
+                var searchQuery = $(this).val();
+                filterProducts(1, searchQuery);
+            }
+        });
+    }
+
+    // Update the filterProducts function to accept a search query parameter
+    window.filterProducts = function(page, searchQuery) {
+        page = page || 1;
+        
+        // If we're in a shortcode page, handle via page reload
+        if (typeof isShortcodePage !== 'undefined' && isShortcodePage) {
+            var currentUrl = new URL(window.location.href);
+            var urlParams = new URLSearchParams(currentUrl.search);
+            
+            // Get filter values
+            var categoryFilter = [];
+            $('.wc-productos-template .filtro-category:checked').each(function() {
+                categoryFilter.push($(this).val());
+            });
+            
+            var gradeFilter = [];
+            $('.wc-productos-template .filtro-grade:checked').each(function() {
+                gradeFilter.push($(this).val());
+            });
+            
+            var minVolume = $('.wc-productos-template input[name="min_volume"]').val() || 100;
+            var maxVolume = $('.wc-productos-template input[name="max_volume"]').val() || 5000;
+            
+            // Use the search query parameter if provided, otherwise get from the input
+            var searchValue = searchQuery || $('#productos-search-input').val();
+            
+            // Update URL parameters
+            if (categoryFilter.length) {
+                urlParams.set('category', categoryFilter.join(','));
+            } else {
+                urlParams.delete('category');
+            }
+            
+            if (gradeFilter.length) {
+                urlParams.set('grade', gradeFilter.join(','));
+            } else {
+                urlParams.delete('grade');
+            }
+            
+            if (searchValue) {
+                urlParams.set('s', searchValue);
+            } else {
+                urlParams.delete('s');
+            }
+            
+            if (page > 1) {
+                urlParams.set('paged', page);
+            } else {
+                urlParams.delete('paged');
+            }
+            
+            // Redirect to the new URL
+            window.location.href = '?' + urlParams.toString();
+            return;
+        }
+        
+        // Show loading message
+        $('.wc-productos-template .productos-main').append('<div class="loading">' + WCProductosParams.i18n.loading + '</div>');
+        
+        // Get filter values
+        var categoryFilter = [];
+        $('.wc-productos-template .filtro-category:checked').each(function() {
+            categoryFilter.push($(this).val());
+        });
+        
+        var gradeFilter = [];
+        $('.wc-productos-template .filtro-grade:checked').each(function() {
+            gradeFilter.push($(this).val());
+        });
+        
+        var minVolume = $('.wc-productos-template input[name="min_volume"]').val() || 100;
+        var maxVolume = $('.wc-productos-template input[name="max_volume"]').val() || 5000;
+        
+        // Use the search query parameter if provided, otherwise get from the input
+        var searchValue = searchQuery || $('#productos-search-input').val();
+        
+        // AJAX request
+        $.ajax({
+            url: WCProductosParams.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'productos_filter',
+                nonce: WCProductosParams.nonce,
+                page: page,
+                category: categoryFilter.join(','),
+                grade: gradeFilter.join(','),
+                min_volume: minVolume,
+                max_volume: maxVolume,
+                search: searchValue
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Remove loading message
+                    $('.wc-productos-template .loading').remove();
+                    
+                    // Update products and pagination
+                    $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').remove();
+                    $('.wc-productos-template .productos-pagination').remove();
+                    
+                    // Append new content
+                    $('.wc-productos-template .productos-main').append(response.data.products);
+                    $('.wc-productos-template .productos-main').append(response.data.pagination);
+                    
+                    // Force grid layout again
+                    forceGridLayout();
+                    
+                    // Scroll to top of products
+                    $('html, body').animate({
+                        scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+                    }, 500);
+                    
+                    // Update event handlers
+                    bindProductEvents();
+                }
+            },
+            error: function() {
+                $('.wc-productos-template .loading').html(WCProductosParams.i18n.error);
+            }
+        });
+    };
+
+    // Call the search handler function
+    handleProductSearch();
+});
