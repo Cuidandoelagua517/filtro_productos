@@ -298,36 +298,37 @@ if (!class_exists('WC_Productos_Template')) {
          */
 public function override_woocommerce_templates($template, $template_name, $template_path) {
     // Forzar sobrescritura para archivos críticos para la cuadrícula
-    if ($template_name == 'loop/loop-start.php' || $template_name == 'archive-product.php') {
+    if ($template_name == 'loop/loop-start.php' || $template_name == 'loop/loop-end.php' || $template_name == 'content-product.php') {
         $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
         
         if (file_exists($plugin_template)) {
             return $plugin_template;
         }
     }
-            // Lista ampliada de templates que queremos sobrescribir
-            $override_templates = array(
-                'content-product.php',           // Template de producto individual
-                'loop/loop-start.php',           // Inicio del loop (CRÍTICO para la cuadrícula)
-                'loop/loop-end.php',             // Final del loop
-                'loop/pagination.php',           // Paginación
-                'loop/orderby.php',              // Selector de ordenamiento
-                'loop/result-count.php',         // Contador de resultados
-                'archive-product.php'            // Template de archivo de productos
-            );
-            
-            // Solo sobrescribir los templates específicos
-            if (in_array($template_name, $override_templates)) {
-                $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
-                
-                // Verificar si existe nuestra versión del template
-                if (file_exists($plugin_template)) {
-                    return $plugin_template;
-                }
-            }
-            
-            return $template;
+    
+    // Lista ampliada de templates que queremos sobrescribir
+    $override_templates = array(
+        'content-product.php',           // Template de producto individual
+        'loop/loop-start.php',           // Inicio del loop (CRÍTICO para la cuadrícula)
+        'loop/loop-end.php',             // Final del loop
+        'loop/pagination.php',           // Paginación
+        'loop/orderby.php',              // Selector de ordenamiento
+        'loop/result-count.php',         // Contador de resultados
+        'archive-product.php'            // Template de archivo de productos
+    );
+    
+    // Solo sobrescribir los templates específicos
+    if (in_array($template_name, $override_templates)) {
+        $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
+        
+        // Verificar si existe nuestra versión del template
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
         }
+    }
+    
+    return $template;
+}
 
         /**
          * Obtener categorías de productos
