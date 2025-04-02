@@ -707,3 +707,281 @@ function wc_productos_admin_diagnostics() {
 
 // Añadir diagnósticos al admin
 add_action('admin_notices', 'wc_productos_admin_diagnostics');
+/**
+ * Fuerza la visualización en cuadrícula y soluciona conflictos de estilos
+ * Reemplaza o complementa la función force_productos_grid_styles existente
+ */
+function wc_productos_fix_grid_display() {
+    // 1. Primero, deregistrar (quitar) los estilos que puedan estar interfiriendo
+    global $wp_styles;
+    
+    // Buscar y desencolar cualquier estilo del tema que pueda estar afectando a la cuadrícula de productos
+    foreach ($wp_styles->registered as $handle => $style) {
+        // Revisa si el estilo tiene que ver con productos de WooCommerce pero no es tuyo
+        if ((strpos($handle, 'woocommerce') !== false || strpos($handle, 'product') !== false) && 
+            strpos($handle, 'productos-template') === false) {
+            // Opción para desencolar estilos problemáticos
+            // wp_dequeue_style($handle);
+            
+            // Alternativamente, solo reducir su prioridad modificando su dependencia
+            if (isset($wp_styles->registered[$handle])) {
+                $wp_styles->registered[$handle]->deps[] = 'wc-productos-template-styles';
+            }
+        }
+    }
+    
+    // 2. Crear archivo force-grid.css si no existe
+    $force_grid_path = plugin_dir_path(__FILE__) . 'assets/css/force-grid.css';
+    
+    if (!file_exists($force_grid_path)) {
+        $force_grid_css = "/**
+ * Estilos forzados para cuadrícula de productos
+ * Aplicados con alta especificidad y !important
+ */
+/* Forzar estilo de cuadrícula en todas las listas de productos */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
+.wc-productos-template ul.products,
+.productos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+/* Eliminar flotadores que pueden romper la cuadrícula */
+body ul.products::before,
+body ul.products::after,
+body.woocommerce ul.products::before,
+body.woocommerce ul.products::after,
+.woocommerce .products::before,
+.woocommerce .products::after,
+.productos-grid::before,
+.productos-grid::after {
+    display: none !important;
+    content: none !important;
+    clear: none !important;
+}
+
+/* Forzar estilo correcto para cada producto */
+body ul.products li.product,
+body.woocommerce ul.products li.product,
+body.woocommerce-page ul.products li.product,
+body .woocommerce ul.products li.product,
+html body .productos-grid li.product,
+#main ul.products li.product,
+#content ul.products li.product,
+.woocommerce .products li.product,
+.wc-productos-template ul.products li.product,
+.productos-grid li.product {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+}";
+        
+        // Crear el directorio si no existe
+        if (!file_exists(dirname($force_grid_path))) {
+            mkdir(dirname($force_grid_path), 0755, true);
+        }
+        
+        // Guardar el archivo CSS
+        file_put_contents($force_grid_path, $force_grid_css);
+    }
+    
+    // 3. Registrar y encolar el CSS con prioridad ultra alta
+    wp_register_style(
+        'wc-force-grid', 
+        plugin_dir_url(__FILE__) . 'assets/css/force-grid.css', 
+        array('wc-productos-template-styles'), // Hacer que dependa del CSS principal
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . filemtime($force_grid_path), // Versión basada en la última modificación
+        'all'
+    );
+    
+    // Asignar prioridad extremadamente alta
+    wp_style_add_data('wc-force-grid', 'priority', 99999);
+    
+    // Encolar el estilo
+    wp_enqueue_style('wc-force-grid');
+    
+    // 4. Añadir estilos inline adicionales para mayor seguridad
+    $critical_css = "
+    /* Estilos críticos para la cuadrícula */
+    body ul.products,
+    body.woocommerce ul.products {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+    body ul.products li.product,
+    body.woocommerce ul.products li.product {
+        width: 100% !important;
+        float: none !important;
+        margin: 0 0 20px 0 !important;
+    }";
+    
+    wp_add_inline_style('wc-force-grid', $critical_css);
+    
+    // 5. Javascript para aplicar estilos después de que el DOM esté listo y después de AJAX
+    wp_add_inline_script('wc-productos-template-script', "
+    (function($) {
+        // Aplicar en el documento ready
+        $(document).ready(function() {
+            applyGridStyles();
+        });
+        
+        // Aplicar al cargar todas las imágenes
+        $(window).on('load', function() {
+            applyGridStyles();
+        });
+        
+        // Aplicar después de ajax completado
+        $(document).ajaxComplete(function() {
+            applyGridStyles();
+        });
+        
+        // Aplicar en cambio de tamaño
+        $(window).on('resize', function() {
+            applyGridStyles();
+        });
+        
+        // Función para aplicar estilos de cuadrícula
+        function applyGridStyles() {
+            $('ul.products, .productos-grid').css({
+                'display': 'grid',
+                'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
+                'gap': '20px',
+                'width': '100%',
+                'margin': '0',
+                'padding': '0',
+                'list-style': 'none'
+            });
+            
+            $('ul.products li.product, .productos-grid li.product').css({
+                'width': '100%',
+                'margin': '0 0 20px 0',
+                'float': 'none',
+                'clear': 'none'
+            });
+            
+            if (window.innerWidth <= 480) {
+                $('ul.products, .productos-grid').css({
+                    'grid-template-columns': 'repeat(2, 1fr)',
+                    'gap': '10px'
+                });
+            }
+        }
+        
+        // Observer para detectar cambios en el DOM
+        if (window.MutationObserver) {
+            var observer = new MutationObserver(function(mutations) {
+                applyGridStyles();
+            });
+            
+            // Observar cambios en el contenedor de productos
+            var container = document.querySelector('ul.products') || document.querySelector('.productos-grid');
+            if (container) {
+                observer.observe(container.parentNode, { childList: true, subtree: true });
+            }
+        }
+    })(jQuery);
+    ");
+}
+
+// Agregar con prioridad extremadamente alta para que se ejecute después de todos los demás encolados
+add_action('wp_enqueue_scripts', 'wc_productos_fix_grid_display', 99999);
+
+/**
+ * Función para solucionar problemas con las plantillas
+ * Añadir al archivo woocommerce-productos-template.php
+ */
+function wc_productos_fix_template_loading() {
+    // Verificar que las plantillas críticas existen
+    $plugin_path = plugin_dir_path(__FILE__);
+    $templates_to_check = [
+        'loop/loop-start.php',
+        'loop/loop-end.php',
+        'content-product.php'
+    ];
+    
+    foreach ($templates_to_check as $template) {
+        $template_path = $plugin_path . 'templates/' . $template;
+        
+        // Si la plantilla no existe, mostrar un warning en el admin
+        if (!file_exists($template_path)) {
+            add_action('admin_notices', function() use ($template) {
+                echo '<div class="notice notice-error is-dismissible">';
+                echo '<p><strong>Error en WC Productos Template:</strong> ';
+                echo sprintf('No se encuentra la plantilla crucial: %s. Esto puede afectar la visualización en cuadrícula.', esc_html($template));
+                echo '</p></div>';
+            });
+        }
+    }
+    
+    // Asegurar que las plantillas se carguen correctamente
+    add_filter('wc_get_template_part', function($template, $slug, $name) use ($plugin_path) {
+        // Priorizar las plantillas críticas
+        if ($slug == 'content' && $name == 'product') {
+            $custom_template = $plugin_path . 'templates/content-product.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+        
+        return $template;
+    }, 20, 3);
+    
+    // Asegurar que las plantillas de loop se carguen correctamente
+    add_filter('woocommerce_locate_template', function($template, $template_name, $template_path) use ($plugin_path) {
+        // Priorizar las plantillas de loop
+        if ($template_name == 'loop/loop-start.php' || $template_name == 'loop/loop-end.php') {
+            $custom_template = $plugin_path . 'templates/' . $template_name;
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+        
+        return $template;
+    }, 20, 3);
+}
+
+// Ejecutar en la inicialización del plugin
+add_action('init', 'wc_productos_fix_template_loading');
