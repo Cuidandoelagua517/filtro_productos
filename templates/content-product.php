@@ -3,6 +3,12 @@
  * Plantilla para cada producto en la cuadrícula
  * Versión corregida para asegurar la correcta aplicación de estilos
  */
+
+// Ensure $product is defined and is a valid WooCommerce product
+global $product;
+if (!$product || !is_a($product, 'WC_Product')) {
+    return;
+}
 ?>
 <li <?php wc_product_class('producto-card', $product); ?>>
     <div class="producto-interior">
