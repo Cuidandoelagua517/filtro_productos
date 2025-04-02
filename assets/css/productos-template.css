@@ -1,17 +1,15 @@
 /**
- * CSS Completo para WooCommerce Productos Template
- * Este CSS da formato a la UI personalizada de productos con diseño en dos columnas
+ * CSS Optimizado para WooCommerce Productos Template
+ * Versión con namespace para evitar conflictos
  */
 
 /* ===== 1. RESETEO Y BASE ===== */
-* {
+.wc-productos-template * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
 
 /* ===== 2. CONTENEDOR PRINCIPAL ===== */
-.productos-container {
+.wc-productos-template .productos-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 15px;
@@ -20,7 +18,7 @@
 }
 
 /* ===== 3. HEADER CON TÍTULO Y BUSCADOR ===== */
-.productos-header {
+.wc-productos-template .productos-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -29,7 +27,7 @@
     border-bottom: 1px solid #e2e2e2;
 }
 
-.productos-header h1 {
+.wc-productos-template .productos-header h1 {
     font-size: 24px;
     font-weight: 600;
     margin: 0;
@@ -37,12 +35,12 @@
 }
 
 /* Barra de búsqueda */
-.productos-search {
+.wc-productos-template .productos-search {
     position: relative;
     width: 300px;
 }
 
-.productos-search input {
+.wc-productos-template .productos-search input {
     width: 100%;
     padding: 10px 40px 10px 15px;
     border: 1px solid #ddd;
@@ -51,13 +49,13 @@
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.productos-search input:focus {
+.wc-productos-template .productos-search input:focus {
     outline: none;
     border-color: #0056b3;
     box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
-.productos-search button {
+.wc-productos-template .productos-search button {
     position: absolute;
     right: 0;
     top: 0;
@@ -71,19 +69,19 @@
     transition: background-color 0.2s;
 }
 
-.productos-search button:hover {
+.wc-productos-template .productos-search button:hover {
     background-color: #004494;
 }
 
 /* ===== 4. LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
-.productos-layout {
+.wc-productos-template .productos-layout {
     display: flex;
     gap: 30px;
     margin-bottom: 40px;
 }
 
 /* ===== 5. SIDEBAR DE FILTROS ===== */
-.productos-sidebar {
+.wc-productos-template .productos-sidebar {
     flex: 0 0 250px;
     width: 250px;
     background-color: #f8f9fa;
@@ -94,7 +92,7 @@
     top: 20px;
 }
 
-.productos-sidebar h3 {
+.wc-productos-template .productos-sidebar h3 {
     font-size: 18px;
     margin: 0 0 20px 0;
     padding-bottom: 12px;
@@ -104,70 +102,70 @@
 }
 
 /* Grupos de filtros */
-.filtro-grupo {
+.wc-productos-template .filtro-grupo {
     margin-bottom: 25px;
 }
 
-.filtro-grupo:last-child {
+.wc-productos-template .filtro-grupo:last-child {
     margin-bottom: 0;
 }
 
-.filtro-grupo h4 {
+.wc-productos-template .filtro-grupo h4 {
     font-size: 15px;
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #555;
 }
 
-.filtro-option {
+.wc-productos-template .filtro-option {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
 }
 
-.filtro-option input[type="checkbox"] {
+.wc-productos-template .filtro-option input[type="checkbox"] {
     margin-right: 10px;
     cursor: pointer;
 }
 
-.filtro-option label {
+.wc-productos-template .filtro-option label {
     font-size: 14px;
     cursor: pointer;
     user-select: none;
 }
 
 /* Slider de volumen */
-.volumen-slider {
+.wc-productos-template .volumen-slider {
     margin-top: 15px;
 }
 
-.volumen-range {
+.wc-productos-template .volumen-range {
     margin-bottom: 15px;
     height: 4px;
     background: #ddd;
     border-radius: 2px;
 }
 
-.ui-slider-range {
+.wc-productos-template .ui-slider-range {
     background-color: #0056b3;
 }
 
-.ui-slider-handle {
-    width: 16px !important;
-    height: 16px !important;
-    border-radius: 50% !important;
-    background-color: #0056b3 !important;
-    border: 2px solid #fff !important;
-    cursor: pointer !important;
+.wc-productos-template .ui-slider-handle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #0056b3;
+    border: 2px solid #fff;
+    cursor: pointer;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
-    top: -0.5em !important;
+    top: -0.5em;
 }
 
-.ui-slider-handle:focus {
+.wc-productos-template .ui-slider-handle:focus {
     outline: none;
 }
 
-.volumen-values {
+.wc-productos-template .volumen-values {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
@@ -175,28 +173,28 @@
 }
 
 /* ===== 6. ÁREA PRINCIPAL DE PRODUCTOS ===== */
-.productos-main {
+.wc-productos-template .productos-main {
     flex: 1;
     min-width: 0; /* Importante para flex */
 }
 
-.productos-breadcrumb {
+.wc-productos-template .productos-breadcrumb {
     margin-bottom: 20px;
     font-size: 13px;
     color: #777;
 }
 
-.productos-breadcrumb a {
+.wc-productos-template .productos-breadcrumb a {
     color: #0056b3;
     text-decoration: none;
 }
 
-.productos-breadcrumb a:hover {
+.wc-productos-template .productos-breadcrumb a:hover {
     text-decoration: underline;
 }
 
 /* Cuadrícula de productos */
-.productos-grid {
+.wc-productos-template .productos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
@@ -204,13 +202,11 @@
 }
 
 /* ===== 7. TARJETA DE PRODUCTO ===== */
-.woocommerce .producto-card,
-.productos-container .producto-card,
-.producto-card {
-    background-color: #fff !important;
-    border: 1px solid #e2e2e2 !important;
-    border-radius: 6px !important;
-    padding: 20px !important;
+.wc-productos-template .producto-card {
+    background-color: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 6px;
+    padding: 20px;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -218,12 +214,12 @@
     overflow: hidden;
 }
 
-.producto-card:hover {
+.wc-productos-template .producto-card:hover {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     transform: translateY(-3px);
 }
 
-.producto-imagen {
+.wc-productos-template .producto-imagen {
     height: 180px;
     display: flex;
     align-items: center;
@@ -233,18 +229,18 @@
     overflow: hidden;
 }
 
-.producto-imagen img {
+.wc-productos-template .producto-imagen img {
     max-height: 100%;
     max-width: 100%;
     object-fit: contain;
     transition: transform 0.3s ease;
 }
 
-.producto-card:hover .producto-imagen img {
+.wc-productos-template .producto-card:hover .producto-imagen img {
     transform: scale(1.05);
 }
 
-.producto-badge {
+.wc-productos-template .producto-badge {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -257,17 +253,17 @@
     letter-spacing: 0.5px;
 }
 
-.badge-stock {
+.wc-productos-template .badge-stock {
     background-color: #e6f4ea;
     color: #137333;
 }
 
-.badge-danger {
+.wc-productos-template .badge-danger {
     background-color: #fce8e6;
     color: #c5221f;
 }
 
-.producto-titulo {
+.wc-productos-template .producto-titulo {
     font-size: 16px;
     font-weight: 600;
     margin: 0 0 10px 0;
@@ -275,32 +271,32 @@
     line-height: 1.4;
 }
 
-.producto-detalles {
+.wc-productos-template .producto-detalles {
     font-size: 13px;
     color: #777;
     margin: 0 0 15px 0;
     line-height: 1.4;
 }
 
-.producto-precio {
+.wc-productos-template .producto-precio {
     font-size: 18px;
     font-weight: 700;
     color: #0056b3;
     margin: auto 0 15px 0;
 }
 
-.producto-precio del {
+.wc-productos-template .producto-precio del {
     font-size: 14px;
     color: #999;
     font-weight: normal;
     margin-right: 5px;
 }
 
-.producto-precio ins {
+.wc-productos-template .producto-precio ins {
     text-decoration: none;
 }
 
-.producto-boton {
+.wc-productos-template .producto-boton {
     background-color: #0056b3;
     color: white;
     border: none;
@@ -314,12 +310,12 @@
     text-align: center;
 }
 
-.producto-boton:hover {
+.wc-productos-template .producto-boton:hover {
     background-color: #004494;
 }
 
 /* ===== 8. PAGINACIÓN ===== */
-.productos-pagination {
+.wc-productos-template .productos-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -328,16 +324,16 @@
     border-top: 1px solid #e2e2e2;
 }
 
-.pagination-info {
+.wc-productos-template .pagination-info {
     font-size: 14px;
     color: #777;
 }
 
-.pagination-links {
+.wc-productos-template .pagination-links {
     display: flex;
 }
 
-.page-number {
+.wc-productos-template .page-number {
     width: 36px;
     height: 36px;
     display: flex;
@@ -350,49 +346,49 @@
     transition: all 0.2s;
 }
 
-.page-number.active {
+.wc-productos-template .page-number.active {
     background-color: #0056b3;
     color: white;
     font-weight: 600;
 }
 
-.page-number:not(.active) {
+.wc-productos-template .page-number:not(.active) {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #555;
 }
 
-.page-number:not(.active):hover {
+.wc-productos-template .page-number:not(.active):hover {
     background-color: #e9ecef;
 }
 
 /* ===== 9. RESPONSIVE ===== */
 @media (max-width: 991px) {
-    .productos-grid {
+    .wc-productos-template .productos-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }
 
 @media (max-width: 768px) {
-    .productos-header {
+    .wc-productos-template .productos-header {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    .productos-header h1 {
+    .wc-productos-template .productos-header h1 {
         margin-bottom: 15px;
     }
     
-    .productos-search {
+    .wc-productos-template .productos-search {
         width: 100%;
         max-width: 100%;
     }
     
-    .productos-layout {
+    .wc-productos-template .productos-layout {
         flex-direction: column;
     }
     
-    .productos-sidebar {
+    .wc-productos-template .productos-sidebar {
         width: 100%;
         flex: 0 0 auto;
         margin-bottom: 20px;
@@ -400,35 +396,35 @@
         max-width: 100%;
     }
     
-    .productos-grid {
+    .wc-productos-template .productos-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
     
-    .productos-pagination {
+    .wc-productos-template .productos-pagination {
         flex-direction: column;
         gap: 15px;
     }
 }
 
 @media (max-width: 480px) {
-    .productos-grid {
+    .wc-productos-template .productos-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
     }
     
-    .producto-card {
+    .wc-productos-template .producto-card {
         padding: 15px;
     }
     
-    .producto-imagen {
+    .wc-productos-template .producto-imagen {
         height: 140px;
     }
     
-    .producto-precio {
+    .wc-productos-template .producto-precio {
         font-size: 16px;
     }
     
-    .producto-titulo {
+    .wc-productos-template .producto-titulo {
         font-size: 14px;
     }
 }
@@ -439,12 +435,12 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-.productos-grid {
+.wc-productos-template .productos-grid {
     animation: fadeIn 0.5s ease;
 }
 
 /* Efecto de carga */
-.loading {
+.wc-productos-template .loading {
     text-align: center;
     padding: 20px;
     color: #777;
@@ -452,7 +448,7 @@
 }
 
 /* ===== 11. MENSAJES DE NOTIFICACIÓN ===== */
-.wc-message-success {
+.wc-productos-template .wc-message-success {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -472,24 +468,34 @@
 }
 
 /* Mejoras para accesibilidad */
-.filtro-option input[type="checkbox"]:focus + label {
+.wc-productos-template .filtro-option input[type="checkbox"]:focus + label {
     text-decoration: underline;
 }
 
-.productos-search input:focus,
-.producto-boton:focus {
+.wc-productos-template .productos-search input:focus,
+.wc-productos-template .producto-boton:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.25);
 }
 
 /* Personalización de la barra de jQuery UI */
-.ui-slider-horizontal .ui-slider-handle {
+.wc-productos-template .ui-slider-horizontal .ui-slider-handle {
     margin-left: -8px;
 }
 
 /* Sombra para resaltar el sidebar cuando hay scroll */
 @media (min-width: 769px) {
-    .productos-container.scrolled .productos-sidebar {
+    .wc-productos-template.scrolled .productos-sidebar {
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
+}
+
+/* Compatibilidad con temas WooCommerce */
+.wc-productos-template ul.products li.product {
+    margin-bottom: 0;
+}
+
+.wc-productos-template .woocommerce-result-count,
+.wc-productos-template .woocommerce-ordering {
+    display: none;
 }
