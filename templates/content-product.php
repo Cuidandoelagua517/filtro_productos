@@ -8,7 +8,7 @@ echo "<!-- Custom template loaded: " . __FILE__ . " -->";
  * Template para cada producto individual
  */
 ?>
-<div <?php wc_product_class('producto-card', $product); ?>>
+<div class="producto-card wc-producto-personalizado" id="producto-<?php echo esc_attr($product->get_id()); ?>">
     <?php
     global $product;
     
