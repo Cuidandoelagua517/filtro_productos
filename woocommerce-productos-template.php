@@ -133,7 +133,16 @@ public function register_scripts() {
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('productos_filter_nonce')
         ));
-                
+              // Add inline CSS for testing
+    $custom_css = "
+        .producto-card {
+            border: 2px solid red !important;
+            background-color: #f8f9fa !important;
+            padding: 20px !important;
+        }
+    ";
+    wp_add_inline_style('wc-productos-template-styles', $custom_css);
+}      
         // Agregar soporte para la barra de rango
         wp_enqueue_script('jquery-ui-slider');
         wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
