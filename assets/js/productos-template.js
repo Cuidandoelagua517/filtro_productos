@@ -120,7 +120,9 @@ jQuery(document).ready(function($) {
         if (ajaxRunning) return;
         
         // Mostrar indicador de carga
-        $('.wc-productos-template .productos-grid').append('<div class="loading">Cargando productos...</div>');
+        if ($('.wc-productos-template .productos-grid .loading').length === 0) {
+            $('.wc-productos-template .productos-grid').append('<div class="loading">Cargando productos...</div>');
+        }
         
         // Obtener valores de filtros
         var categoryFilter = [];
@@ -165,52 +167,78 @@ jQuery(document).ready(function($) {
                     // Actualizar paginación
                     $('.wc-productos-template .productos-pagination').html(response.data.pagination);
                     
-                    // Actualizar contador de resultados
-                    $('.wc-productos-template .pagination-info').text('Mostrando 1-' + 
-                        Math.min(response.data.total, $('.wc-productos-template .producto-card').length) + 
-                        ' de ' + response.data.total + ' resultados');
-                    
-                    // Actualizar URL para permitir la recarga y navegación directa
-                    if(history.pushState) {
-                        var newurl = window.location.protocol + "//" + window.location.host + 
-                                    window.location.pathname + '?paged=' + page;
+                    // Actualizar contador de resultados si existe
+                    if ($('.wc-productos-template .pagination-info').length) {
+                        var showing = Math.min(response.data.total, response.data.current_page * WCProductosParams.products_per_page);
+                        var start = (response.data.current_page - 1) * WCProductosParams.products_per_page + 1;
                         
-                        // Añadir otros parámetros de filtro a la URL
-                        if(categoryFilter.length) {
-                            newurl += '&category=' + categoryFilter.join(',');
+                        if (response.data.total > 0) {
+                            $('.wc-productos-template .pagination-info').text(
+                                'Mostrando ' + start + '-' + showing + ' de ' + response.data.total + ' resultados'
+                            );
+                        } else {
+                            $('.wc-productos-template .pagination-info').text('0 resultados');
                         }
-                        if(gradeFilter.length) {
-                            newurl += '&grade=' + gradeFilter.join(',');
-                        }
-                        if(searchQuery) {
-                            newurl += '&search=' + encodeURIComponent(searchQuery);
-                        }
-                        
-                        window.history.pushState({path:newurl}, '', newurl);
                     }
                     
-                    // Animar scroll hacia arriba si hay productos
+                    // Modificar URL para permitir refrescar la página
+                    if (history.pushState) {
+                        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                        var params = [];
+                        
+                        // Añadir página a la URL si es diferente de la página 1
+                        if (page > 1) {
+                            params.push('paged=' + page);
+                        }
+                        
+                        // Añadir otros parámetros si hay filtros activos
+                        if (categoryFilter.length) {
+                            params.push('category=' + categoryFilter.join(','));
+                        }
+                        
+                        if (gradeFilter.length) {
+                            params.push('grade=' + gradeFilter.join(','));
+                        }
+                        
+                        if (searchQuery) {
+                            params.push('s=' + encodeURIComponent(searchQuery));
+                        }
+                        
+                        // Construir URL con parámetros
+                        if (params.length > 0) {
+                            newUrl += '?' + params.join('&');
+                        }
+                        
+                        window.history.pushState({path: newUrl}, '', newUrl);
+                    }
+                    
+                    // Scroll suave hacia arriba si es necesario
                     if ($('.wc-productos-template .productos-grid').length) {
                         $('html, body').animate({
                             scrollTop: $('.wc-productos-template .productos-grid').offset().top - 100
                         }, 500);
                     }
                     
-                    // Trigger evento personalizado después de filtrar
-                    $(document).trigger('productos_filtered');
+                    // Disparar evento personalizado para permitir otras acciones
+                    $(document).trigger('productos_filtered', [response.data]);
+                    
                 } else {
                     console.error('Error al filtrar productos');
-                    $('.wc-productos-template .productos-grid').html('<p>' + WCProductosParams.i18n.error + '</p>');
+                    $('.wc-productos-template .productos-grid').html(
+                        '<p class="woocommerce-info">' + WCProductosParams.i18n.error + '</p>'
+                    );
                 }
                 
                 // Marcar que AJAX ha terminado
                 ajaxRunning = false;
                 $('.wc-productos-template .loading').remove();
             },
-            error: function() {
-                console.error('Error en la petición AJAX');
+            error: function(xhr, status, error) {
+                console.error('Error en la petición AJAX:', error);
                 $('.wc-productos-template .loading').remove();
-                $('.wc-productos-template .productos-grid').html('<p>' + WCProductosParams.i18n.error + '</p>');
+                $('.wc-productos-template .productos-grid').html(
+                    '<p class="woocommerce-info">' + WCProductosParams.i18n.error + '</p>'
+                );
                 ajaxRunning = false;
             }
         });
@@ -243,10 +271,19 @@ jQuery(document).ready(function($) {
         filterProducts();
     });
     
-    // Delegación de eventos para paginación con verificación de doble binding
-    $(document).off('click', '.wc-productos-template .page-number:not(.active)').on('click', '.wc-productos-template .page-number:not(.active)', function() {
+    // Delegación de eventos para paginación con prevención de doble binding
+    $(document).off('click', '.wc-productos-template .page-number').on('click', '.wc-productos-template .page-number', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // No hacer nada si ya está en la página activa
+        if ($(this).hasClass('active')) {
+            return false;
+        }
+        
         var page = $(this).data('page') || 1;
         filterProducts(page);
+        return false;
     });
     
     // Delegación de eventos para botón Agregar al carrito (compatibilidad)
@@ -309,14 +346,40 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Comprobar si hay parámetros en la URL al cargar
+    // Verificar si hay parámetros en la URL al cargar
     $(window).on('load', function() {
         var urlParams = new URLSearchParams(window.location.search);
         var page = urlParams.get('paged');
         
-        if (page) {
-            // Si hay una página especificada, cargar esa página
-            filterProducts(parseInt(page));
+        // Recuperar filtros de la URL y aplicarlos a los elementos de formulario
+        var categoryParam = urlParams.get('category');
+        var gradeParam = urlParams.get('grade');
+        var searchParam = urlParams.get('s');
+        
+        if (categoryParam) {
+            var categories = categoryParam.split(',');
+            $.each(categories, function(i, cat) {
+                $('.filtro-category[value="' + cat + '"]').prop('checked', true);
+            });
+        }
+        
+        if (gradeParam) {
+            var grades = gradeParam.split(',');
+            $.each(grades, function(i, grade) {
+                $('.filtro-grade[value="' + grade + '"]').prop('checked', true);
+            });
+        }
+        
+        if (searchParam) {
+            $('.productos-search input').val(decodeURIComponent(searchParam));
+        }
+        
+        // Si hay una página especificada, verificar si necesitamos cargar mediante AJAX
+        if (page && page > 1) {
+            // Solo cargar vía AJAX si no hay contenido o si la URL tiene el parámetro refresh
+            if ($('.wc-productos-template .productos-grid').is(':empty') || urlParams.get('refresh')) {
+                filterProducts(parseInt(page));
+            }
         }
     });
 });
