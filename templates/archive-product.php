@@ -139,29 +139,27 @@ $current_page = max(1, get_query_var('paged'));
                 <?php woocommerce_breadcrumb(); ?>
             </div>
             
-            <!-- Listado de productos en formato grid -->
-            <div class="productos-grid">
-                <?php
-                if (have_posts()) {
-                    // Iniciar el loop de productos
-                    woocommerce_product_loop_start();
-                    
-                    while (have_posts()) {
-                        the_post();
-                        wc_get_template_part('content', 'product');
-                    }
-                    
-                    woocommerce_product_loop_end();
-                } else {
-                    /**
-                     * Hook: woocommerce_no_products_found.
-                     *
-                     * @hooked wc_no_products_found - 10
-                     */
-                    do_action('woocommerce_no_products_found');
+            <!-- IMPORTANTE: Eliminamos el div.productos-grid que estaba generando una estructura anidada y conflictiva -->
+            <?php
+            if (have_posts()) {
+                // Inicio del loop con estilos forzados directamente
+                echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '" style="display:grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important; width: 100% !important; margin: 0 !important; padding: 0 !important; list-style: none !important;">';
+                
+                while (have_posts()) {
+                    the_post();
+                    wc_get_template_part('content', 'product');
                 }
-                ?>
-            </div>
+                
+                echo '</ul>';
+            } else {
+                /**
+                 * Hook: woocommerce_no_products_found.
+                 *
+                 * @hooked wc_no_products_found - 10
+                 */
+                do_action('woocommerce_no_products_found');
+            }
+            ?>
             
             <!-- Paginación -->
             <?php
