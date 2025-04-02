@@ -36,7 +36,9 @@ jQuery(document).ready(function($) {
         // Utilizar la función filterProducts solo para filtros, no para paginación
         window.originalFilterProducts = window.filterProducts;
         
-        window.filterProducts = function(page = 1) {
+      window.filterProducts = function(page) {
+    // Asignar valor predeterminado de forma compatible
+    page = page || 1;
             // Si estamos en una página de shortcode, redireccionar en lugar de usar AJAX
             if (isShortcodePage) {
                 var currentUrl = new URL(window.location.href);
