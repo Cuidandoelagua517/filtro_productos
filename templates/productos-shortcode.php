@@ -12,9 +12,9 @@ add_filter('woocommerce_show_page_title', '__return_false');
 ?>
 
 <div class="productos-container wc-productos-template">
-    <!-- Header de productos - AHORA CORRECTAMENTE POSICIONADO -->
-    <div class="productos-header">
-        <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
+     <!-- Header should be FIRST, before the product grid -->
+ <div class="productos-header">
+        <h1>Productos</h1>
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
