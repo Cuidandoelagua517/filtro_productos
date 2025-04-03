@@ -320,22 +320,14 @@ public function enqueue_search_bar_fix() {
         }
 
         /**
-         * Sobreescribir templates de WooCommerce de manera más selectiva
-         */
+ * 1. MÉTODO UNIFICADO DE CARGA DE TEMPLATES
+ * Reemplazar el método 'override_woocommerce_templates' existente con este
+ */
 public function override_woocommerce_templates($template, $template_name, $template_path) {
-    // Forzar sobrescritura para archivos críticos para la cuadrícula
-    if ($template_name == 'loop/loop-start.php' || $template_name == 'loop/loop-end.php' || $template_name == 'content-product.php') {
-        $plugin_template = plugin_dir_path(__FILE__) . 'templates/' . $template_name;
-        
-        if (file_exists($plugin_template)) {
-            return $plugin_template;
-        }
-    }
-    
-    // Lista ampliada de templates que queremos sobrescribir
+    // Lista de templates que queremos sobrescribir
     $override_templates = array(
         'content-product.php',           // Template de producto individual
-        'loop/loop-start.php',           // Inicio del loop (CRÍTICO para la cuadrícula)
+        'loop/loop-start.php',           // Inicio del loop
         'loop/loop-end.php',             // Final del loop
         'loop/pagination.php',           // Paginación
         'loop/orderby.php',              // Selector de ordenamiento
@@ -355,7 +347,6 @@ public function override_woocommerce_templates($template, $template_name, $templ
     
     return $template;
 }
-
         /**
          * Obtener categorías de productos
          */
@@ -486,24 +477,25 @@ public function ajax_filter_products() {
     wc_set_loop_prop('total_pages', $products_query->max_num_pages);
     wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
     
-    ob_start();
+ ob_start();
+
+if ($products_query->have_posts()) {
+    // Usar solo la cuadrícula de productos, sin header adicional
+    echo '<ul class="productos-grid products columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
     
-    if ($products_query->have_posts()) {
-        echo '<ul class="productos-grid products wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
-        
-        while ($products_query->have_posts()) {
-            $products_query->the_post();
-            wc_get_template_part('content', 'product');
-        }
-        
-        echo '</ul>';
-    } else {
-        echo '<div class="woocommerce-info">' . 
-            esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
-            '</div>';
+    while ($products_query->have_posts()) {
+        $products_query->the_post();
+        wc_get_template_part('content', 'product');
     }
     
-    $products_html = ob_get_clean();
+    echo '</ul>';
+} else {
+    echo '<div class="woocommerce-info">' . 
+        esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+        '</div>';
+}
+
+$products_html = ob_get_clean();
     
     // Generar paginación
     ob_start();
@@ -605,55 +597,79 @@ public function ajax_filter_products() {
         }
 
         /**
-         * Cargador de templates personalizado más selectivo
-         * Permite cargar el template completo para el shortcode
-         */
-        public function template_loader($template) {
-            // Detectar si estamos mostrando el shortcode
-            $using_shortcode = false;
-            if (is_a(get_post(), 'WP_Post')) {
-                $using_shortcode = has_shortcode(get_post()->post_content, 'productos_personalizados');
-            }
-            
-            // Solo sobrescribir en páginas de archivo de productos cuando usamos el shortcode
-            if ($using_shortcode && (is_product_category() || is_product_tag() || is_shop())) {
-                $custom_template = plugin_dir_path(__FILE__) . 'templates/archive-product.php';
-                if (file_exists($custom_template)) {
-                    return $custom_template;
-                }
-            }
-            
-            return $template;
-        }
-
-        /**
-         * Shortcode modificado para mostrar productos con el nuevo template y paginación adecuada
-         */
-        public function productos_shortcode($atts) {
-            $atts = shortcode_atts(array(
-                'category' => '',
-                'per_page' => get_option('posts_per_page')
-            ), $atts, 'productos_personalizados');
-            
-            // Asegurarse de que se puedan obtener parámetros de paginación
-            global $wp_query;
-            if (!isset($wp_query->query_vars['paged'])) {
-                $wp_query->query_vars['paged'] = get_query_var('paged', 1);
-            }
-            
-            // Incluir template de página de productos
-            ob_start();
-            include(WC_PRODUCTOS_TEMPLATE_PATH . 'templates/productos-shortcode.php');
-            return ob_get_clean();
+ * 2. SIMPLIFICAR EL TEMPLATE LOADER
+ * Reemplazar el método 'template_loader' existente con este
+ */
+public function template_loader($template) {
+    // Solo aplicar en archivos de productos y cuando se usa el shortcode
+    if (!is_product_category() && !is_product_tag() && !is_shop() && 
+        !(is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
+        return $template;
+    }
+    
+    // Determinar si estamos usando el shortcode
+    $using_shortcode = is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados');
+    
+    // Elegir el template correcto según el contexto
+    if ($using_shortcode) {
+        // No sobrescribir el template completo para el shortcode
+        // En su lugar, el shortcode incluirá su template específico
+        return $template;
+    } else if (is_product_category() || is_product_tag() || is_shop()) {
+        // Usar nuestro template para archivos de productos
+        $custom_template = plugin_dir_path(__FILE__) . 'templates/archive-product.php';
+        if (file_exists($custom_template)) {
+            // Importante: Remover hooks específicos de WooCommerce antes de aplicar nuestro template
+            $this->remove_woocommerce_hooks();
+            return $custom_template;
         }
     }
     
-    // Instanciar la clase
-    new WC_Productos_Template();
-
-    // Activación del plugin
-    register_activation_hook(__FILE__, 'wc_productos_template_activate');
+    return $template;
 }
+/**
+ * 3. NUEVO MÉTODO: REMOVER HOOKS DE WOOCOMMERCE
+ * Añadir este nuevo método a la clase
+ */
+private function remove_woocommerce_hooks() {
+    // Remover hooks específicos de WooCommerce que pueden interferir con nuestro layout
+    remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
+    remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
+    remove_action('woocommerce_before_shop_loop', 'woocommerce_result_count', 20);
+    remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
+    remove_action('woocommerce_before_shop_loop', 'woocommerce_output_all_notices', 10);
+    remove_action('woocommerce_archive_description', 'woocommerce_taxonomy_archive_description', 10);
+    remove_action('woocommerce_archive_description', 'woocommerce_product_archive_description', 10);
+    
+    // Remover el título de la tienda (ya que nuestro template incluye su propio título)
+    add_filter('woocommerce_show_page_title', '__return_false');
+}
+/**
+ * 4. MODIFICAR MÉTODO DE SHORTCODE
+ * Reemplazar el método 'productos_shortcode' existente con este
+ */
+public function productos_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'category' => '',
+        'per_page' => get_option('posts_per_page')
+    ), $atts, 'productos_personalizados');
+    
+    // Asegurarse de que se puedan obtener parámetros de paginación
+    global $wp_query;
+    if (!isset($wp_query->query_vars['paged'])) {
+        $wp_query->query_vars['paged'] = get_query_var('paged', 1);
+    }
+    
+    // Incluir template específico para el shortcode
+    ob_start();
+    
+    // Remover posibles hooks de WooCommerce que puedan interferir
+    $this->remove_woocommerce_hooks();
+    
+    include(WC_PRODUCTOS_TEMPLATE_PATH . 'templates/productos-shortcode.php');
+    return ob_get_clean();
+}
+
 
 /**
  * Función para activar el plugin
