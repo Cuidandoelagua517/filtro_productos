@@ -344,7 +344,7 @@ if (!class_exists('WC_Productos_Template')) {
                 $css = "ul.products, .productos-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important; }";
                 wp_add_inline_style('wc-productos-template-styles', $css);
             }
-            
+        } 
 
         /**
          * Sobreescribir templates de WooCommerce selectivamente
