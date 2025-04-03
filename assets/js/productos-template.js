@@ -166,43 +166,21 @@ jQuery(document).ready(function($) {
      * Forzar disposición en cuadrícula con JavaScript
      */
     function forceGridLayout() {
-        $('.wc-productos-template ul.products, .productos-grid').css({
-            'display': 'grid',
-            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
-            'gap': '20px',
-            'width': '100%',
-            'margin': '0',
-            'padding': '0',
-            'list-style': 'none',
-            'float': 'none',
-            'clear': 'both'
-        });
-        
-        $('.wc-productos-template ul.products li.product, .productos-grid li.product').css({
-            'width': '100%',
-            'margin': '0 0 20px 0',
-            'float': 'none',
-            'clear': 'none',
-            'display': 'flex',
-            'flex-direction': 'column',
-            'height': '100%'
-        });
-        
-        // Media query para móviles
-        if (window.innerWidth <= 480) {
-            $('.wc-productos-template ul.products, .productos-grid').css({
-                'grid-template-columns': 'repeat(2, 1fr)'
-            });
-        } else if (window.innerWidth <= 768) {
-            $('.wc-productos-template ul.products, .productos-grid').css({
-                'grid-template-columns': 'repeat(2, 1fr)'
-            });
-        } else if (window.innerWidth <= 991) {
-            $('.wc-productos-template ul.products, .productos-grid').css({
-                'grid-template-columns': 'repeat(3, 1fr)'
-            });
-        }
+    // Asegurarse de que la clase principal esté presente
+    $('.wc-productos-template ul.products, .productos-grid').addClass('force-grid');
+    
+    // Agregar clases responsive según el ancho de pantalla
+    $('body').removeClass('screen-small screen-medium screen-large');
+    
+    if (window.innerWidth <= 480) {
+        $('body').addClass('screen-small');
+    } else if (window.innerWidth <= 768) {
+        $('body').addClass('screen-medium');
+    } else {
+        $('body').addClass('screen-large');
     }
+}
+
     
     /**
      * Actualizar URL sin recargar la página (History API)
@@ -404,38 +382,22 @@ jQuery(document).ready(function($) {
 });
 // Agregar esta función dentro del document.ready
 function forceThreeColumnGrid() {
-    // Forzar cuadrícula de 3 columnas en todos los dispositivos excepto móviles
-    $('.wc-productos-template ul.products, .productos-grid').css({
-        'display': 'grid',
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'gap': '20px',
-        'width': '100%',
-        'margin': '0 0 30px 0',
-        'padding': '0',
-        'list-style': 'none',
-        'float': 'none',
-        'clear': 'both'
-    });
+    // Aplicar clases para la cuadrícula de 3 columnas
+    $('.wc-productos-template ul.products, .productos-grid').addClass('three-column-grid');
     
-    // Adaptar a dispositivos móviles
-    if (window.innerWidth <= 768) {
-        $('.wc-productos-template ul.products, .productos-grid').css({
-            'grid-template-columns': 'repeat(2, 1fr)',
-            'gap': '15px'
-        });
-    }
+    // Agregar clases responsive según el ancho de pantalla
+    $('body').removeClass('screen-small screen-medium screen-large');
     
     if (window.innerWidth <= 480) {
-        $('.wc-productos-template ul.products, .productos-grid').css({
-            'grid-template-columns': 'repeat(1, 1fr)',
-            'gap': '10px'
-        });
+        $('body').addClass('screen-small');
+    } else if (window.innerWidth <= 768) {
+        $('body').addClass('screen-medium');
+    } else {
+        $('body').addClass('screen-large');
     }
     
     // Ocultar productos después del noveno
-    $('.wc-productos-template ul.products li.product:nth-child(n+10), .productos-grid li.product:nth-child(n+10)').css({
-        'display': 'none'
-    });
+    $('.wc-productos-template ul.products li.product:nth-child(n+10), .productos-grid li.product:nth-child(n+10)').addClass('hide-product');
 }
 
 // Llamar a esta función tanto al cargar como al redimensionar la ventana
