@@ -3,7 +3,10 @@
  * Añade un campo metabox para el volumen y opciones de peligrosidad
  * 
  * Esta clase es compatible con HPOS (High-Performance Order Storage)
+ *
+ * @package WC_Productos_Template
  */
+
 if (!class_exists('WC_Productos_Template_Metabox')) {
 
     class WC_Productos_Template_Metabox {
