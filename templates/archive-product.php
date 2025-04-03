@@ -13,10 +13,14 @@ remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30
 
 // Obtener la página actual
 $current_page = max(1, get_query_var('paged'));
+
+// IMPORTANTE: Asegurarnos de que el hook 'woocommerce_before_main_content' se ejecute primero
+// para que el header del tema se muestre antes que nuestro contenido
+do_action('woocommerce_before_main_content');
 ?>
 
 <div class="productos-container wc-productos-template">
-    <!-- Header - FUERA de la disposición de dos columnas -->
+    <!-- Header de productos - AHORA CORRECTAMENTE POSICIONADO DESPUÉS DEL HEADER PRINCIPAL -->
     <div class="productos-header">
         <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
         
@@ -239,4 +243,6 @@ $current_page = max(1, get_query_var('paged'));
 <?php
 // Hook para permitir scripts adicionales
 do_action('wc_productos_template_after_main_content');
+// Asegurarse de cerrar correctamente el contenido principal
+do_action('woocommerce_after_main_content');
 ?>
