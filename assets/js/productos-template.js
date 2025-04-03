@@ -482,28 +482,24 @@ jQuery(document).ready(function($) {
 });
 
 /**
- * This function specifically targets and fixes the "Productos" heading and search bar position
- * Add this function to your productos-template.js file and make sure it runs on page load
+ * This function correctly handles the productos header positioning
+ * without moving it outside its proper container
  */
 function fixProductosHeaderPosition() {
-    console.log('Fixing productos header position...');
     var $ = jQuery;
     
-    // 1. Check if we have a misplaced header inside the products grid
-    var $misplacedHeader = $('.productos-grid .productos-header, ul.products .productos-header');
-    
-    if ($misplacedHeader.length > 0) {
-        console.log('Found misplaced header inside product grid, moving it...');
-        
-        // 2. Find the proper container to move it to
+    // 1. Remove any misplaced header outside its proper container
+    $('.productos-grid > .productos-header, ul.products > .productos-header').each(function() {
+        var $header = $(this);
         var $container = $('.productos-container, .wc-productos-template').first();
         
+        // Only move if found in the wrong place and container exists
         if ($container.length > 0) {
-            // 3. Move the header to be the first child of the container
-            $misplacedHeader.prependTo($container);
+            // Move to the beginning of the container, not outside it
+            $header.prependTo($container);
             
-            // 4. Apply styles to ensure proper display
-            $misplacedHeader.css({
+            // Apply proper styles to keep it in the flow
+            $header.css({
                 'position': 'relative',
                 'top': 'auto',
                 'display': 'flex',
@@ -512,48 +508,17 @@ function fixProductosHeaderPosition() {
                 'border-bottom': '1px solid #e2e2e2',
                 'padding-bottom': '15px'
             });
-            
-            // 5. Adjust container padding
-            $container.css('padding-top', '0');
         }
-    } else {
-        console.log('No misplaced header found inside product grid');
-        
-        // 6. Check if header exists at all, if not we may need to create it
-        var $header = $('.productos-header');
-        
-        if ($header.length === 0) {
-            console.log('No header found, creating new one...');
-            
-            var $container = $('.productos-container, .wc-productos-template').first();
-            
-            if ($container.length > 0) {
-                // Create a new header with search
-                var headerHtml = '<div class="productos-header">' +
-                    '<h1>Productos</h1>' +
-                    '<div class="productos-search">' +
-                    '<form role="search" method="get" id="productos-search-form" action="/">' +
-                    '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" />' +
-                    '<input type="hidden" name="post_type" value="product" />' +
-                    '<button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>' +
-                    '</form>' +
-                    '</div>' +
-                    '</div>';
-                
-                // Add to container
-                $container.prepend(headerHtml);
-            }
-        }
-    }
+    });
     
-    // 7. Find any "Productos" text node directly inside the grid and remove it
+    // 2. Fix any "Productos" text node directly inside the grid
     $('.productos-grid, ul.products').contents().each(function() {
         if (this.nodeType === 3 && this.nodeValue.trim() === 'Productos') {
             $(this).remove();
         }
     });
     
-    // 8. Fix any other search bar issues
+    // 3. Ensure search bar is visible and properly styled
     var $searchBar = $('.productos-search');
     
     if ($searchBar.length > 0) {
@@ -576,10 +541,4 @@ jQuery(document).ready(function($) {
     $(document).ajaxComplete(function() {
         setTimeout(fixProductosHeaderPosition, 100);
     });
-    
-    // Run periodically for the first few seconds to catch any dynamic changes
-    var fixInterval = setInterval(fixProductosHeaderPosition, 1000);
-    setTimeout(function() {
-        clearInterval(fixInterval);
-    }, 5000);
 });
