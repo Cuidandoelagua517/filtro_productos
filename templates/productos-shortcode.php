@@ -1,7 +1,7 @@
 <?php
 /**
  * Template para mostrar productos mediante shortcode
- * Versión corregida para eliminar títulos duplicados y optimizada para AJAX
+ * Versión corregida para limitar a 9 productos por página y grid de 3 columnas
  *
  * @package WC_Productos_Template
  */
@@ -136,8 +136,8 @@ add_filter('woocommerce_show_page_title', '__return_false');
                 // Obtener la página actual
                 $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
 
-                // Establecer un valor por defecto para posts_per_page
-                $posts_per_page = isset($atts['per_page']) ? intval($atts['per_page']) : get_option('posts_per_page', 12);
+                // Establecer un máximo de 9 productos por página
+                $posts_per_page = 9;
 
                 // Preparar los argumentos de la consulta
                 $args = array(
@@ -166,11 +166,20 @@ add_filter('woocommerce_show_page_title', '__return_false');
                 wc_set_loop_prop('per_page', $posts_per_page);
                 wc_set_loop_prop('total', $products_query->found_posts);
                 wc_set_loop_prop('total_pages', $products_query->max_num_pages);
-                wc_set_loop_prop('columns', 4); // Ajustar según el diseño
+                wc_set_loop_prop('columns', 3); // Establecer a 3 columnas
                 
                 if ($products_query->have_posts()) {
-                    // Abrir la cuadrícula
-                    woocommerce_product_loop_start();
+                    // Abrir la cuadrícula con estilos forzados para 3 columnas
+                    echo '<ul class="products productos-grid wc-productos-template columns-3" 
+                        style="display:grid !important; 
+                               grid-template-columns: repeat(3, 1fr) !important; 
+                               gap: 20px !important;
+                               width: 100% !important;
+                               margin: 0 !important;
+                               padding: 0 !important;
+                               list-style: none !important;
+                               float: none !important;
+                               clear: both !important;">';
                     
                     while ($products_query->have_posts()) {
                         $products_query->the_post();
@@ -182,7 +191,7 @@ add_filter('woocommerce_show_page_title', '__return_false');
                         wc_get_template_part('content', 'product');
                     }
                     
-                    woocommerce_product_loop_end();
+                    echo '</ul><!-- .productos-grid -->';
                     
                     wp_reset_postdata();
                     
@@ -252,6 +261,32 @@ add_filter('woocommerce_show_page_title', '__return_false');
 <!-- Script para inicializar los controles de filtrado -->
 <script type="text/javascript">
     jQuery(document).ready(function($) {
+        // Forzar cuadrícula de 3 columnas
+        $('.productos-grid, ul.products').css({
+            'display': 'grid',
+            'grid-template-columns': 'repeat(3, 1fr)',
+            'gap': '20px',
+            'width': '100%',
+            'margin': '0 0 30px 0',
+            'padding': '0',
+            'list-style': 'none',
+            'float': 'none',
+            'clear': 'both'
+        });
+        
+        // Ajustar visualización en móviles
+        if (window.innerWidth <= 768) {
+            $('.productos-grid, ul.products').css({
+                'grid-template-columns': 'repeat(2, 1fr)'
+            });
+        }
+        
+        if (window.innerWidth <= 480) {
+            $('.productos-grid, ul.products').css({
+                'grid-template-columns': 'repeat(1, 1fr)'
+            });
+        }
+        
         if (typeof filterProducts === 'function') {
             // Los event listeners se manejan en productos-template.js
             console.log('Filtros inicializados');
