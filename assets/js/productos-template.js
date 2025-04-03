@@ -1,11 +1,11 @@
 /**
- * JavaScript principal para el template de productos de WooCommerce
- * Maneja filtros, búsqueda y paginación mediante AJAX
- *
- * @package WC_Productos_Template
+ * SOLUCIÓN: JavaScript mejorado para productos-template.js
+ * Este archivo corrige los problemas de paginación y filtrado
  */
 
 jQuery(document).ready(function($) {
+    console.log('Productos Template Script - Versión optimizada');
+    
     // Verificar si estamos en una página con el template de productos
     if (!$('.wc-productos-template').length) {
         return;
@@ -22,11 +22,11 @@ jQuery(document).ready(function($) {
     };
     
     /**
-     * Función principal para filtrar productos vía AJAX
+     * Función principal para filtrar productos vía AJAX - CORREGIDA
      */
     function filterProducts(page) {
         // Asignar página actual
-        page = page || 1;
+        page = parseInt(page) || 1;
         currentFilters.page = page;
         
         // Mostrar mensaje de carga
@@ -43,13 +43,16 @@ jQuery(document).ready(function($) {
         // Recopilar valores de filtros actuales
         updateCurrentFilters();
         
+        // Debug para verificar qué estamos enviando
+        console.log('Enviando filtros:', currentFilters);
+        
         // Realizar petición AJAX
         $.ajax({
-            url: WCProductosParams.ajaxurl,
+            url: typeof WCProductosParams !== 'undefined' ? WCProductosParams.ajaxurl : ajaxurl,
             type: 'POST',
             data: {
                 action: 'productos_filter',
-                nonce: WCProductosParams.nonce,
+                nonce: typeof WCProductosParams !== 'undefined' ? WCProductosParams.nonce : '',
                 page: currentFilters.page,
                 category: currentFilters.category.join(','),
                 grade: currentFilters.grade.join(','),
@@ -58,23 +61,37 @@ jQuery(document).ready(function($) {
                 search: currentFilters.search
             },
             success: function(response) {
-    // Eliminar mensaje de carga
-    $mainContent.find('.loading').remove();
-    
-    if (response.success) {
-        // Actualizar productos y paginación
-        updateProductGrid(response.data.products);
-        updatePagination(response.data.pagination);
-        // Actualizar el breadcrumb para mostrar la página actual
-        updateBreadcrumbForPagination(currentFilters.page);
+                // Eliminar mensaje de carga
+                $mainContent.find('.loading').remove();
+                
+                console.log('Respuesta recibida:', response);
+                
+                if (response.success) {
+                    // Actualizar productos y paginación
+                    updateProductGrid(response.data.products);
+                    updatePagination(response.data.pagination);
                     
-                    // Desplazarse al inicio de los productos
+                    // Actualizar el breadcrumb si está disponible
+                    if (response.data.breadcrumb) {
+                        updateBreadcrumb(response.data.breadcrumb);
+                    } else {
+                        // Alternativa: actualizar manualmente con la página actual
+                        updateBreadcrumbForPagination(currentFilters.page);
+                    }
+                    
+                    // Desplazarse al inicio de los productos con animación suave
                     $('html, body').animate({
                         scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
                     }, 500);
                     
                     // Actualizar estado de URL sin recargar página
                     updateUrlState();
+                    
+                    // IMPORTANTE: Forzar la cuadrícula y volver a enlazar eventos
+                    setTimeout(function() {
+                        forceGridLayout();
+                        bindPaginationEvents();
+                    }, 100);
                 } else {
                     // Mostrar mensaje de error
                     showError(typeof WCProductosParams !== 'undefined' ? 
@@ -82,21 +99,19 @@ jQuery(document).ready(function($) {
                              'Error al cargar productos. Intente nuevamente.');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 // Eliminar mensaje de carga y mostrar error
                 $mainContent.find('.loading').remove();
+                console.error('Error AJAX:', status, error);
                 showError(typeof WCProductosParams !== 'undefined' ? 
                          WCProductosParams.i18n.error : 
                          'Error al cargar productos. Intente nuevamente.');
             }
         });
-        
-        // Forzar cuadrícula de tres columnas después de cargar
-        setTimeout(forceThreeColumnGrid, 100);
     }
     
     /**
-     * Recopilar valores actuales de los filtros
+     * Recopilar valores actuales de los filtros - CORREGIDA
      */
     function updateCurrentFilters() {
         // Categorías seleccionadas
@@ -111,78 +126,98 @@ jQuery(document).ready(function($) {
             currentFilters.grade.push($(this).val());
         });
         
-        // Valores de volumen
-        currentFilters.min_volume = $('.wc-productos-template input[name="min_volume"]').val() || 100;
-        currentFilters.max_volume = $('.wc-productos-template input[name="max_volume"]').val() || 5000;
+        // Valores de volumen (asegurar que sean números)
+        currentFilters.min_volume = parseInt($('.wc-productos-template input[name="min_volume"]').val()) || 100;
+        currentFilters.max_volume = parseInt($('.wc-productos-template input[name="max_volume"]').val()) || 5000;
         
-        // Término de búsqueda
-        currentFilters.search = $('.wc-productos-template .productos-search input').val() || '';
+        // Término de búsqueda (mejorado para evitar espacios innecesarios)
+        currentFilters.search = $.trim($('.wc-productos-template .productos-search input').val() || '');
     }
     
     /**
-     * Actualizar la cuadrícula de productos con el nuevo HTML
+     * Actualizar la cuadrícula de productos con el nuevo HTML - CORREGIDA
      */
     function updateProductGrid(productsHtml) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
+        
         if ($productsWrapper.length) {
-            // Eliminar cuadrícula anterior
-            $productsWrapper.find('ul.products, .productos-grid').remove();
+            // Eliminar cuadrícula anterior y mensaje de no productos
+            $productsWrapper.find('ul.products, .productos-grid, .woocommerce-info, .no-products-found').remove();
             
             // Insertar nuevo HTML
             $productsWrapper.prepend(productsHtml);
         } else {
-            // Alternativa si no existe el wrapper
-            var $productsGrid = $('.wc-productos-template ul.products, .wc-productos-template .productos-grid');
-            if ($productsGrid.length) {
-                $productsGrid.replaceWith(productsHtml);
+            // Si no existe el wrapper, crear uno
+            var $main = $('.wc-productos-template .productos-main');
+            if ($main.length) {
+                $main.append('<div class="productos-wrapper">' + productsHtml + '</div>');
+            } else {
+                // Alternativa si no existe el main ni el wrapper
+                var $container = $('.wc-productos-template');
+                if ($container.length) {
+                    var $productsGrid = $container.find('ul.products, .productos-grid');
+                    if ($productsGrid.length) {
+                        $productsGrid.replaceWith(productsHtml);
+                    } else {
+                        $container.append('<div class="productos-wrapper">' + productsHtml + '</div>');
+                    }
+                }
             }
         }
-        
-        // Forzar cuadrícula de nuevo
-        forceGridLayout();
     }
-/**
- * Actualizar el breadcrumb
- */
-function updateBreadcrumb(breadcrumbHtml) {
-    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
-    if ($breadcrumb.length) {
-        $breadcrumb.html(breadcrumbHtml);
-    }
-}
-
-// Y dentro del callback success de la petición AJAX:
-success: function(response) {
-    // Eliminar mensaje de carga
-    $mainContent.find('.loading').remove();
     
-    if (response.success) {
-        // Actualizar productos y paginación
-        updateProductGrid(response.data.products);
-        updatePagination(response.data.pagination);
+    /**
+     * Actualizar el breadcrumb - CORREGIDA
+     */
+    function updateBreadcrumb(breadcrumbHtml) {
+        var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+        if ($breadcrumb.length) {
+            $breadcrumb.html(breadcrumbHtml);
+        }
+    }
+    
+    /**
+     * Función para actualizar el breadcrumb según la página actual - CORREGIDA
+     */
+    function updateBreadcrumbForPagination(currentPage) {
+        // Obtener el breadcrumb actual
+        var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+        if (!$breadcrumb.length) return;
         
-        // Actualizar breadcrumb si está disponible
-        if (response.data.breadcrumb) {
-            updateBreadcrumb(response.data.breadcrumb);
+        // Si estamos en la primera página, no es necesario modificar el breadcrumb
+        if (currentPage <= 1) {
+            // Eliminar página si existe en el breadcrumb
+            var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+            if ($breadcrumbNav.length) {
+                var breadcrumbText = $breadcrumbNav.html();
+                if (breadcrumbText && breadcrumbText.includes('Página')) {
+                    breadcrumbText = breadcrumbText.replace(/\s*\/\s*Página\s+\d+/g, '');
+                    $breadcrumbNav.html(breadcrumbText);
+                }
+            }
+            return;
         }
         
-        // Desplazarse al inicio de los productos
-        $('html, body').animate({
-            scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
-        }, 500);
+        // Obtener el contenido actual del breadcrumb
+        var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+        if (!$breadcrumbNav.length) return;
         
-        // Actualizar estado de URL sin recargar página
-        updateUrlState();
-    } else {
-        // Mostrar mensaje de error
-        showError(typeof WCProductosParams !== 'undefined' ? 
-                 WCProductosParams.i18n.error : 
-                 'Error al cargar productos. Intente nuevamente.');
+        // Verificar si ya existe un elemento de página en el breadcrumb
+        var breadcrumbText = $breadcrumbNav.html();
+        
+        // Si ya existe una referencia a la página, actualizarla
+        if (breadcrumbText && breadcrumbText.includes('Página')) {
+            breadcrumbText = breadcrumbText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
+            $breadcrumbNav.html(breadcrumbText);
+        } else {
+            // Si no existe, añadir la página al final
+            breadcrumbText = breadcrumbText + ' / Página ' + currentPage;
+            $breadcrumbNav.html(breadcrumbText);
+        }
     }
-}
-
+    
     /**
-     * Actualizar la paginación
+     * Actualizar la paginación - CORREGIDA
      */
     function updatePagination(paginationHtml) {
         var $pagination = $('.wc-productos-template .productos-pagination');
@@ -191,61 +226,60 @@ success: function(response) {
         } else {
             $('.wc-productos-template .productos-wrapper').append(paginationHtml);
         }
-        
-        // Reenlazar eventos de paginación
-        bindPaginationEvents();
     }
+    
     /**
- * Función para actualizar el breadcrumb según la página actual
- */
-function updateBreadcrumbForPagination(currentPage) {
-    // Obtener el breadcrumb actual
-    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
-    if (!$breadcrumb.length) return;
-    
-    // Si estamos en la primera página, no es necesario modificar el breadcrumb
-    if (currentPage <= 1) {
-        // Eliminar página si existe en el breadcrumb
-        var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
-        var breadcrumbText = $breadcrumbNav.html();
-        if (breadcrumbText && breadcrumbText.includes('Página')) {
-            breadcrumbText = breadcrumbText.replace(/\s*\/\s*Página\s+\d+/g, '');
-            $breadcrumbNav.html(breadcrumbText);
-        }
-        return;
-    }
-    
-    // Obtener el contenido actual del breadcrumb
-    var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
-    if (!$breadcrumbNav.length) return;
-    
-    // Verificar si ya existe un elemento de página en el breadcrumb
-    var breadcrumbText = $breadcrumbNav.html();
-    
-    // Si ya existe una referencia a la página, actualizarla
-    if (breadcrumbText && breadcrumbText.includes('Página')) {
-        breadcrumbText = breadcrumbText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
-        $breadcrumbNav.html(breadcrumbText);
-    } else {
-        // Si no existe, añadir la página al final
-        breadcrumbText = breadcrumbText + ' / Página ' + currentPage;
-        $breadcrumbNav.html(breadcrumbText);
-    }
-}
-    /**
-     * Mostrar mensaje de error
+     * Mostrar mensaje de error - CORREGIDA
      */
     function showError(message) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
+        // Asegurarse de que el wrapper exista
+        if (!$productsWrapper.length) {
+            $productsWrapper = $('<div class="productos-wrapper"></div>');
+            $('.wc-productos-template .productos-main').append($productsWrapper);
+        }
+        
+        // Eliminar cualquier mensaje de error anterior
+        $productsWrapper.find('.woocommerce-info, .no-products-found').remove();
+        
+        // Mostrar el nuevo mensaje de error
         $productsWrapper.html('<div class="woocommerce-info">' + message + '</div>');
     }
     
     /**
-     * Forzar disposición en cuadrícula con JavaScript
+     * Forzar disposición en cuadrícula con JavaScript - CORREGIDA
      */
     function forceGridLayout() {
         // Asegurarse de que la clase principal esté presente
-        $('.wc-productos-template ul.products, .productos-grid').addClass('force-grid');
+        $('.wc-productos-template ul.products, .wc-productos-template .productos-grid').addClass('force-grid three-column-grid');
+        
+        // Establecer estilos explícitamente para asegurar la cuadrícula
+        $('.wc-productos-template ul.products, .wc-productos-template .productos-grid').css({
+            'display': 'grid',
+            'grid-template-columns': 'repeat(3, 1fr)',
+            'gap': '20px',
+            'width': '100%',
+            'max-width': '100%',
+            'margin': '0 0 30px 0',
+            'padding': '0',
+            'list-style': 'none',
+            'float': 'none',
+            'clear': 'both'
+        });
+        
+        // Estilo para los productos
+        $('.wc-productos-template ul.products li.product, .wc-productos-template .productos-grid li.product').css({
+            'width': '100%',
+            'max-width': '100%',
+            'margin': '0 0 20px 0',
+            'padding': '0',
+            'float': 'none',
+            'clear': 'none',
+            'box-sizing': 'border-box',
+            'display': 'flex',
+            'flex-direction': 'column',
+            'height': '100%'
+        });
         
         // Agregar clases responsive según el ancho de pantalla
         $('body').removeClass('screen-small screen-medium screen-large');
@@ -260,7 +294,7 @@ function updateBreadcrumbForPagination(currentPage) {
     }
     
     /**
-     * Actualizar URL sin recargar la página (History API)
+     * Actualizar URL sin recargar la página (History API) - CORREGIDA
      */
     function updateUrlState() {
         if (!window.history || !window.history.pushState) {
@@ -300,19 +334,24 @@ function updateBreadcrumbForPagination(currentPage) {
             params.set('s', currentFilters.search);
         }
         
-        // Actualizar URL sin recargar
+        // Actualizar URL sin recargar (usando replaceState para no afectar el historial)
         var newUrl = url.pathname + (params.toString() ? '?' + params.toString() : '');
-        window.history.pushState({}, '', newUrl);
+        window.history.replaceState({}, '', newUrl);
     }
     
     /**
-     * Inicializar el slider de volumen
+     * Inicializar el slider de volumen - CORREGIDA
      */
     function initVolumeSlider() {
         if ($.fn.slider && $('.volumen-range').length) {
             // Obtener valores iniciales
             var initialMin = parseInt($('input[name="min_volume"]').val() || 100);
             var initialMax = parseInt($('input[name="max_volume"]').val() || 5000);
+            
+            // Destruir el slider si ya está inicializado
+            if ($('.volumen-range').hasClass('ui-slider')) {
+                $('.volumen-range').slider('destroy');
+            }
             
             $('.volumen-range').slider({
                 range: true,
@@ -342,92 +381,109 @@ function updateBreadcrumbForPagination(currentPage) {
     }
     
     /**
-     * Enlazar eventos para filtros
+     * Enlazar eventos para filtros - CORREGIDA
      */
     function bindFilterEvents() {
+        // Eliminar eventos anteriores para evitar duplicados
+        $('.wc-productos-template .filtro-category').off('change');
+        $('.wc-productos-template .filtro-grade').off('change');
+        $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').off('submit');
+        $('.wc-productos-template .productos-search input').off('keypress');
+        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').off('click');
+        
         // Filtros de categoría
         $('.wc-productos-template .filtro-category').on('change', function() {
+            console.log('Categoría cambiada');
             filterProducts(1); // Volver a página 1 al cambiar filtro
         });
         
         // Filtros de grado
         $('.wc-productos-template .filtro-grade').on('change', function() {
+            console.log('Grado cambiado');
             filterProducts(1); // Volver a página 1 al cambiar filtro
         });
         
-        // Búsqueda
+        // Búsqueda - formulario
         $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').on('submit', function(e) {
             e.preventDefault();
+            console.log('Búsqueda enviada');
             filterProducts(1); // Volver a página 1 al buscar
         });
         
+        // Búsqueda - tecla Enter
         $('.wc-productos-template .productos-search input').on('keypress', function(e) {
             if (e.which === 13) {
                 e.preventDefault();
+                console.log('Búsqueda con Enter');
                 filterProducts(1); // Volver a página 1 al buscar
             }
         });
         
+        // Búsqueda - botón
         $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').on('click', function(e) {
             e.preventDefault();
+            console.log('Búsqueda con botón');
             filterProducts(1); // Volver a página 1 al buscar
         });
     }
     
     /**
-     * Enlazar eventos de paginación - versión mejorada para evitar eventos duplicados
+     * Enlazar eventos de paginación - versión CORREGIDA
      */
-  function bindPaginationEvents() {
-    // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
-    $(document).off('click', '.wc-productos-template .page-number');
-    
-    // Agregar el nuevo controlador de eventos
-    $(document).on('click', '.wc-productos-template .page-number', function(e) {
-        e.preventDefault();
-        var page = $(this).data('page');
-        if (page) {
-            // Actualizar inmediatamente el breadcrumb para mejor UX
-            updateBreadcrumbForPagination(page);
-            // Luego filtrar productos
-            filterProducts(page);
-        }
-        return false;
-    });
-}
-    
-    /**
-     * Forzar cuadrícula de tres columnas
-     */
-    function forceThreeColumnGrid() {
-        // Aplicar clases para la cuadrícula de 3 columnas
-        $('.wc-productos-template ul.products, .productos-grid').addClass('three-column-grid');
+    function bindPaginationEvents() {
+        // En lugar de usar delegación general, vamos a ser específicos
+        $('.wc-productos-template .productos-pagination .page-number').each(function() {
+            var $this = $(this);
+            
+            // Eliminar eventos anteriores para evitar duplicación
+            $this.off('click');
+            
+            // Agregar el nuevo evento
+            $this.on('click', function(e) {
+                e.preventDefault();
+                var page = $(this).data('page');
+                
+                console.log('Clic en paginación:', page);
+                
+                if (page) {
+                    // Actualizar inmediatamente el breadcrumb para mejor UX
+                    updateBreadcrumbForPagination(page);
+                    
+                    // Luego filtrar productos
+                    filterProducts(page);
+                }
+                return false;
+            });
+        });
         
-        // Asegurarse de que los productos estén visibles
-        $('.wc-productos-template ul.products li.product, .productos-grid li.product').removeClass('hide-product');
-        
-        // Limitar a número correcto de productos por página según configuración
-        var productsPerPage = typeof WCProductosParams !== 'undefined' ? 
-                             parseInt(WCProductosParams.products_per_page) || 9 : 9;
-                             
-        // Solo ocultar productos si estamos en la página 1 y hay más productos que el límite
-        if (currentFilters.page === 1) {
-            $('.wc-productos-template ul.products li.product:nth-child(n+' + (productsPerPage + 1) + '), .productos-grid li.product:nth-child(n+' + (productsPerPage + 1) + ')').addClass('hide-product');
-        }
-        
-        // Agregar clases responsive según el ancho de pantalla
-        $('body').removeClass('screen-small screen-medium screen-large');
-        
-        if (window.innerWidth <= 480) {
-            $('body').addClass('screen-small');
-        } else if (window.innerWidth <= 768) {
-            $('body').addClass('screen-medium');
-        } else {
-            $('body').addClass('screen-large');
-        }
+        // Establecer estilo activo para la página actual
+        var currentPage = currentFilters.page;
+        $('.wc-productos-template .productos-pagination .page-number').removeClass('active');
+        $('.wc-productos-template .productos-pagination .page-number[data-page="' + currentPage + '"]').addClass('active');
     }
     
-    // Inicializar todo
+    /**
+     * Forzar cuadrícula de tres columnas - CORREGIDA
+     */
+    function forceThreeColumnGrid() {
+        // Eliminar clases que puedan interferir
+        $('.wc-productos-template ul.products, .productos-grid').removeClass('columns-1 columns-2 columns-4 columns-5 columns-6');
+        
+        // Aplicar clases para la cuadrícula de 3 columnas
+        $('.wc-productos-template ul.products, .productos-grid').addClass('three-column-grid force-grid columns-3');
+        
+        // Establecer explícitamente grid-template-columns
+        $('.wc-productos-template ul.products, .productos-grid').css('grid-template-columns', 'repeat(3, 1fr)');
+    }
+    
+    // Inicializar todo - VERSIÓN CORREGIDA
     function init() {
+        console.log('Inicializando productos template');
+        
+        // Forzar cuadrícula desde el inicio
+        forceGridLayout();
+        forceThreeColumnGrid();
+        
         // Inicializar slider de volumen
         initVolumeSlider();
         
@@ -435,25 +491,10 @@ function updateBreadcrumbForPagination(currentPage) {
         bindFilterEvents();
         bindPaginationEvents();
         
-        // Forzar cuadrícula al inicio
-        forceGridLayout();
-        forceThreeColumnGrid();
-        
-        // Forzar cuadrícula después de cargar imágenes
-        $(window).on('load', function() {
-            forceGridLayout();
-            forceThreeColumnGrid();
-        });
-        
-        // Ajustar cuadrícula al cambiar tamaño de ventana
-        $(window).on('resize', function() {
-            forceGridLayout();
-            forceThreeColumnGrid();
-        });
-        
         // Extraer filtros de la URL al cargar
         var urlParams = new URLSearchParams(window.location.search);
         
+        // Procesar parámetros de la URL
         if (urlParams.has('category')) {
             var categories = urlParams.get('category').split(',');
             categories.forEach(function(cat) {
@@ -495,24 +536,42 @@ function updateBreadcrumbForPagination(currentPage) {
         if (urlParams.has('paged')) {
             currentFilters.page = parseInt(urlParams.get('paged'));
         }
+        
         // Si hay paginación activa, actualizar el breadcrumb
-if (urlParams.has('paged')) {
-    var pageNum = parseInt(urlParams.get('paged'));
-    if (pageNum > 1) {
-        setTimeout(function() {
-            updateBreadcrumbForPagination(pageNum);
-        }, 300); // Pequeño retraso para asegurar que el DOM está listo
-    }
-}
+        if (urlParams.has('paged')) {
+            var pageNum = parseInt(urlParams.get('paged'));
+            if (pageNum > 1) {
+                setTimeout(function() {
+                    updateBreadcrumbForPagination(pageNum);
+                }, 300);
+            }
+        }
+        
         // Si hay algún filtro o paginación activo, actualizar los productos
         if (urlParams.has('category') || urlParams.has('grade') || 
             urlParams.has('min_volume') || urlParams.has('max_volume') || 
             urlParams.has('s') || urlParams.has('paged')) {
+            
+            console.log('Hay filtros activos, actualizando productos...');
+            
             // Usar timeout para asegurar que los elementos del DOM estén listos
             setTimeout(function() {
                 filterProducts(currentFilters.page);
-            }, 100);
+            }, 300);
         }
+        
+        // Volver a forzar la cuadrícula después de cargar imágenes
+        $(window).on('load', function() {
+            forceGridLayout();
+            forceThreeColumnGrid();
+            bindPaginationEvents(); // Reenlazar eventos después de carga completa
+        });
+        
+        // Ajustar cuadrícula al cambiar tamaño de ventana
+        $(window).on('resize', function() {
+            forceGridLayout();
+            forceThreeColumnGrid();
+        });
     }
     
     // Iniciar todo
@@ -520,4 +579,13 @@ if (urlParams.has('paged')) {
     
     // Exponer la función a nivel global para otros scripts
     window.filterProducts = filterProducts;
+    
+    // Asegurar que el script search-bar-fix no interfiera con la paginación
+    if (window.forceGridLayout) {
+        var originalForceGrid = window.forceGridLayout;
+        window.forceGridLayout = function() {
+            originalForceGrid();
+            bindPaginationEvents(); // Volver a enlazar eventos después de forzar la cuadrícula
+        };
+    }
 });
