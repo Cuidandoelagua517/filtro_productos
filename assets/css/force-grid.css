@@ -1,57 +1,11 @@
 /**
- * FORCE-GRID.CSS (VERSIÓN OPTIMIZADA)
- * Estilos forzados para cuadrícula de productos WooCommerce
- * Configurado para mostrar siempre 3 columnas x 3 filas (9 productos)
- *
- * @package WC_Productos_Template
+ * FORCE-GRID-OVERRIDE.CSS
+ * Archivo de mayor prioridad para forzar los nuevos estilos de tarjetas
+ * Coloca este archivo en assets/css/ y cárgalo con prioridad 99999
  */
 
-/* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
-/* Selector universal para todos los contenedores de productos */
-html body ul.products,
-html body.woocommerce ul.products,
-html body.woocommerce-page ul.products,
-html body .woocommerce ul.products,
-html body .productos-grid,
-html body #main ul.products,
-html body #content ul.products,
-html body .woocommerce .products,
-html body .wc-productos-template ul.products,
-html body .productos-grid,
-.three-column-grid,
-.force-grid {
-    /* Configuración principal del grid: SIEMPRE 3 COLUMNAS */
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    
-    /* Resetear estilos que puedan interferir */
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 30px 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    float: none !important;
-    clear: both !important;
-    box-sizing: border-box !important;
-}
-
-/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
-html body ul.products::before,
-html body ul.products::after,
-html body.woocommerce ul.products::before,
-html body.woocommerce ul.products::after,
-html body .woocommerce .products::before,
-html body .woocommerce .products::after,
-html body .productos-grid::before,
-html body .productos-grid::after {
-    display: none !important;
-    content: none !important;
-    clear: none !important;
-    visibility: hidden !important;
-}
-
-/* Estilo base para cada producto */
+/* ===== TARJETAS DE PRODUCTO OPTIMIZADAS ===== */
+/* Selectores con máxima especificidad para asegurar que se apliquen */
 html body ul.products li.product,
 html body.woocommerce ul.products li.product,
 html body.woocommerce-page ul.products li.product,
@@ -61,11 +15,18 @@ html body #main ul.products li.product,
 html body #content ul.products li.product,
 html body .woocommerce .products li.product,
 html body .wc-productos-template ul.products li.product,
-html body .productos-grid li.product {
+html body .productos-grid li.product,
+html body li.product {
+    border: 1px solid #e2e2e2 !important;
+    border-radius: 8px !important;
+    background-color: #fff !important;
+    padding: 15px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+    overflow: hidden !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 0 20px 0 !important;
-    padding: 0 !important;
     float: none !important;
     clear: none !important;
     box-sizing: border-box !important;
@@ -77,197 +38,237 @@ html body .productos-grid li.product {
     visibility: visible !important;
 }
 
-/* Estilos específicos para tarjetas de producto en nuestro template */
-.wc-productos-template ul.products li.product,
-.productos-grid li.product {
-    border: 1px solid #e2e2e2 !important;
-    border-radius: 8px !important;
-    background-color: #fff !important;
-    padding: 15px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s ease !important;
-    overflow: hidden !important;
+html body li.product:hover,
+html body ul.products li.product:hover,
+html body .productos-grid li.product:hover,
+html body .wc-productos-template ul.products li.product:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-3px) !important;
 }
 
-/* Estilo de imágenes de producto */
-.wc-productos-template .producto-imagen,
-.wc-productos-template .producto-imagen-link,
-.wc-productos-template .producto-imagen img {
+/* Badges de producto */
+html body .producto-badges,
+html body .wc-productos-template .producto-badges {
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 100 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+}
+
+html body .producto-badge,
+html body .wc-productos-template .producto-badge {
+    display: inline-block !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+}
+
+html body .badge-stock,
+html body .wc-productos-template .badge-stock {
+    background-color: #28a745 !important;
+    color: white !important;
+}
+
+html body .badge-out-stock,
+html body .wc-productos-template .badge-out-stock {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+html body .badge-danger,
+html body .wc-productos-template .badge-danger {
+    background-color: #f0ad4e !important;
+    color: #664d03 !important;
+}
+
+/* Imagen del producto y efectos */
+html body .producto-imagen,
+html body .wc-productos-template .producto-imagen {
+    position: relative !important;
+    overflow: hidden !important;
+    margin-bottom: 15px !important;
+}
+
+html body .producto-imagen img,
+html body .wc-productos-template .producto-imagen img {
     display: block !important;
     width: 100% !important;
     height: auto !important;
     max-height: 200px !important;
     object-fit: contain !important;
-    margin: 0 auto 15px auto !important;
+    margin: 0 auto !important;
+    transition: transform 0.3s ease !important;
+}
+
+html body .producto-imagen-link:hover img,
+html body .wc-productos-template .producto-imagen-link:hover img {
+    transform: scale(1.05) !important;
+}
+
+/* Vista rápida */
+html body .producto-vista-rapida,
+html body .wc-productos-template .producto-vista-rapida {
+    position: absolute !important;
+    bottom: -40px !important;
+    left: 0 !important;
+    right: 0 !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    text-align: center !important;
+    padding: 8px 0 !important;
+    font-size: 13px !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    z-index: 10 !important;
+}
+
+html body li.product:hover .producto-vista-rapida,
+html body .wc-productos-template li.product:hover .producto-vista-rapida {
+    bottom: 0 !important;
+}
+
+/* Meta información */
+html body .producto-meta,
+html body .wc-productos-template .producto-meta {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important;
+}
+
+html body .producto-sku,
+html body .wc-productos-template .producto-sku {
+    font-size: 13px !important;
+    color: #666 !important;
+    margin-bottom: 0 !important;
+}
+
+html body .producto-categoria,
+html body .wc-productos-template .producto-categoria {
+    font-size: 13px !important;
+    color: #0056b3 !important;
+}
+
+/* Título del producto */
+html body .producto-titulo,
+html body .wc-productos-template .producto-titulo {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin: 0 0 15px 0 !important;
+    line-height: 1.3 !important;
+}
+
+html body .producto-titulo a,
+html body .wc-productos-template .producto-titulo a {
+    color: #333 !important;
+    text-decoration: none !important;
+}
+
+html body .producto-titulo a:hover,
+html body .wc-productos-template .producto-titulo a:hover {
+    color: #0056b3 !important;
+}
+
+/* Especificaciones */
+html body .producto-detalles,
+html body .wc-productos-template .producto-detalles {
+    display: flex !important;
+    gap: 15px !important;
+    margin-bottom: 15px !important;
+    flex-wrap: wrap !important;
+    font-size: 13px !important;
+    color: #666 !important;
+}
+
+html body .producto-volumen,
+html body .producto-grado,
+html body .wc-productos-template .producto-volumen,
+html body .wc-productos-template .producto-grado {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 5px !important;
+}
+
+html body .producto-detalles strong,
+html body .wc-productos-template .producto-detalles strong {
+    font-weight: 600 !important;
+    color: #555 !important;
+    margin-right: 5px !important;
+}
+
+/* Footer y botón */
+html body .producto-footer,
+html body .wc-productos-template .producto-footer {
+    margin-top: auto !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #f0f0f0 !important;
+}
+
+html body .producto-precio,
+html body .wc-productos-template .producto-precio {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    color: #0056b3 !important;
+}
+
+html body .producto-accion,
+html body .wc-productos-template .producto-accion {
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
+html body .producto-boton,
+html body .wc-productos-template .producto-boton,
+html body .producto-boton.add_to_cart_button,
+html body .wc-productos-template .producto-boton.add_to_cart_button {
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    font-size: 14px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Restablecer márgenes en contenido interior */
-.producto-interior {
+html body .producto-boton:hover,
+html body .wc-productos-template .producto-boton:hover {
+    background-color: #004494 !important;
+}
+
+/* Estructura interior */
+html body .producto-interior,
+html body .wc-productos-template .producto-interior {
     width: 100% !important;
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Clase para la cuadrícula de 3 columnas específicamente */
-.three-column-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    width: 100% !important;
-    margin: 0 0 30px 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    float: none !important;
-    clear: both !important;
-}
-
-/* ===== 2. CONTROL DE PRODUCTOS VISIBLES ===== */
-/* Garantizar que sólo se muestren exactamente 9 productos */
-body ul.products li.product:nth-child(n+10),
-body.woocommerce ul.products li.product:nth-child(n+10),
-body.woocommerce-page ul.products li.product:nth-child(n+10),
-body .woocommerce ul.products li.product:nth-child(n+10),
-html body .productos-grid li.product:nth-child(n+10),
-#main ul.products li.product:nth-child(n+10),
-#content ul.products li.product:nth-child(n+10),
-.woocommerce .products li.product:nth-child(n+10),
-.wc-productos-template ul.products li.product:nth-child(n+10),
-.productos-grid li.product:nth-child(n+10),
-html body ul.products li.product:nth-child(n+10),
-html body .productos-grid li.product:nth-child(n+10) {
-    display: none !important;
-}
-
-/* Asegurar que los primeros 9 productos sean visibles */
-.wc-productos-template ul.products li.product:nth-child(-n+9),
-.wc-productos-template .productos-grid li.product:nth-child(-n+9),
-html body ul.products li.product:nth-child(-n+9),
-html body .productos-grid li.product:nth-child(-n+9) {
-    display: flex !important;
-}
-
-/* Clase para ocultar productos explícitamente */
-.hide-product {
-    display: none !important;
-}
-
-/* ===== 3. MEDIA QUERIES PARA RESPONSIVE (MANTIENEN 3 COLUMNAS EN PANTALLAS GRANDES) ===== */
-/* Pantallas grandes (SIEMPRE 3 columnas) */
-@media (min-width: 992px) {
+/* Asegurar que siempre se muestren 3 columnas */
+@media (min-width: 768px) {
     html body ul.products,
     html body.woocommerce ul.products,
     html body.woocommerce-page ul.products,
     html body .woocommerce ul.products,
-    html body .wc-productos-template ul.products,
     html body .productos-grid,
-    html body #main ul.products,
-    html body #content ul.products,
-    html body .woocommerce .products,
-    .three-column-grid,
-    .force-grid,
-    body.screen-large .force-grid,
-    body.screen-large .three-column-grid {
+    html body .wc-productos-template ul.products,
+    html body .wc-productos-template .productos-grid {
+        display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px !important;
     }
-}
-
-/* Pantallas medianas (3 columnas) */
-@media (max-width: 991px) and (min-width: 769px) {
-    html body ul.products,
-    html body.woocommerce ul.products,
-    html body.woocommerce-page ul.products,
-    html body .woocommerce ul.products,
-    html body .wc-productos-template ul.products,
-    html body .productos-grid,
-    body.screen-medium .force-grid,
-    body.screen-medium .three-column-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
-}
-
-/* Pantallas pequeñas (2 columnas) */
-@media (max-width: 768px) {
-    html body ul.products,
-    html body.woocommerce ul.products,
-    html body.woocommerce-page ul.products,
-    html body .woocommerce ul.products,
-    html body .wc-productos-template ul.products,
-    html body .productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 15px !important;
-    }
-    
-    body.screen-small .force-grid,
-    body.screen-small .three-column-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 15px !important;
-    }
-}
-
-/* Dispositivos muy pequeños (2 columnas más ajustadas) */
-@media (max-width: 480px) {
-    html body ul.products,
-    html body.woocommerce ul.products,
-    html body.woocommerce-page ul.products,
-    html body .woocommerce ul.products,
-    html body .wc-productos-template ul.products,
-    html body .productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important; 
-        gap: 10px !important;
-    }
-    
-    body .force-grid,
-    body .three-column-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
-    }
-}
-
-/* ===== 4. CORRECCIONES ESPECÍFICAS PARA TEMAS COMUNES ===== */
-/* Corrige el estilo de los botones en varios temas */
-.theme-storefront ul.products li.product .button,
-.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link,
-.theme-astra ul.products li.product .button,
-.theme-astra .astra-shop-summary-wrap,
-.theme-oceanwp ul.products li.product .button {
-    width: auto !important;
-    margin-bottom: 0 !important;
-}
-
-/* ===== 5. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
-/* Corrección de posición del header de productos */
-.productos-header {
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
-    margin-bottom: 30px !important;
-    position: relative !important;
-    z-index: 10 !important;
-}
-
-/* Estilos para mantener visible el botón de añadir al carrito */
-.productos-boton.add_to_cart_button,
-.product_type_simple.add_to_cart_button {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: inline-block !important;
-}
-
-/* ===== 6. ANULACIÓN DE CUADRÍCULA (ÚLTIMA PRIORIDAD) ===== */
-/* Esta sección anula CUALQUIER otra definición de columnas */
-html body ul.products,
-html body.woocommerce ul.products,
-html body.woocommerce-page ul.products,
-html body .woocommerce ul.products,
-html body .productos-grid,
-html body #main ul.products,
-html body #content ul.products,
-html body .woocommerce .products,
-html body .wc-productos-template ul.products,
-html body .productos-grid,
-.three-column-grid,
-.force-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
 }
