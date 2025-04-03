@@ -1,91 +1,179 @@
 /**
- * CORRECT FIX FOR PRODUCTOS HEADER PLACEMENT
- * This file contains CSS to properly position the products header
+ * FORCE-GRID.CSS (VERSIÓN OPTIMIZADA)
+ * Estilos forzados para cuadrícula de productos WooCommerce
+ * Compatible con la mayoría de temas y optimizado para evitar conflictos
+ *
+ * @package WC_Productos_Template
  */
 
-/* 1. Ensure productos-header is correctly positioned */
-.productos-header {
-    grid-column: 1 / -1 !important; /* Span all grid columns */
+/* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
+.wc-productos-template ul.products,
+.productos-grid {
+    /* Configuración principal del grid */
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 20px !important;
+    
+    /* Resetear estilos que puedan interferir */
     width: 100% !important;
-    margin-bottom: 30px !important;
-    border-bottom: 1px solid #e2e2e2 !important;
-    padding-bottom: 15px !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    position: relative !important;
-    z-index: 50 !important;
+    max-width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
     float: none !important;
     clear: both !important;
+    box-sizing: border-box !important;
 }
 
-/* 2. Remove absolute positioning that causes the header to float above */
-ul.products .productos-header,
-.productos-grid .productos-header {
-    position: relative !important; /* Changed from absolute to relative */
-    top: auto !important; /* Remove negative top value */
-    left: auto !important;
-    right: auto !important;
-    background: #fff !important;
+/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
+body ul.products::before,
+body ul.products::after,
+body.woocommerce ul.products::before,
+body.woocommerce ul.products::after,
+.woocommerce .products::before,
+.woocommerce .products::after,
+.productos-grid::before,
+.productos-grid::after {
+    display: none !important;
+    content: none !important;
+    clear: none !important;
 }
 
-/* 3. Fix container spacing */
-.productos-container,
-.wc-productos-template {
-    position: relative !important;
-    padding-top: 0 !important; /* Remove extra padding that was compensating for absolute positioning */
-    margin-top: 20px !important;
-}
-
-/* 4. Fix the search bar specifically */
-.productos-search {
-    width: 300px !important;
-    position: relative !important;
-    display: block !important;
-    margin: 0 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.productos-search form {
+/* Estilo base para cada producto */
+body ul.products li.product,
+body.woocommerce ul.products li.product,
+body.woocommerce-page ul.products li.product,
+body .woocommerce ul.products li.product,
+html body .productos-grid li.product,
+#main ul.products li.product,
+#content ul.products li.product,
+.woocommerce .products li.product,
+.wc-productos-template ul.products li.product,
+.productos-grid li.product {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+    box-sizing: border-box !important;
     display: flex !important;
-    position: relative !important;
-    width: 100% !important;
-}
-
-.productos-search input[type="text"] {
-    width: 100% !important;
-    padding: 10px 40px 10px 15px !important;
-    border: 1px solid #ddd !important;
-    border-radius: 4px !important;
-    font-size: 14px !important;
-}
-
-.productos-search button {
-    position: absolute !important;
-    right: 0 !important;
-    top: 0 !important;
+    flex-direction: column !important;
     height: 100% !important;
-    width: 40px !important;
-    background-color: #0056b3 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 0 4px 4px 0 !important;
+    opacity: 1 !important;
+    position: relative !important;
+    visibility: visible !important;
 }
 
-/* 5. Responsive adjustment */
+/* Restablecer marginnes en contenido interior */
+.producto-interior {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* ===== 2. MEDIA QUERIES PARA RESPONSIVE ===== */
+/* Pantallas grandes (4 columnas) */
+@media (min-width: 992px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+/* Pantallas medianas (3 columnas) */
+@media (max-width: 991px) and (min-width: 769px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Pantallas pequeñas (2 columnas) */
 @media (max-width: 768px) {
-    .productos-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
     }
-    
-    .productos-header h1 {
-        margin-bottom: 15px !important;
+}
+
+/* Dispositivos muy pequeños (2 columnas más ajustadas) */
+@media (max-width: 480px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 10px !important;
     }
-    
-    .productos-search {
-        width: 100% !important;
-    }
+}
+
+/* ===== 3. CORRECCIONES ESPECÍFICAS PARA TEMAS COMUNES ===== */
+/* Corrige el estilo de los productos del tema Storefront */
+.theme-storefront ul.products li.product .button,
+.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link {
+    width: auto !important;
+    margin-bottom: 0 !important;
+}
+
+/* Corrige el estilo de los productos del tema Astra */
+.theme-astra ul.products li.product .button,
+.theme-astra .astra-shop-summary-wrap {
+    width: auto !important;
+}
+
+/* Corrige el estilo de los productos del tema OceanWP */
+.theme-oceanwp ul.products li.product .button {
+    width: auto !important;
+}
+
+/* ===== 4. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
+/* Estilos para elementos huérfanos */
+.wc-productos-template *:empty,
+.productos-grid *:empty,
+ul.products *:empty {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+/* Corrección de posición del header de productos */
+.productos-header {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+/* Estilos para mantener visible el botón de añadir al carrito */
+.productos-boton.add_to_cart_button,
+.product_type_simple.add_to_cart_button {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
 }
