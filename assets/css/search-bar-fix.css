@@ -1,80 +1,74 @@
 /**
- * Estilos mejorados para la barra de búsqueda y estructura correcta
- * Asegura que el header y la barra de búsqueda aparezcan antes de la disposición de dos columnas
+ * Estilos CSS para corregir el problema de estructura del header
+ * Añadir al archivo assets/css/search-bar-fix.css
  */
-// Archivo: assets/css/search-bar-fix.css
-// Añadir estas reglas para asegurar que el contenido aparezca en el orden correcto:
 
-/* Asegurar que el contenedor principal de productos aparezca después del header del tema */
-.site-header,
-.main-header,
-header.site-header,
-.header-container,
-#masthead {
-    order: -1 !important;
-    position: relative !important;
-    z-index: 1000 !important;
-}
-
-/* El contenedor de productos debe aparecer después del header */
-.productos-container.wc-productos-template {
-    order: 1 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-top: 20px !important; /* Espacio entre el header y el contenido */
-    position: relative !important;
-    z-index: 1 !important;
-}
-
-/* Si el tema utiliza flexbox para el layout principal, asegurar el orden */
-body, 
+/* 1. Estructura principal de la página */
+body,
 #page,
 .site,
-.site-content,
-.content-area,
-main.site-main {
+.site-content {
     display: flex !important;
     flex-direction: column !important;
-}
-/* Estructura principal del contenedor */
-.productos-container.wc-productos-template {
-    display: flex !important;
-    flex-direction: column !important;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
+    width: 100% !important;
 }
 
-/* Header: Debe aparecer antes de la disposición de dos columnas */
+/* 2. Asegurar que el header del tema aparezca primero */
+header.site-header,
+#masthead,
+.main-header,
+.site-header,
+.header-container {
+    order: -2 !important;
+    position: relative !important;
+    z-index: 100 !important;
+    width: 100% !important;
+}
+
+/* 3. La navegación principal debe estar en el header */
+.main-navigation,
+.site-navigation,
+nav.primary-navigation {
+    order: -1 !important;
+    position: relative !important;
+    z-index: 99 !important;
+    width: 100% !important;
+}
+
+/* 4. El contenedor de productos SIEMPRE debe aparecer después */
+.productos-container.wc-productos-template {
+    order: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 20px auto 0 !important;
+    padding: 0 15px !important;
+}
+
+/* 5. Asegurar que el título "Productos" y la barra de búsqueda estén dentro del contenedor */
 .productos-container .productos-header {
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 20px 0 !important;
-    margin-bottom: 25px !important;
-    border-bottom: 1px solid #e2e2e2 !important;
     width: 100% !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    margin-bottom: 25px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #e2e2e2 !important;
     position: relative !important;
-    z-index: 100 !important;
-    height: auto !important;
-    min-height: 60px !important;
-    order: 1 !important; /* Forzar que aparezca primero */
+    z-index: 10 !important;
 }
 
-/* Título principal */
+/* 6. Título de productos */
 .productos-container .productos-header h1 {
     font-size: 24px !important;
     font-weight: 600 !important;
     margin: 0 !important;
     color: #333 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
 
-/* Contenedor de la barra de búsqueda */
+/* 7. Barra de búsqueda */
 .productos-container .productos-search {
     position: relative !important;
     width: 300px !important;
@@ -82,72 +76,9 @@ main.site-main {
     visibility: visible !important;
     opacity: 1 !important;
     margin: 0 !important;
-    z-index: 101 !important;
-    height: auto !important;
-    min-height: 40px !important;
 }
 
-/* Formulario de búsqueda */
-.productos-container .productos-search form {
-    display: flex !important;
-    width: 100% !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    height: auto !important;
-}
-
-/* Campo de búsqueda */
-.productos-container .productos-search input[type="text"],
-.productos-container .productos-search #productos-search-input {
-    width: 100% !important;
-    display: block !important;
-    padding: 10px 40px 10px 15px !important;
-    border: 1px solid #ddd !important;
-    border-radius: 4px !important;
-    font-size: 14px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    height: auto !important;
-    min-height: 40px !important;
-    box-sizing: border-box !important;
-    background-color: #fff !important;
-    color: #333 !important;
-}
-
-/* Botón de búsqueda */
-.productos-container .productos-search button {
-    position: absolute !important;
-    right: 0 !important;
-    top: 0 !important;
-    height: 100% !important;
-    width: 40px !important;
-    background-color: #0056b3 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 0 4px 4px 0 !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 102 !important;
-}
-
-.productos-container .productos-search button:hover {
-    background-color: #004494 !important;
-}
-
-/* Layout de dos columnas (después del header) */
-.productos-container .productos-layout {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 40px;
-    width: 100%;
-    order: 2 !important; /* Forzar que aparezca después del header */
-}
-
-/* Responsive para móviles */
+/* 8. Ajustes responsivos */
 @media (max-width: 768px) {
     .productos-container .productos-header {
         flex-direction: column !important;
@@ -161,33 +92,31 @@ main.site-main {
     .productos-container .productos-search {
         width: 100% !important;
         max-width: 100% !important;
-        margin-top: 10px !important;
-    }
-    
-    .productos-container .productos-layout {
-        flex-direction: column;
     }
 }
 
-/* Asegurarse de que los íconos de Font Awesome estén visibles */
-.productos-container .productos-search button i,
-.productos-container .productos-search button .fas {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: inline-block !important;
-    color: white !important;
+/* 9. Forzar que el título principal de la página no aparezca al principio */
+.woocommerce-products-header,
+.page-title-container,
+.entry-header {
+    order: -1 !important;
+    position: absolute !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
-/* Asegurar que Font Awesome se cargue correctamente */
-@font-face {
-    font-family: 'FontAwesome';
-    src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/webfonts/fa-solid-900.woff2') format('woff2'),
-         url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/webfonts/fa-solid-900.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: block;
+/* 10. Reiniciar márgenes y paddings para evitar espacios no deseados */
+.woocommerce-products-header,
+.woocommerce-breadcrumb,
+.term-description {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-.fas.fa-search:before {
-    content: "\f002" !important;
+/* 11. Ocultar títulos duplicados */
+body.woocommerce .page-title,
+body.woocommerce-page .page-title,
+.woocommerce-products-header__title {
+    display: none !important;
 }
