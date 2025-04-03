@@ -1,7 +1,7 @@
 <?php
 /**
  * Template para mostrar productos mediante shortcode
- * Versión corregida para limitar a 9 productos por página y grid de 3 columnas
+ * Versión corregida para la paginación
  *
  * @package WC_Productos_Template
  */
@@ -136,8 +136,8 @@ add_filter('woocommerce_show_page_title', '__return_false');
                 // Obtener la página actual
                 $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
 
-                // Establecer un máximo de 9 productos por página
-                $posts_per_page = 9;
+                // Usar la configuración de productos por página de WooCommerce
+                $posts_per_page = !empty($atts['per_page']) ? intval($atts['per_page']) : get_option('posts_per_page');
 
                 // Preparar los argumentos de la consulta
                 $args = array(
@@ -170,29 +170,25 @@ add_filter('woocommerce_show_page_title', '__return_false');
                 
                 if ($products_query->have_posts()) {
                     // Abrir la cuadrícula con estilos forzados para 3 columnas
-           echo '<ul class="products productos-grid wc-productos-template columns-3">';
+                    echo '<ul class="products productos-grid wc-productos-template columns-3">';
                     
-                    // Contador para limitar a 9 productos
-                    $product_count = 0;
-                    
-                    while ($products_query->have_posts() && $product_count < 9) {
+                    // Mostrar todos los productos de la página actual
+                    while ($products_query->have_posts()) {
                         $products_query->the_post();
                         
                         // Configurar la variable global $product
                         global $product;
                         $product = wc_get_product(get_the_ID());
                         
+                        // Renderizar el producto
                         wc_get_template_part('content', 'product');
-                        
-                        // Incrementar contador
-                        $product_count++;
                     }
                     
                     echo '</ul><!-- .productos-grid -->';
                     
                     wp_reset_postdata();
                     
-                    // Agregar paginación
+                    // Agregar paginación personalizada
                     if ($products_query->max_num_pages > 1) {
                         echo '<div class="productos-pagination">';
                         
@@ -210,16 +206,17 @@ add_filter('woocommerce_show_page_title', '__return_false');
                         
                         echo '<div class="pagination-links">';
                         
-                        // Botones de paginación
+                        // Botón "Anterior"
                         if ($current_page > 1) {
-                            echo '<button class="page-number page-prev" data-page="' . ($current_page - 1) . '">←</button>';
+                            echo '<a href="javascript:void(0);" class="page-number page-prev" data-page="' . ($current_page - 1) . '">←</a>';
                         }
                         
+                        // Números de página
                         $start_page = max(1, $current_page - 2);
                         $end_page = min($products_query->max_num_pages, $current_page + 2);
                         
                         if ($start_page > 1) {
-                            echo '<button class="page-number" data-page="1">1</button>';
+                            echo '<a href="javascript:void(0);" class="page-number" data-page="1">1</a>';
                             
                             if ($start_page > 2) {
                                 echo '<span class="page-dots">...</span>';
@@ -228,7 +225,7 @@ add_filter('woocommerce_show_page_title', '__return_false');
                         
                         for ($i = $start_page; $i <= $end_page; $i++) {
                             $active_class = ($i === $current_page) ? ' active' : '';
-                            echo '<button class="page-number' . $active_class . '" data-page="' . $i . '">' . $i . '</button>';
+                            echo '<a href="javascript:void(0);" class="page-number' . $active_class . '" data-page="' . $i . '">' . $i . '</a>';
                         }
                         
                         if ($end_page < $products_query->max_num_pages) {
@@ -236,11 +233,12 @@ add_filter('woocommerce_show_page_title', '__return_false');
                                 echo '<span class="page-dots">...</span>';
                             }
                             
-                            echo '<button class="page-number" data-page="' . $products_query->max_num_pages . '">' . $products_query->max_num_pages . '</button>';
+                            echo '<a href="javascript:void(0);" class="page-number" data-page="' . $products_query->max_num_pages . '">' . $products_query->max_num_pages . '</a>';
                         }
                         
+                        // Botón "Siguiente"
                         if ($current_page < $products_query->max_num_pages) {
-                            echo '<button class="page-number page-next" data-page="' . ($current_page + 1) . '">→</button>';
+                            echo '<a href="javascript:void(0);" class="page-number page-next" data-page="' . ($current_page + 1) . '">→</a>';
                         }
                         
                         echo '</div>'; // fin .pagination-links
@@ -255,3 +253,20 @@ add_filter('woocommerce_show_page_title', '__return_false');
     </div>
 </div>
 
+<script type="text/javascript">
+// Script para asegurar que los eventos de paginación se vinculen correctamente
+jQuery(document).ready(function($) {
+    // Asegurarse de que los eventos de paginación se vinculen
+    if (typeof window.filterProducts === 'function') {
+        // Vincular eventos de paginación
+        $('.productos-pagination .page-number').on('click', function(e) {
+            e.preventDefault();
+            var page = $(this).data('page');
+            if (page) {
+                window.filterProducts(page);
+            }
+            return false;
+        });
+    }
+});
+</script>
