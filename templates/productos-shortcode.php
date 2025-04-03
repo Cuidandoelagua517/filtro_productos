@@ -1,16 +1,18 @@
 <?php
 /**
  * Template para mostrar productos mediante shortcode
- * Versión corregida para visualización en cuadrícula
+ * Versión corregida para visualización en cuadrícula y posicionamiento correcto
  * 
  * @package WC_Productos_Template
  */
 
 // Obtener la página actual desde la URL
 $current_page = get_query_var('paged') ? get_query_var('paged') : 1;
+
+// IMPORTANTE: No envolver este contenido en ningún hook que pueda alterar la estructura del tema
 ?>
 <div class="productos-container wc-productos-template">
-    <!-- Header - FUERA de la disposición de dos columnas -->
+    <!-- Header de productos - AHORA CORRECTAMENTE POSICIONADO -->
     <div class="productos-header">
         <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
         
