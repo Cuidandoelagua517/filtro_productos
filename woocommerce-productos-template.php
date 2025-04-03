@@ -761,3 +761,88 @@ function wc_productos_template_activate() {
         }
     }
 }
+
+/**
+ * Función para cargar el corrector de transparencia
+ * MOVIDA FUERA DE LA CLASE
+ */
+function wc_productos_transparency_fix() {
+    // Solo cargar si el archivo existe
+    $fix_css_file = plugin_dir_path(__FILE__) . 'assets/css/transparency-fix.css';
+    
+    if (file_exists($fix_css_file)) {
+        wp_enqueue_style(
+            'wc-transparency-fix',
+            plugin_dir_url(__FILE__) . 'assets/css/transparency-fix.css',
+            array(),
+            time(), // Usar timestamp para evitar caché
+            'all'
+        );
+        
+        // Asignar prioridad extremadamente alta
+        wp_style_add_data('wc-transparency-fix', 'priority', 99999);
+    } else {
+        // Si el archivo no existe, usar estilos inline
+        $css_fix = "
+        /* Fix de emergencia para problemas de transparencia */
+        body, img, header, footer, .site-header, .site-footer, #masthead, #colophon, .logo, .brand-logo {
+            opacity: 1 !important;
+            visibility: visible !important;
+            background-color: initial !important;
+            filter: none !important;
+        }
+        ";
+        wp_add_inline_style('wp-block-library', $css_fix);
+    }
+    
+    // Script para corregir transparencia con JavaScript
+    wp_add_inline_script('jquery', "
+    jQuery(document).ready(function($) {
+        // Corregir imágenes transparentes
+        $('img').css({
+            'opacity': '1',
+            'visibility': 'visible'
+        });
+        
+        // Corregir elementos de header y footer
+        $('header, footer, #masthead, #colophon, .site-header, .site-footer').css({
+            'opacity': '1',
+            'visibility': 'visible',
+            'background-color': ''
+        });
+        
+        // Corregir logos de empresas
+        $('.logo, .brand-logo, .company-logo, .partner-logo').css({
+            'opacity': '1',
+            'visibility': 'visible',
+            'filter': 'none'
+        });
+    });
+    ");
+}
+
+// Agregar la función al hook wp_enqueue_scripts con prioridad muy alta
+add_action('wp_enqueue_scripts', 'wc_productos_transparency_fix', 99999);
+
+/**
+ * Función para corregir estilos en el admin
+ * MOVIDA FUERA DE LA CLASE
+ */
+function wc_productos_admin_fix() {
+    // Solo si estamos en pantallas de administración de WooCommerce
+    $screen = get_current_screen();
+    if (!$screen || !in_array($screen->id, array('woocommerce_page_wc-settings', 'edit-product'))) {
+        return;
+    }
+    
+    echo '<style>
+    /* Corregir problemas de administración */
+    body, img, header, footer, .wp-header-end, #wpcontent, #wpfooter {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    </style>';
+}
+
+// Agregar la función al hook admin_head
+add_action('admin_head', 'wc_productos_admin_fix');
