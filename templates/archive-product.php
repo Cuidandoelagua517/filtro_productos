@@ -16,25 +16,25 @@ $current_page = max(1, get_query_var('paged'));
 ?>
 
 <div class="productos-container wc-productos-template">
-<!-- Header -->
-<div class="productos-header">
-    <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
-    
-    <!-- Barra de búsqueda -->
-    <div class="productos-search">
-        <form role="search" method="get" id="productos-search-form" action="<?php echo esc_url(home_url('/')); ?>">
-            <input type="text" 
-                   id="productos-search-input"
-                   name="s" 
-                   placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" 
-                   value="<?php echo get_search_query(); ?>" />
-            <input type="hidden" name="post_type" value="product" />
-            <button type="submit" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
-                <i class="fas fa-search" aria-hidden="true"></i>
-            </button>
-        </form>
+    <!-- Header - FUERA de la disposición de dos columnas -->
+    <div class="productos-header">
+        <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
+        
+        <!-- Barra de búsqueda -->
+        <div class="productos-search">
+            <form role="search" method="get" id="productos-search-form" action="<?php echo esc_url(home_url('/')); ?>">
+                <input type="text" 
+                       id="productos-search-input"
+                       name="s" 
+                       placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" 
+                       value="<?php echo get_search_query(); ?>" />
+                <input type="hidden" name="post_type" value="product" />
+                <button type="submit" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                </button>
+            </form>
+        </div>
     </div>
-</div>
     
     <!-- Layout de dos columnas -->
     <div class="productos-layout">
