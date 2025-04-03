@@ -558,40 +558,40 @@ private function is_product_page() {
             wc_set_loop_prop('total_pages', $products_query->max_num_pages);
             wc_set_loop_prop('columns', 3);
             
-            ob_start();
-            
-            if ($products_query->have_posts()) {
-                woocommerce_product_loop_start();
-                
-                while ($products_query->have_posts()) {
-                    $products_query->the_post();
-                    wc_get_template_part('content', 'product');
-                }
-                
-                woocommerce_product_loop_end();
-            } else {
-                echo '<div class="woocommerce-info">' . 
-                    esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
-                    '</div>';
-            }
-            
-            $products_html = ob_get_clean();
-            
-            // Generar paginación
-            ob_start();
-            $this->render_pagination($products_query->max_num_pages, $page);
-            $pagination = ob_get_clean();
-
- // Generar breadcrumb actualizado
+             ob_start();
+    
+    if ($products_query->have_posts()) {
+        woocommerce_product_loop_start();
+        
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            wc_get_template_part('content', 'product');
+        }
+        
+        woocommerce_product_loop_end();
+    } else {
+        echo '<div class="woocommerce-info">' . 
+            esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+            '</div>';
+    }
+    
+    $products_html = ob_get_clean();
+    
+    // Generar paginación
+    ob_start();
+    $this->render_pagination($products_query->max_num_pages, $page);
+    $pagination = ob_get_clean();
+    
+    // Generar breadcrumb actualizado
     ob_start();
     $this->render_breadcrumb($page);
     $breadcrumb = ob_get_clean();
-            
-            // Resetear datos de consulta
-            wp_reset_postdata();
-            
-            // Enviar respuesta
-        wp_send_json_success(array(
+    
+    // Resetear datos de consulta
+    wp_reset_postdata();
+    
+    // Enviar respuesta
+    wp_send_json_success(array(
         'products'     => $products_html,
         'pagination'   => $pagination,
         'breadcrumb'   => $breadcrumb,
