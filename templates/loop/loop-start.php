@@ -1,7 +1,9 @@
 <?php
 /**
  * Product Loop Start
- * Versión corregida para forzar cuadrícula
+ * Versión optimizada para forzar cuadrícula
+ *
+ * @package WC_Productos_Template
  */
 if (!defined('ABSPATH')) {
     exit;
