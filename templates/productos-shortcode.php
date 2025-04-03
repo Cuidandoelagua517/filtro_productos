@@ -170,16 +170,7 @@ add_filter('woocommerce_show_page_title', '__return_false');
                 
                 if ($products_query->have_posts()) {
                     // Abrir la cuadrícula con estilos forzados para 3 columnas
-                    echo '<ul class="products productos-grid wc-productos-template columns-3" 
-                        style="display:grid !important; 
-                               grid-template-columns: repeat(3, 1fr) !important; 
-                               gap: 20px !important;
-                               width: 100% !important;
-                               margin: 0 !important;
-                               padding: 0 !important;
-                               list-style: none !important;
-                               float: none !important;
-                               clear: both !important;">';
+           echo '<ul class="products productos-grid wc-productos-template columns-3">';
                     
                     // Contador para limitar a 9 productos
                     $product_count = 0;
@@ -264,73 +255,3 @@ add_filter('woocommerce_show_page_title', '__return_false');
     </div>
 </div>
 
-<style>
-/* Estilos directos para la cuadrícula de 3 columnas */
-.productos-grid,
-.wc-productos-template ul.products,
-.woocommerce ul.products.productos-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    width: 100% !important;
-    margin: 0 0 30px 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    float: none !important;
-    clear: both !important;
-}
-
-/* Ajusta para pantallas más pequeñas */
-@media (max-width: 768px) {
-    .productos-grid,
-    .wc-productos-template ul.products,
-    .woocommerce ul.products.productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 15px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .productos-grid,
-    .wc-productos-template ul.products,
-    .woocommerce ul.products.productos-grid {
-        grid-template-columns: repeat(1, 1fr) !important;
-        gap: 10px !important;
-    }
-}
-</style>
-
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    // Aplicar estilos de cuadrícula forzados
-    $('.productos-grid, .wc-productos-template ul.products').css({
-        'display': 'grid',
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'gap': '20px'
-    });
-    
-    // Ajustar visualización en móviles
-    function adjustGridForScreenSize() {
-        if (window.innerWidth <= 768 && window.innerWidth > 480) {
-            $('.productos-grid, .wc-productos-template ul.products').css({
-                'grid-template-columns': 'repeat(2, 1fr)',
-                'gap': '15px'
-            });
-        } else if (window.innerWidth <= 480) {
-            $('.productos-grid, .wc-productos-template ul.products').css({
-                'grid-template-columns': 'repeat(1, 1fr)',
-                'gap': '10px'
-            });
-        } else {
-            $('.productos-grid, .wc-productos-template ul.products').css({
-                'grid-template-columns': 'repeat(3, 1fr)',
-                'gap': '20px'
-            });
-        }
-    }
-    
-    // Ejecutar al cargar y al cambiar el tamaño de la ventana
-    adjustGridForScreenSize();
-    $(window).on('resize', adjustGridForScreenSize);
-});
-</script>
