@@ -10,21 +10,21 @@ jQuery(document).ready(function($) {
      * Forzar la visualización en cuadrícula para listas de productos
      * Función principal que asegura que la cuadrícula se aplique correctamente
      */
-    function forceGrid() {
-        // Aplicar estilos directamente mediante jQuery para garantizar que se apliquen
-        $('ul.products, .productos-grid').css({
-            'display': 'grid',
-            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
-            'gap': '20px',
-            'width': '100%',
-            'max-width': '100%',
-            'margin': '0 0 30px 0',
-            'padding': '0',
-            'list-style': 'none',
-            'float': 'none',
-            'clear': 'both',
-            'box-sizing': 'border-box'
-        });
+function forceGrid() {
+    // Aplicar estilos directamente mediante jQuery para garantizar que se apliquen
+    $('ul.products, .productos-grid').css({
+        'display': 'grid',
+        'grid-template-columns': 'repeat(3, 1fr)', // CAMBIADO DE: repeat(auto-fill, minmax(220px, 1fr))
+        'gap': '20px',
+        'width': '100%',
+        'max-width': '100%',
+        'margin': '0 0 30px 0',
+        'padding': '0',
+        'list-style': 'none',
+        'float': 'none',
+        'clear': 'both',
+        'box-sizing': 'border-box'
+    });
         
         // Eliminar flotadores que pueden romper la cuadrícula
         $('ul.products::before, ul.products::after, .productos-grid::before, .productos-grid::after').css({
@@ -54,7 +54,26 @@ jQuery(document).ready(function($) {
         // Aplicar clases adicionales para asegurar la cuadrícula
         $('ul.products, .productos-grid').addClass('force-grid');
     }
+    jQuery(document).ready(function($) {
+    // Cuando el DOM esté listo
+    forceThreeColumnLayout();
     
+    // También en resize y después de cargar
+    $(window).on('resize', forceThreeColumnLayout);
+    $(window).on('load', forceThreeColumnLayout);
+    
+    function forceThreeColumnLayout() {
+        // Siempre forzar 3 columnas, sin importar el ancho de pantalla
+        $('.wc-productos-template ul.products, .wc-productos-template .productos-grid').css({
+            'grid-template-columns': 'repeat(3, 1fr)'
+        });
+        
+        // Para cualquier elemento con la clase force-grid o three-column-grid
+        $('.force-grid, .three-column-grid').css({
+            'grid-template-columns': 'repeat(3, 1fr)'
+        });
+    }
+});
     /**
      * Verificar y reparar la barra de búsqueda si es necesario
      */
