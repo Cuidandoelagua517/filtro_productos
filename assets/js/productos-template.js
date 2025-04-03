@@ -139,7 +139,28 @@ jQuery(document).ready(function($) {
         // Forzar cuadrícula de nuevo
         forceGridLayout();
     }
+    // Añadir este código para actualizar el breadcrumb cuando se recibe una respuesta AJAX
+function updateBreadcrumb(breadcrumbHtml) {
+    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+    if ($breadcrumb.length) {
+        $breadcrumb.html(breadcrumbHtml);
+    }
+}
+
+// Y dentro del callback success de la petición AJAX:
+success: function(response) {
+    // Eliminar mensaje de carga
+    $mainContent.find('.loading').remove();
     
+    if (response.success) {
+        // Actualizar productos y paginación
+        updateProductGrid(response.data.products);
+        updatePagination(response.data.pagination);
+        
+        // Actualizar breadcrumb si está disponible
+        if (response.data.breadcrumb) {
+            updateBreadcrumb(response.data.breadcrumb);
+        }
     /**
      * Actualizar la paginación
      */
