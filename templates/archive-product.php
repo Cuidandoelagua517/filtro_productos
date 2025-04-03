@@ -1,33 +1,17 @@
 <?php
 /**
  * Template para el archivo de productos (archive-product.php)
- * Versión corregida con estructura HTML adecuada
+ * Versión corregida con estructura HTML limpia y ordenada
  */
 
-// Eliminar hooks por defecto de WooCommerce que podrían interferir
-remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
-remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
-remove_action('woocommerce_before_shop_loop', 'woocommerce_result_count', 20);
-remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
-
-// Obtener la página actual
-$current_page = max(1, get_query_var('paged'));
-
-// Ejecutar hook para mantener estructura del tema, pero ELIMINAR el título duplicado
-add_action('woocommerce_before_main_content', function() {
-    // Eliminar hooks que puedan estar mostrando títulos
-    remove_action('woocommerce_archive_description', 'woocommerce_taxonomy_archive_description', 10);
-    remove_action('woocommerce_archive_description', 'woocommerce_product_archive_description', 10);
-}, 5);
-
-// IMPORTANTE: Asegurarnos de que el hook 'woocommerce_before_main_content' se ejecute primero
+// Solo ejecutar el hook para temas que lo necesiten
 do_action('woocommerce_before_main_content');
 ?>
 
 <div class="productos-container wc-productos-template">
-    <!-- Header should be FIRST, but INSIDE the container -->
+    <!-- 1. HEADER (siempre primero y fuera del layout principal) -->
     <div class="productos-header">
-        <h1>Productos</h1>
+        <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
@@ -45,7 +29,7 @@ do_action('woocommerce_before_main_content');
         </div>
     </div>
     
-    <!-- Layout de dos columnas -->
+    <!-- 2. LAYOUT DE DOS COLUMNAS (siempre después del header) -->
     <div class="productos-layout">
         <!-- Sidebar de filtros (columna izquierda) -->
         <aside class="productos-sidebar">
@@ -63,7 +47,6 @@ do_action('woocommerce_before_main_content');
                 if (!empty($product_categories) && !is_wp_error($product_categories)) {
                     echo '<div class="filtro-lista">';
                     foreach ($product_categories as $category) {
-                        // Verificar si está activa esta categoría
                         $active = false;
                         if (isset($_GET['category'])) {
                             $active_cats = explode(',', $_GET['category']);
@@ -85,7 +68,7 @@ do_action('woocommerce_before_main_content');
                 ?>
             </div>
             
-            <!-- Filtro de grado (usando atributos de producto) -->
+            <!-- Filtro de grado -->
             <div class="filtro-grupo">
                 <h3><?php esc_html_e('Grado', 'wc-productos-template'); ?></h3>
                 <?php
@@ -97,7 +80,6 @@ do_action('woocommerce_before_main_content');
                 if (!empty($grado_terms) && !is_wp_error($grado_terms)) {
                     echo '<div class="filtro-lista">';
                     foreach ($grado_terms as $term) {
-                        // Verificar si está activo este grado
                         $active = false;
                         if (isset($_GET['grade'])) {
                             $active_grades = explode(',', $_GET['grade']);
@@ -114,20 +96,6 @@ do_action('woocommerce_before_main_content');
                         </div>
                         <?php
                     }
-                    echo '</div>';
-                } else {
-                    // Fallback para demostración
-                    echo '<div class="filtro-lista">';
-                    ?>
-                    <div class="filtro-option">
-                        <input type="checkbox" id="grade-analitico" class="filtro-grade" value="analitico" />
-                        <label for="grade-analitico"><?php esc_html_e('Analítico', 'wc-productos-template'); ?></label>
-                    </div>
-                    <div class="filtro-option">
-                        <input type="checkbox" id="grade-reactivo" class="filtro-grade" value="reactivo" />
-                        <label for="grade-reactivo"><?php esc_html_e('Reactivo', 'wc-productos-template'); ?></label>
-                    </div>
-                    <?php
                     echo '</div>';
                 }
                 ?>
@@ -155,90 +123,27 @@ do_action('woocommerce_before_main_content');
                 <?php woocommerce_breadcrumb(); ?>
             </div>
             
-            <!-- IMPORTANTE: Eliminamos el div.productos-grid que estaba generando una estructura anidada y conflictiva -->
+            <!-- 3. CUADRÍCULA DE PRODUCTOS (directamente dentro de main, NO dentro de otro div) -->
             <?php
             if (have_posts()) {
-                // Inicio del loop con estilos forzados directamente
-               echo '<ul class="products productos-grid wc-productos-template columns-' . esc_attr(wc_get_loop_prop('columns', 4)) . '">';
+                // Abrir directamente la cuadrícula de productos
+                woocommerce_product_loop_start();
                 
                 while (have_posts()) {
                     the_post();
                     wc_get_template_part('content', 'product');
                 }
                 
-                echo '</ul>';
-            } else {
-                /**
-                 * Hook: woocommerce_no_products_found.
-                 *
-                 * @hooked wc_no_products_found - 10
-                 */
-                do_action('woocommerce_no_products_found');
-            }
-            ?>
-            
-            <!-- Paginación -->
-            <?php
-            // Usar la función del plugin para la paginación consistente
-            if (class_exists('WC_Productos_Template')) {
-                $plugin = new WC_Productos_Template();
+                woocommerce_product_loop_end();
                 
-                // Si existe el método render_pagination
-                if (method_exists($plugin, 'render_pagination')) {
-                    $plugin->render_pagination(
-                        wc_get_loop_prop('total_pages'),
-                        wc_get_loop_prop('current_page')
-                    );
-                } else {
-                    // Fallback a la paginación estándar de WooCommerce
-                    woocommerce_pagination();
-                }
+                // Paginación
+                echo '<div class="productos-pagination">';
+                woocommerce_pagination();
+                echo '</div>';
             } else {
-                // Paginación manual si no está disponible la clase
-                $total = wc_get_loop_prop('total');
-                $per_page = wc_get_loop_prop('per_page');
-                $current = wc_get_loop_prop('current_page');
-                $total_pages = ceil($total / $per_page);
-                ?>
-                <div class="productos-pagination">
-                    <div class="pagination-info">
-                        <?php
-                        printf(
-                            esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
-                            (($current - 1) * $per_page) + 1,
-                            min($total, $current * $per_page),
-                            $total
-                        );
-                        ?>
-                    </div>
-                    
-                    <div class="pagination-links">
-                        <?php
-                        // Botón anterior
-                        if ($current > 1) {
-                            echo '<button class="page-number page-prev" data-page="' . 
-                                 esc_attr($current - 1) . '">←</button>';
-                        }
-                        
-                        // Páginas numéricas
-                        for ($i = 1; $i <= min(4, $total_pages); $i++) {
-                            $class = $i === $current ? 'active' : '';
-                            printf(
-                                '<button class="page-number %1$s" data-page="%2$d">%2$d</button>',
-                                esc_attr($class),
-                                esc_attr($i)
-                            );
-                        }
-                        
-                        // Botón siguiente
-                        if ($current < $total_pages) {
-                            echo '<button class="page-number page-next" data-page="' . 
-                                 esc_attr($current + 1) . '">→</button>';
-                        }
-                        ?>
-                    </div>
-                </div>
-                <?php
+                echo '<p class="no-products-found">' . 
+                     esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+                     '</p>';
             }
             ?>
         </main>
@@ -246,8 +151,6 @@ do_action('woocommerce_before_main_content');
 </div>
 
 <?php
-// Hook para permitir scripts adicionales
-do_action('wc_productos_template_after_main_content');
-// Asegurarse de cerrar correctamente el contenido principal
+// Cerrar cualquier contenedor abierto por el tema
 do_action('woocommerce_after_main_content');
 ?>
