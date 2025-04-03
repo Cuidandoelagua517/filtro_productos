@@ -445,12 +445,12 @@ if (!class_exists('WC_Productos_Template')) {
             $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
             
             // Configurar argumentos base de la consulta
-            $args = array(
-                'post_type'      => 'product',
-                'posts_per_page' => get_option('posts_per_page'),
-                'paged'          => $page,
-                'post_status'    => 'publish',
-            );
+       $args = array(
+    'post_type'      => 'product',
+    'posts_per_page' => 9, // Forzar exactamente 9 productos
+    'paged'          => $page,
+    'post_status'    => 'publish',
+);;
             
             // Inicializar arrays para taxonomías y meta
             $tax_query = array('relation' => 'AND');
