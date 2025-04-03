@@ -163,7 +163,7 @@ if (!class_exists('WC_Productos_Template')) {
             file_put_contents(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . $filename, $content);
         }
  
-       **
+ /**
  * Función para registrar scripts y estilos
  */
 public function register_scripts() {
@@ -175,11 +175,16 @@ public function register_scripts() {
     // Obtener la página actual para la paginación
     $current_page = max(1, get_query_var('paged'));
     
+    // Verificar y crear CSS para la cuadrícula si no existe
+    $force_grid_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css';
+    if (!file_exists($force_grid_css_file)) {
+        $this->create_default_grid_css_file();
+    }
+    
     // Verificar y crear CSS principal si no existe
-    $productos_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/productos-template-optimized.css';
+    $productos_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/productos-template.css';
     if (!file_exists($productos_css_file)) {
-        // Puedes copiar el CSS optimizado aquí como fallback
-        file_put_contents($productos_css_file, '/* CSS Optimizado - Ver contenido completo en el archivo */');
+        $this->create_default_css_file($productos_css_file);
     }
     
     // Verificar y crear JS principal si no existe
@@ -189,24 +194,33 @@ public function register_scripts() {
     }
     
     // Verificar y crear JS para corrección de búsqueda
-    $search_fix_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/search-bar-fix-optimized.js';
+    $search_fix_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/search-bar-fix.js';
     if (!file_exists($search_fix_js_file)) {
-        // Puedes copiar el JS optimizado aquí como fallback
-        file_put_contents($search_fix_js_file, '/* JS Optimizado - Ver contenido completo en el archivo */');
+        // Crear un archivo básico si no existe
+        file_put_contents($search_fix_js_file, '/* JS para corregir problemas de la barra de búsqueda */');
     }
+    
+    // CSS para forzar cuadrícula con prioridad muy alta
+    wp_enqueue_style(
+        'wc-force-grid', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/force-grid.css', 
+        array(), 
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
+    );
+    wp_style_add_data('wc-force-grid', 'priority', 99999);
     
     // Enqueue CSS principal con versión para evitar caché
     wp_enqueue_style(
         'wc-productos-template-styles', 
-        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template-optimized.css', 
-        array(), 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
+        array('wc-force-grid'), 
         WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
     );
     
-    // Enqueue JS para corrección de búsqueda
+    // Enqueue JS para corrección de búsqueda con alta prioridad
     wp_enqueue_script(
         'wc-search-bar-fix', 
-        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/search-bar-fix-optimized.js', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/search-bar-fix.js', 
         array('jquery'), 
         WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
         true
@@ -253,13 +267,33 @@ public function register_scripts() {
         )
     ));
     
+    // Agregar CSS inline para asegurar que la cuadrícula se aplique
+    $inline_css = "
+    /* CSS inline para forzar cuadrícula */
+    ul.products, .productos-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+        gap: 20px !important;
+    }
+    ul.products li.product, .productos-grid li.product {
+        width: 100% !important;
+        margin: 0 !important;
+        float: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    ul.products::before, ul.products::after, .productos-grid::before, .productos-grid::after {
+        display: none !important;
+    }
+    ";
+    wp_add_inline_style('wc-force-grid', $inline_css);
+    
     // Añadir clase al body para namespace CSS
     add_filter('body_class', function($classes) {
         $classes[] = 'wc-productos-template-page';
         return $classes;
     });
 }
-
 
         
         /**
