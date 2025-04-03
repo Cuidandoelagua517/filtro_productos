@@ -542,3 +542,123 @@ jQuery(document).ready(function($) {
         setTimeout(fixProductosHeaderPosition, 100);
     });
 });
+/**
+ * JavaScript simplificado para el template de productos
+ * Este archivo debe reemplazar partes de productos-template.js
+ */
+
+jQuery(document).ready(function($) {
+    // Solo ejecutar si estamos en una página con el template de productos
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+    
+    // Inicializar slider de volumen
+    if ($.fn.slider && $('.volumen-range').length) {
+        $('.volumen-range').slider({
+            range: true,
+            min: 100,
+            max: 5000,
+            values: [100, 5000],
+            slide: function(event, ui) {
+                $('#volumen-min').text(ui.values[0] + ' ml');
+                $('#volumen-max').text(ui.values[1] + ' ml');
+                $('input[name="min_volume"]').val(ui.values[0]);
+                $('input[name="max_volume"]').val(ui.values[1]);
+            }
+        });
+    }
+    
+    // Filtrado de productos via AJAX
+    function filterProducts(page) {
+        page = page || 1;
+        
+        // Mostrar mensaje de carga
+        $('.wc-productos-template .productos-main').append('<div class="loading">' + 
+            (typeof WCProductosParams !== 'undefined' ? WCProductosParams.i18n.loading : 'Cargando productos...') + 
+            '</div>');
+        
+        // Obtener valores de filtros
+        var categoryFilter = [];
+        $('.wc-productos-template .filtro-category:checked').each(function() {
+            categoryFilter.push($(this).val());
+        });
+        
+        var gradeFilter = [];
+        $('.wc-productos-template .filtro-grade:checked').each(function() {
+            gradeFilter.push($(this).val());
+        });
+        
+        var minVolume = $('.wc-productos-template input[name="min_volume"]').val() || 100;
+        var maxVolume = $('.wc-productos-template input[name="max_volume"]').val() || 5000;
+        var searchValue = $('.wc-productos-template .productos-search input').val();
+        
+        // AJAX request
+        $.ajax({
+            url: WCProductosParams.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'productos_filter',
+                nonce: WCProductosParams.nonce,
+                page: page,
+                category: categoryFilter.join(','),
+                grade: gradeFilter.join(','),
+                min_volume: minVolume,
+                max_volume: maxVolume,
+                search: searchValue
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Quitar mensaje de carga
+                    $('.wc-productos-template .loading').remove();
+                    
+                    // Actualizar productos y paginación (solo estos elementos, no toda la página)
+                    $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').replaceWith(response.data.products);
+                    $('.wc-productos-template .productos-pagination').replaceWith(response.data.pagination);
+                    
+                    // Desplazarse al inicio de los productos
+                    $('html, body').animate({
+                        scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+                    }, 500);
+                }
+            },
+            error: function() {
+                $('.wc-productos-template .loading').html(
+                    typeof WCProductosParams !== 'undefined' ? 
+                    WCProductosParams.i18n.error : 
+                    'Error al cargar productos. Intente nuevamente.'
+                );
+            }
+        });
+    }
+    
+    // Exponer la función al ámbito global para que otros scripts puedan usarla
+    window.filterProducts = filterProducts;
+    
+    // Event listeners para filtros
+    $('.wc-productos-template .filtro-option input[type="checkbox"]').on('change', function() {
+        filterProducts(1); // Volver a la página 1 al aplicar un filtro
+    });
+    
+    // Event listener para paginación
+    $(document).on('click', '.wc-productos-template .page-number', function() {
+        var page = $(this).data('page');
+        if (page) {
+            filterProducts(page);
+        }
+        return false;
+    });
+    
+    // Event listener para búsqueda
+    $('.wc-productos-template .productos-search button').on('click', function(e) {
+        e.preventDefault();
+        filterProducts(1);
+    });
+    
+    $('.wc-productos-template .productos-search input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            filterProducts(1);
+        }
+    });
+});
