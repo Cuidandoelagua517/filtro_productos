@@ -665,3 +665,68 @@
 .wc-productos-template .hide-product {
     display: none !important;
 }
+/**
+ * Estilos para el filtro jerárquico de categorías
+ * Para agregar al archivo productos-template.css
+ */
+
+/* Estilos base para el contenedor de categorías */
+.wc-productos-template .filtro-category-parent {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.wc-productos-template .filtro-parent-option {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+}
+
+.wc-productos-template .filtro-parent-option label {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Estilos para el icono de expansión */
+.wc-productos-template .category-toggle {
+    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.wc-productos-template .category-toggle.expanded i {
+    transform: rotate(180deg);
+}
+
+/* Estilos para la lista de categorías hijas */
+.wc-productos-template .filtro-children-list {
+    margin-left: 20px;
+    padding-top: 8px;
+    display: none; /* Oculto por defecto */
+}
+
+.wc-productos-template .filtro-children-list.expanded {
+    display: block; /* Visible cuando se expande */
+}
+
+.wc-productos-template .filtro-child-option {
+    margin-bottom: 6px;
+    padding-left: 5px;
+}
+
+.wc-productos-template .filtro-child-option label {
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+/* Estilo para categorías activas */
+.wc-productos-template .filtro-category:checked + label {
+    color: #0056b3;
+}
