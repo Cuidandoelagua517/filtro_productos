@@ -121,6 +121,9 @@
 }
 
 .wc-productos-template .filtro-grupo {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     margin-bottom: 20px;
 }
 
@@ -132,12 +135,17 @@
 }
 
 .wc-productos-template .filtro-lista {
-    max-height: 200px;
-    overflow-y: auto;
+    max-height: none !important; /* Eliminar altura máxima que causa el scroll */
+    overflow-y: visible !important; /* Cambiar overflow de auto/scroll a visible */
+    height: auto !important; /* Asegurar que la altura sea automática */
+    padding-right: 0 !important; /* Eliminar padding que podría reservar espacio para scrollbar */
 }
-
+.wc-productos-template .filtro-lista::-webkit-scrollbar {
+    width: 0 !important;
+    display: none !important;
+}
 .wc-productos-template .filtro-option {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
 }
@@ -548,11 +556,11 @@
         flex-direction: column;
     }
     
-    .wc-productos-template .productos-sidebar {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
+ .wc-productos-template .productos-sidebar {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
     
     .wc-productos-template .producto-footer {
         flex-direction: column;
@@ -664,4 +672,76 @@
 
 .wc-productos-template .hide-product {
     display: none !important;
+}
+.wc-productos-template aside.productos-sidebar {
+    overflow: visible !important;
+}
+
+/* Estilos base para el contenedor de categorías */
+.wc-productos-template .filtro-category-parent {
+    width: 100%;
+    margin-bottom: 8px;
+}
+/* Cualquier contenedor con scroll en la lista de filtros */
+.productos-sidebar div[style*="overflow"], 
+.productos-sidebar div[style*="height"],
+.productos-sidebar div[class*="scroll"],
+.filtro-lista div[style*="overflow"], 
+.filtro-categoria-wrapper {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+.wc-productos-template .filtro-parent-option {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+}
+
+.wc-productos-template .filtro-parent-option label {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Estilos para el icono de expansión */
+.wc-productos-template .category-toggle {
+    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.wc-productos-template .category-toggle.expanded i {
+    transform: rotate(180deg);
+}
+
+/* Estilos para la lista de categorías hijas */
+.wc-productos-template .filtro-children-list {
+    margin-left: 20px;
+    padding-top: 8px;
+    display: none; /* Oculto por defecto */
+}
+
+.wc-productos-template .filtro-children-list.expanded {
+    display: block; /* Visible cuando se expande */
+}
+
+.wc-productos-template .filtro-child-option {
+    margin-bottom: 6px;
+    padding-left: 5px;
+}
+
+.wc-productos-template .filtro-child-option label {
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+/* Estilo para categorías activas */
+.wc-productos-template .filtro-category:checked + label {
+    color: #0056b3;
 }

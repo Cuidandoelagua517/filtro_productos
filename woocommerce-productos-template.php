@@ -454,8 +454,8 @@ private function is_product_page() {
             return $template;
         }
 
-       /**
- * AJAX handler para filtrar productos - VERSIÓN CORREGIDA
+/**
+ * AJAX handler para filtrar productos - VERSIÓN ACTUALIZADA PARA JERARQUÍA
  */
 public function ajax_filter_products() {
     // Verificar nonce
@@ -478,48 +478,49 @@ public function ajax_filter_products() {
         'post_status'    => 'publish',
     );
     
-    // Inicializar arrays para taxonomías y meta
+    // Inicializar arrays para taxonomías
     $tax_query = array('relation' => 'AND');
-    $meta_query = array('relation' => 'AND');
     
-    // Filtrar por categoría
+    // Filtrar por categoría (ahora con soporte para jerarquía)
     if (isset($_POST['category']) && !empty($_POST['category'])) {
         $categories = explode(',', sanitize_text_field($_POST['category']));
         if (!empty($categories)) {
-            $tax_query[] = array(
-                'taxonomy' => 'product_cat',
-                'field'    => 'slug',
-                'terms'    => $categories,
-                'operator' => 'IN'
-            );
-        }
-    }
-    
-    // Filtrar por grado (atributo personalizado)
-    if (isset($_POST['grade']) && !empty($_POST['grade'])) {
-        $grades = explode(',', sanitize_text_field($_POST['grade']));
-        if (!empty($grades)) {
-            $tax_query[] = array(
-                'taxonomy' => 'pa_grado',
-                'field'    => 'slug',
-                'terms'    => $grades,
-                'operator' => 'IN'
-            );
-        }
-    }
-    
-    // Filtrar por volumen (rango)
-    if (isset($_POST['min_volume']) && isset($_POST['max_volume'])) {
-        $min_volume = intval($_POST['min_volume']);
-        $max_volume = intval($_POST['max_volume']);
-        
-        if ($min_volume > 100 || $max_volume < 5000) {
-            $meta_query[] = array(
-                'key'     => '_volumen_ml',
-                'value'   => array($min_volume, $max_volume),
-                'type'    => 'NUMERIC',
-                'compare' => 'BETWEEN'
-            );
+            // Creamos un array para agrupar las categorías
+            $category_terms = array();
+            
+            foreach ($categories as $cat_slug) {
+                $term = get_term_by('slug', $cat_slug, 'product_cat');
+                if ($term) {
+                    $category_terms[] = $term->term_id;
+                    
+                    // Si es una categoría padre, también obtener sus hijos si no están explícitamente incluidos
+                    $child_terms = get_terms(array(
+                        'taxonomy' => 'product_cat',
+                        'hide_empty' => true,
+                        'parent' => $term->term_id
+                    ));
+                    
+                    if (!empty($child_terms) && !is_wp_error($child_terms)) {
+                        foreach ($child_terms as $child) {
+                            // Verificar si la categoría hija ya está en la lista
+                            if (!in_array($child->slug, $categories)) {
+                                $category_terms[] = $child->term_id;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Usar 'IN' para permitir cualquiera de las categorías seleccionadas
+            if (!empty($category_terms)) {
+                $tax_query[] = array(
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => $category_terms,
+                    'operator' => 'IN',
+                    'include_children' => true
+                );
+            }
         }
     }
     
@@ -528,7 +529,7 @@ public function ajax_filter_products() {
         $search_term = sanitize_text_field($_POST['search']);
         
         // Incluir búsqueda en metadatos (SKU)
-        $meta_query[] = array(
+        $meta_query = array(
             'relation' => 'OR',
             array(
                 'key'     => '_sku',
@@ -539,15 +540,12 @@ public function ajax_filter_products() {
         
         // También buscar en el título y contenido del producto
         $args['s'] = $search_term;
+        $args['meta_query'] = $meta_query;
     }
     
-    // Añadir las consultas de taxonomía y meta solo si hay filtros activos
+    // Añadir las consultas de taxonomía solo si hay filtros activos
     if (count($tax_query) > 1) {
         $args['tax_query'] = $tax_query;
-    }
-    
-    if (count($meta_query) > 1) {
-        $args['meta_query'] = $meta_query;
     }
     
     // Aplicar filtros de WooCommerce
