@@ -2,6 +2,8 @@
 /**
  * Template para el archivo de productos (archive-product.php)
  * Versión corregida con estructura HTML limpia y ordenada
+ *
+ * @package WC_Productos_Template
  */
 
 // Solo ejecutar el hook para temas que lo necesiten
@@ -15,14 +17,13 @@ do_action('woocommerce_before_main_content');
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
-            <form role="search" method="get" id="productos-search-form" action="<?php echo esc_url(home_url('/')); ?>">
+            <form role="search" method="get" class="productos-search-form" action="javascript:void(0);">
                 <input type="text" 
                        id="productos-search-input"
                        name="s" 
                        placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" 
                        value="<?php echo get_search_query(); ?>" />
-                <input type="hidden" name="post_type" value="product" />
-                <button type="submit" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
+                <button type="submit" class="productos-search-button" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
                     <i class="fas fa-search" aria-hidden="true"></i>
                 </button>
             </form>
@@ -36,7 +37,7 @@ do_action('woocommerce_before_main_content');
             <h2><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h2>
             
             <!-- Filtro de categorías -->
-            <div class="filtro-grupo">
+            <div class="filtro-grupo" id="filtro-categorias">
                 <h3><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h3>
                 <?php
                 $product_categories = get_terms(array(
@@ -47,6 +48,11 @@ do_action('woocommerce_before_main_content');
                 if (!empty($product_categories) && !is_wp_error($product_categories)) {
                     echo '<div class="filtro-lista">';
                     foreach ($product_categories as $category) {
+                        // Excluir la categoría "Uncategorized" o su equivalente
+                        if ($category->slug === 'uncategorized') {
+                            continue;
+                        }
+                        
                         $active = false;
                         if (isset($_GET['category'])) {
                             $active_cats = explode(',', $_GET['category']);
@@ -69,7 +75,7 @@ do_action('woocommerce_before_main_content');
             </div>
             
             <!-- Filtro de grado -->
-            <div class="filtro-grupo">
+            <div class="filtro-grupo" id="filtro-grados">
                 <h3><?php esc_html_e('Grado', 'wc-productos-template'); ?></h3>
                 <?php
                 $grado_terms = get_terms(array(
@@ -123,29 +129,31 @@ do_action('woocommerce_before_main_content');
                 <?php woocommerce_breadcrumb(); ?>
             </div>
             
-            <!-- 3. CUADRÍCULA DE PRODUCTOS (directamente dentro de main, NO dentro de otro div) -->
-            <?php
-            if (have_posts()) {
-                // Abrir directamente la cuadrícula de productos
-                woocommerce_product_loop_start();
-                
-                while (have_posts()) {
-                    the_post();
-                    wc_get_template_part('content', 'product');
+            <!-- 3. CUADRÍCULA DE PRODUCTOS -->
+            <div class="productos-wrapper">
+                <?php
+                if (have_posts()) {
+                    // Abrir directamente la cuadrícula de productos
+                    woocommerce_product_loop_start();
+                    
+                    while (have_posts()) {
+                        the_post();
+                        wc_get_template_part('content', 'product');
+                    }
+                    
+                    woocommerce_product_loop_end();
+                    
+                    // Paginación
+                    echo '<div class="productos-pagination">';
+                    woocommerce_pagination();
+                    echo '</div>';
+                } else {
+                    echo '<p class="no-products-found">' . 
+                         esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+                         '</p>';
                 }
-                
-                woocommerce_product_loop_end();
-                
-                // Paginación
-                echo '<div class="productos-pagination">';
-                woocommerce_pagination();
-                echo '</div>';
-            } else {
-                echo '<p class="no-products-found">' . 
-                     esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
-                     '</p>';
-            }
-            ?>
+                ?>
+            </div>
         </main>
     </div>
 </div>
