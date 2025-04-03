@@ -20,7 +20,47 @@ html body .productos-grid,
 .productos-grid {
     grid-template-columns: repeat(3, 1fr) !important;
 }
+/* Asegura que cada tarjeta de producto tenga la estructura adecuada */
+.wc-productos-template ul.products li.product,
+.productos-grid li.product {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 15px !important;
+  margin-bottom: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+}
 
+/* Asegura que las imágenes tengan tamaño consistente y aparezcan correctamente */
+.wc-productos-template .producto-imagen,
+.wc-productos-template .producto-imagen-link,
+.wc-productos-template .producto-imagen img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 200px !important;
+  object-fit: contain !important;
+  margin: 0 auto 15px auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fuerza el grid a 3 columnas con el mismo tamaño */
+.wc-productos-template ul.products,
+.productos-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 25px !important;
+  width: 100% !important;
+  margin: 0 0 30px 0 !important;
+  padding: 0 !important;
+}
 /* Mantener 3 columnas en pantallas grandes */
 @media (min-width: 992px) {
     body ul.products,
