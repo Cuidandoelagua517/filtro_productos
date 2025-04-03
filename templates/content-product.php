@@ -35,7 +35,7 @@ if (!$product || !is_a($product, 'WC_Product')) {
             echo '<span class="producto-badge badge-danger">' . 
                 esc_html__('Peligroso', 'wc-productos-template') . '</span>';
         }
-        
+        hola hola
         echo '</div>'; // Fin de badges
         
         // Imagen del producto con enlace y vista rápida
