@@ -2,7 +2,40 @@
  * Estilos mejorados para la barra de búsqueda y estructura correcta
  * Asegura que el header y la barra de búsqueda aparezcan antes de la disposición de dos columnas
  */
+// Archivo: assets/css/search-bar-fix.css
+// Añadir estas reglas para asegurar que el contenido aparezca en el orden correcto:
 
+/* Asegurar que el contenedor principal de productos aparezca después del header del tema */
+.site-header,
+.main-header,
+header.site-header,
+.header-container,
+#masthead {
+    order: -1 !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+/* El contenedor de productos debe aparecer después del header */
+.productos-container.wc-productos-template {
+    order: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 20px !important; /* Espacio entre el header y el contenido */
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Si el tema utiliza flexbox para el layout principal, asegurar el orden */
+body, 
+#page,
+.site,
+.site-content,
+.content-area,
+main.site-main {
+    display: flex !important;
+    flex-direction: column !important;
+}
 /* Estructura principal del contenedor */
 .productos-container.wc-productos-template {
     display: flex !important;
