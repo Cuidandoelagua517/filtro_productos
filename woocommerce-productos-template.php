@@ -55,7 +55,7 @@ if (!class_exists('WC_Productos_Template')) {
                 add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
                 // Método alternativo para cargar templates personalizados
                 add_filter('template_include', array($this, 'template_loader'));
-                
+                add_action('wp_enqueue_scripts', array($this, 'enqueue_search_bar_fix'), 99999);
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
  
@@ -211,7 +211,32 @@ if (!class_exists('WC_Productos_Template')) {
                 $this->force_grid_layout();
             }
         }
+    /**
+ * Enqueue script para arreglar la barra de búsqueda
+ */
+public function enqueue_search_bar_fix() {
+    // Solo en páginas de WooCommerce relevantes
+    if (is_woocommerce() || is_shop() || is_product_category() || is_product_tag() || 
+        is_product() || (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'))) {
         
+        // Registrar y cargar el script con máxima prioridad
+        wp_enqueue_script(
+            'wc-productos-search-bar-fix',
+            plugin_dir_url(__FILE__) . 'assets/js/search-bar-fix.js',
+            array('jquery'),
+            time(), // Forzar nueva versión cada vez
+            true // En el footer
+        );
+        
+        // Asegurar que se cargue Font Awesome
+        wp_enqueue_style(
+            'font-awesome',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+            array(),
+            '5.15.4'
+        );
+    }
+}    
         /**
          * Forzar visualización en cuadrícula para productos
          * Esta función aplica CSS con alta prioridad y fuerza la visualización en cuadrícula
@@ -731,7 +756,15 @@ function wc_productos_unified_grid_styles() {
         defined('WC_PRODUCTOS_TEMPLATE_VERSION') ? WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time() : time(),
         'all'
     );
-    
+    // Enqueue CSS de emergencia para la barra de búsqueda con prioridad extrema
+wp_enqueue_style(
+    'wc-productos-search-bar-fix',
+    plugin_dir_url(__FILE__) . 'assets/css/search-bar-fix.css',
+    array(),
+    time(), // Forzar nueva versión
+    'all'
+);
+wp_style_add_data('wc-productos-search-bar-fix', 'priority', 9999);
     // Darle prioridad aún mayor
     wp_style_add_data('wc-force-grid', 'priority', 99999);
     
