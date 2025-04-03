@@ -1,7 +1,7 @@
 <?php
 /**
  * Template para el archivo de productos (archive-product.php)
- * Versión corregida para eliminar títulos duplicados
+ * Versión corregida con estructura HTML adecuada
  */
 
 // Eliminar hooks por defecto de WooCommerce que podrían interferir
@@ -25,10 +25,9 @@ do_action('woocommerce_before_main_content');
 ?>
 
 <div class="productos-container wc-productos-template">
-    <!-- Header should be FIRST, before the product grid -->
+    <!-- Header should be FIRST, but INSIDE the container -->
     <div class="productos-header">
         <h1>Productos</h1>
- 
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
