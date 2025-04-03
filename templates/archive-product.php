@@ -1,8 +1,7 @@
 <?php
 /**
  * Template para el archivo de productos (archive-product.php)
- * 
- * @package WC_Productos_Template
+ * Versión corregida para eliminar títulos duplicados
  */
 
 // Eliminar hooks por defecto de WooCommerce que podrían interferir
@@ -14,8 +13,14 @@ remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30
 // Obtener la página actual
 $current_page = max(1, get_query_var('paged'));
 
+// Ejecutar hook para mantener estructura del tema, pero ELIMINAR el título duplicado
+add_action('woocommerce_before_main_content', function() {
+    // Eliminar hooks que puedan estar mostrando títulos
+    remove_action('woocommerce_archive_description', 'woocommerce_taxonomy_archive_description', 10);
+    remove_action('woocommerce_archive_description', 'woocommerce_product_archive_description', 10);
+}, 5);
+
 // IMPORTANTE: Asegurarnos de que el hook 'woocommerce_before_main_content' se ejecute primero
-// para que el header del tema se muestre antes que nuestro contenido
 do_action('woocommerce_before_main_content');
 ?>
 
