@@ -198,69 +198,58 @@ jQuery(document).ready(function($) {
     /**
      * Corregir la estructura general de la cuadrícula
      */
-    function fixGridStructure() {
-        // Verificar si hay cuadrículas duplicadas
-        if ($('.productos-grid, ul.products').length > 1) {
-            // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
-            var $grids = $('.productos-grid, ul.products');
-            var $validGrid = null;
-            
-            $grids.each(function() {
-                if ($(this).find('li.product').length > 0 && !$validGrid) {
-                    $validGrid = $(this);
-                } else if ($(this) !== $validGrid) {
-                    $(this).remove();
-                }
-            });
-        }
+  function fixGridStructure() {
+    // Verificar si hay cuadrículas duplicadas
+    if ($('.productos-grid, ul.products').length > 1) {
+        // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
+        var $grids = $('.productos-grid, ul.products');
+        var $validGrid = null;
         
-        // Forzar estilos de cuadrícula
+        $grids.each(function() {
+            if ($(this).find('li.product').length > 0 && !$validGrid) {
+                $validGrid = $(this);
+            } else if ($(this) !== $validGrid) {
+                $(this).remove();
+            }
+        });
+    }
+    
+    // Forzar estilos de cuadrícula a 3 columnas
+    $('.productos-grid, ul.products').css({
+        'display': 'grid',
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'gap': '20px',
+        'width': '100%',
+        'margin': '0 auto 30px auto',
+        'padding': '0',
+        'list-style': 'none',
+        'float': 'none',
+        'max-width': '1200px'
+    });
+    
+    $('.productos-grid li.product, ul.products li.product').css({
+        'width': '100%',
+        'margin': '0 0 20px 0',
+        'float': 'none',
+        'clear': 'none',
+        'height': 'auto'
+    });
+    
+    // Ocultar productos después del noveno
+    $('.productos-grid li.product:nth-child(n+10), ul.products li.product:nth-child(n+10)').css({
+        'display': 'none'
+    });
+    
+    // Adaptar a móviles pero manteniendo máximo 3 columnas
+    if (window.innerWidth <= 480) {
         $('.productos-grid, ul.products').css({
-            'display': 'grid',
-            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
-            'gap': '20px',
-            'width': '100%',
-            'margin': '0 0 30px 0',
-            'padding': '0',
-            'list-style': 'none',
-            'float': 'none'
+            'grid-template-columns': 'repeat(1, 1fr)',
+            'gap': '10px'
         });
-        
-        $('.productos-grid li.product, ul.products li.product').css({
-            'width': '100%',
-            'margin': '0 0 20px 0',
-            'float': 'none',
-            'clear': 'none',
-            'height': 'auto'
+    } else if (window.innerWidth <= 768) {
+        $('.productos-grid, ul.products').css({
+            'grid-template-columns': 'repeat(2, 1fr)',
+            'gap': '15px'
         });
     }
-    
-    // Ejecutar todas las correcciones
-    function runAllFixes() {
-        fixHeaderStructure();
-        fixSearchBar();
-        fixGridStructure();
-    }
-    
-    // Ejecutar los arreglos inmediatamente
-    runAllFixes();
-    
-    // Ejecutar después de que la página esté completamente cargada
-    $(window).on('load', runAllFixes);
-    
-    // Ejecutar después de cada solicitud AJAX completada
-    $(document).ajaxComplete(function() {
-        setTimeout(runAllFixes, 100);
-    });
-    
-    // Ejecutar periódicamente durante los primeros segundos para mayor seguridad
-    var fixInterval = setInterval(runAllFixes, 1000);
-    setTimeout(function() {
-        clearInterval(fixInterval);
-    }, 5000);
-    
-    // También ejecutar cuando cambie el tamaño de la ventana
-    $(window).on('resize', function() {
-        setTimeout(runAllFixes, 100);
-    });
-});
+}
