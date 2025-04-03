@@ -139,7 +139,9 @@ jQuery(document).ready(function($) {
         // Forzar cuadrícula de nuevo
         forceGridLayout();
     }
-    // Añadir este código para actualizar el breadcrumb cuando se recibe una respuesta AJAX
+/**
+ * Actualizar el breadcrumb
+ */
 function updateBreadcrumb(breadcrumbHtml) {
     var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
     if ($breadcrumb.length) {
@@ -161,6 +163,22 @@ success: function(response) {
         if (response.data.breadcrumb) {
             updateBreadcrumb(response.data.breadcrumb);
         }
+        
+        // Desplazarse al inicio de los productos
+        $('html, body').animate({
+            scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+        }, 500);
+        
+        // Actualizar estado de URL sin recargar página
+        updateUrlState();
+    } else {
+        // Mostrar mensaje de error
+        showError(typeof WCProductosParams !== 'undefined' ? 
+                 WCProductosParams.i18n.error : 
+                 'Error al cargar productos. Intente nuevamente.');
+    }
+}
+
     /**
      * Actualizar la paginación
      */
