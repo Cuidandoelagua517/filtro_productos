@@ -530,7 +530,7 @@
 @media (min-width: 992px) {
     .wc-productos-template ul.products,
     .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 }
 
