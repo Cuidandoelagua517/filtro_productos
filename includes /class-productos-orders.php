@@ -29,6 +29,11 @@ if (!class_exists('WC_Productos_Template_Orders')) {
          * @param array $data Datos del pedido del checkout
          */
         public function add_custom_order_meta($order, $data) {
+            // Verificar que el carrito existe y está disponible
+            if (!function_exists('WC') || !WC()->cart) {
+                return;
+            }
+            
             // Guardar información sobre productos peligrosos en el pedido
             $cart = WC()->cart->get_cart();
             $has_dangerous_products = false;
