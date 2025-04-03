@@ -1,14 +1,62 @@
 /**
- * Script optimizado para corregir problemas con la barra de búsqueda
- * Modificado para solo afectar elementos dentro de .wc-productos-template
- * 
+ * Script mejorado para corregir problemas con la barra de búsqueda
+ * y forzar la visualización en cuadrícula
+ *
  * @package WC_Productos_Template
  */
 
 jQuery(document).ready(function($) {
     /**
+     * Forzar la visualización en cuadrícula para listas de productos
+     * Función principal que asegura que la cuadrícula se aplique correctamente
+     */
+    function forceGrid() {
+        // Aplicar estilos directamente mediante jQuery para garantizar que se apliquen
+        $('ul.products, .productos-grid').css({
+            'display': 'grid',
+            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
+            'gap': '20px',
+            'width': '100%',
+            'max-width': '100%',
+            'margin': '0 0 30px 0',
+            'padding': '0',
+            'list-style': 'none',
+            'float': 'none',
+            'clear': 'both',
+            'box-sizing': 'border-box'
+        });
+        
+        // Eliminar flotadores que pueden romper la cuadrícula
+        $('ul.products::before, ul.products::after, .productos-grid::before, .productos-grid::after').css({
+            'display': 'none',
+            'content': 'none',
+            'clear': 'none',
+            'visibility': 'hidden'
+        });
+        
+        // Aplicar estilos a cada producto
+        $('ul.products li.product, .productos-grid li.product').css({
+            'width': '100%',
+            'max-width': '100%',
+            'margin': '0 0 20px 0',
+            'padding': '0',
+            'float': 'none',
+            'clear': 'none',
+            'box-sizing': 'border-box',
+            'display': 'flex',
+            'flex-direction': 'column',
+            'height': '100%',
+            'opacity': '1',
+            'position': 'relative',
+            'visibility': 'visible'
+        });
+        
+        // Aplicar clases adicionales para asegurar la cuadrícula
+        $('ul.products, .productos-grid').addClass('force-grid');
+    }
+    
+    /**
      * Verificar y reparar la barra de búsqueda si es necesario
-     * pero solo dentro del scope de .wc-productos-template
      */
     function fixSearchBar() {
         // Verificar si estamos en una página con el template de productos
@@ -58,87 +106,10 @@ jQuery(document).ready(function($) {
             );
             return;
         }
-        
-        // Asegurarse que los elementos internos de la barra de búsqueda estén visibles
-        var $form = $searchBar.find('form, .productos-search-form');
-        var $input = $searchBar.find('input[type="text"]');
-        var $button = $searchBar.find('button, .productos-search-button');
-        
-        if ($form.length === 0 || $input.length === 0 || $button.length === 0 || 
-            $form.css('display') === 'none' || $input.css('display') === 'none' || $button.css('display') === 'none') {
-            console.log('Elementos de la barra de búsqueda no encontrados o no visibles, recreando...');
-            
-            // Reemplazar el contenido completo de la barra de búsqueda
-            $searchBar.html(
-                '<form role="search" method="get" class="productos-search-form search-fix-form" action="javascript:void(0);">' +
-                '<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
-                '<button type="submit" class="productos-search-button search-fix-button" aria-label="Buscar">' +
-                '<i class="fas fa-search" aria-hidden="true"></i>' +
-                '</button>' +
-                '</form>'
-            );
-        }
-        
-        // Asegurarse de que Font Awesome esté cargado para el icono de búsqueda
-        if (!$('link[href*="font-awesome"]').length) {
-            console.log('Font Awesome no detectado, cargando...');
-            $('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">');
-        }
-        
-        // Asegurarse que el botón tenga el evento de clic
-        $button.off('click').on('click', function(e) {
-            e.preventDefault();
-            
-            // Intentar usar la función global filterProducts primero
-            if (typeof window.filterProducts === 'function') {
-                window.filterProducts(1);
-            }
-        });
-        
-        // Asegurarse que el formulario tenga el evento submit
-        $form.off('submit').on('submit', function(e) {
-            e.preventDefault();
-            
-            // Intentar usar la función global filterProducts primero
-            if (typeof window.filterProducts === 'function') {
-                window.filterProducts(1);
-            }
-        });
     }
     
     /**
-     * Corregir la estructura del header y eliminar elementos duplicados
-     * pero solo dentro del scope de .wc-productos-template
-     */
-    function fixHeaderStructure() {
-        // Verificar si hay headers duplicados dentro de nuestro contenedor
-        if ($('.wc-productos-template .productos-header').length > 1) {
-            // Eliminar todos excepto el primero
-            $('.wc-productos-template .productos-header:gt(0)').remove();
-        }
-        
-        // Eliminar headers mal posicionados
-        $('.wc-productos-template .productos-grid > .productos-header, .wc-productos-template ul.products > .productos-header').each(function() {
-            var $header = $(this);
-            var $container = $('.wc-productos-template').first();
-            
-            // Mover al inicio del contenedor si está en lugar incorrecto
-            if ($container.length > 0) {
-                $header.prependTo($container);
-            }
-        });
-        
-        // Eliminar cualquier texto de "Productos" que esté fuera del header pero dentro de nuestro scope
-        $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').contents().each(function() {
-            if (this.nodeType === 3 && this.nodeValue.trim() === 'Productos') {
-                $(this).remove();
-            }
-        });
-    }
-    
-    /**
-     * Corregir la estructura general de la cuadrícula
-     * pero solo dentro del scope de .wc-productos-template
+     * Forzar estructura de cuadrícula para productos
      */
     function fixGridStructure() {
         // Verificar si hay cuadrículas duplicadas dentro de nuestro contenedor
@@ -172,15 +143,55 @@ jQuery(document).ready(function($) {
         }
     }
     
-    // Ejecutar las funciones solo si estamos en una página con el template
-    if ($('.wc-productos-template').length) {
-        fixSearchBar();
-        fixHeaderStructure();
-        fixGridStructure();
+    /**
+     * Corrección de elementos huérfanos
+     */
+    function fixOrphanedElements() {
+        // Eliminar elementos vacíos que pueden causar problemas
+        $('.wc-productos-template *:empty').not('input, textarea, select, button, img, br, hr').remove();
         
-        // Volver a ejecutar al cambiar el tamaño de la ventana
-        $(window).on('resize', function() {
-            fixGridStructure();
+        // Mover elementos que puedan haber quedado en lugar incorrecto
+        $('.wc-productos-template .productos-grid > .productos-header, .wc-productos-template ul.products > .productos-header').each(function() {
+            $(this).prependTo($('.wc-productos-template').first());
         });
     }
+    
+    // Ejecutar inmediatamente después de que el DOM esté listo
+    forceGrid();
+    
+    // Si estamos en una página con el template personalizado
+    if ($('.wc-productos-template').length) {
+        fixSearchBar();
+        fixGridStructure();
+        fixOrphanedElements();
+    }
+    
+    // Volver a aplicar después de una pequeña demora para asegurar que todos los elementos se hayan cargado
+    setTimeout(function() {
+        forceGrid();
+        if ($('.wc-productos-template').length) {
+            fixGridStructure();
+            fixOrphanedElements();
+        }
+    }, 500);
+    
+    // Volver a aplicar al cambiar el tamaño de la ventana
+    $(window).on('resize', function() {
+        forceGrid();
+        if ($('.wc-productos-template').length) {
+            fixGridStructure();
+        }
+    });
+    
+    // Aplicar después de que las imágenes se hayan cargado
+    $(window).on('load', function() {
+        forceGrid();
+        if ($('.wc-productos-template').length) {
+            fixGridStructure();
+            fixOrphanedElements();
+        }
+    });
+    
+    // Exponer función para uso global
+    window.forceGridLayout = forceGrid;
 });
