@@ -164,50 +164,43 @@ jQuery(document).ready(function($) {
      * Forzar disposición en cuadrícula con JavaScript
      */
     function forceGridLayout() {
-    $('.wc-productos-template ul.products, .productos-grid').css({
-        'display': 'grid',
-        'grid-template-columns': 'repeat(3, 1fr)', // Siempre 3 columnas
-        'gap': '20px',
-        'width': '100%',
-        'margin': '0 auto',
-        'padding': '0',
-        'list-style': 'none',
-        'float': 'none',
-        'clear': 'both',
-        'max-width': '1200px' // Opcional: limitar el ancho máximo
-    });
-    
-    $('.wc-productos-template ul.products li.product, .productos-grid li.product').css({
-        'width': '100%',
-        'margin': '0 0 20px 0',
-        'float': 'none',
-        'clear': 'none',
-        'display': 'flex',
-        'flex-direction': 'column',
-        'height': '100%'
-    });
-    
-    // Ocultar productos después del noveno
-    $('.wc-productos-template ul.products li.product:nth-child(n+10), .productos-grid li.product:nth-child(n+10)').css({
-        'display': 'none'
-    });
-    
-    // Media query para móviles (solo cambia a 2 o 1 columna, no más)
-    if (window.innerWidth <= 480) {
         $('.wc-productos-template ul.products, .productos-grid').css({
-            'grid-template-columns': 'repeat(1, 1fr)'
+            'display': 'grid',
+            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
+            'gap': '20px',
+            'width': '100%',
+            'margin': '0',
+            'padding': '0',
+            'list-style': 'none',
+            'float': 'none',
+            'clear': 'both'
         });
-    } else if (window.innerWidth <= 768) {
-        $('.wc-productos-template ul.products, .productos-grid').css({
-            'grid-template-columns': 'repeat(2, 1fr)'
+        
+        $('.wc-productos-template ul.products li.product, .productos-grid li.product').css({
+            'width': '100%',
+            'margin': '0 0 20px 0',
+            'float': 'none',
+            'clear': 'none',
+            'display': 'flex',
+            'flex-direction': 'column',
+            'height': '100%'
         });
-    } else {
-        // Para el resto de tamaños, mantener 3 columnas
-        $('.wc-productos-template ul.products, .productos-grid').css({
-            'grid-template-columns': 'repeat(3, 1fr)'
-        });
+        
+        // Media query para móviles
+        if (window.innerWidth <= 480) {
+            $('.wc-productos-template ul.products, .productos-grid').css({
+                'grid-template-columns': 'repeat(2, 1fr)'
+            });
+        } else if (window.innerWidth <= 768) {
+            $('.wc-productos-template ul.products, .productos-grid').css({
+                'grid-template-columns': 'repeat(2, 1fr)'
+            });
+        } else if (window.innerWidth <= 991) {
+            $('.wc-productos-template ul.products, .productos-grid').css({
+                'grid-template-columns': 'repeat(3, 1fr)'
+            });
+        }
     }
-}
     
     /**
      * Actualizar URL sin recargar la página (History API)
