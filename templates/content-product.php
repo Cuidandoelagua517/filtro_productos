@@ -2,6 +2,8 @@
 /**
  * Plantilla para cada producto en la cuadrícula
  * Versión corregida para evitar elementos huérfanos y títulos duplicados
+ *
+ * @package WC_Productos_Template
  */
 
 // Ensure $product is defined and is a valid WooCommerce product
