@@ -1,10 +1,19 @@
 /**
- * Estilos críticos para garantizar la visibilidad de la barra de búsqueda
- * Este CSS debe tener prioridad sobre cualquier otro estilo
+ * Estilos mejorados para la barra de búsqueda y estructura correcta
+ * Asegura que el header y la barra de búsqueda aparezcan antes de la disposición de dos columnas
  */
 
-/* Estilos del contenedor de encabezado */
-.productos-header {
+/* Estructura principal del contenedor */
+.productos-container.wc-productos-template {
+    display: flex !important;
+    flex-direction: column !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Header: Debe aparecer antes de la disposición de dos columnas */
+.productos-container .productos-header {
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: space-between !important;
@@ -19,10 +28,11 @@
     z-index: 100 !important;
     height: auto !important;
     min-height: 60px !important;
+    order: 1 !important; /* Forzar que aparezca primero */
 }
 
-/* Estilos del título en el encabezado */
-.productos-header h1 {
+/* Título principal */
+.productos-container .productos-header h1 {
     font-size: 24px !important;
     font-weight: 600 !important;
     margin: 0 !important;
@@ -32,7 +42,7 @@
 }
 
 /* Contenedor de la barra de búsqueda */
-.productos-search {
+.productos-container .productos-search {
     position: relative !important;
     width: 300px !important;
     display: block !important;
@@ -45,7 +55,7 @@
 }
 
 /* Formulario de búsqueda */
-.productos-search form {
+.productos-container .productos-search form {
     display: flex !important;
     width: 100% !important;
     visibility: visible !important;
@@ -54,9 +64,9 @@
     height: auto !important;
 }
 
-/* Input de búsqueda */
-.productos-search input[type="text"],
-.productos-search #productos-search-input {
+/* Campo de búsqueda */
+.productos-container .productos-search input[type="text"],
+.productos-container .productos-search #productos-search-input {
     width: 100% !important;
     display: block !important;
     padding: 10px 40px 10px 15px !important;
@@ -73,7 +83,7 @@
 }
 
 /* Botón de búsqueda */
-.productos-search button {
+.productos-container .productos-search button {
     position: absolute !important;
     right: 0 !important;
     top: 0 !important;
@@ -91,58 +101,60 @@
     z-index: 102 !important;
 }
 
-.productos-search button:hover {
+.productos-container .productos-search button:hover {
     background-color: #004494 !important;
 }
 
-/* Icono dentro del botón */
-.productos-search button i,
-.productos-search button .fas {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: inline-block !important;
-    font-family: "Font Awesome 5 Free", FontAwesome, "fa", sans-serif !important;
+/* Layout de dos columnas (después del header) */
+.productos-container .productos-layout {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    width: 100%;
+    order: 2 !important; /* Forzar que aparezca después del header */
 }
 
-/* Asegurarse de que ninguna regla de grid afecte al header */
-body ul.products,
-body.woocommerce ul.products,
-body.woocommerce-page ul.products,
-body .woocommerce ul.products,
-html body .productos-grid,
-#main ul.products,
-#content ul.products,
-.woocommerce .products,
-.wc-productos-template ul.products,
-.productos-grid {
-    /* Excluir el header de cualquier restricción de altura */
-    max-height: none !important;
-}
-
-/* Responsive para dispositivos móviles */
+/* Responsive para móviles */
 @media (max-width: 768px) {
-    .productos-header {
+    .productos-container .productos-header {
         flex-direction: column !important;
         align-items: flex-start !important;
     }
     
-    .productos-header h1 {
+    .productos-container .productos-header h1 {
         margin-bottom: 15px !important;
     }
     
-    .productos-search {
+    .productos-container .productos-search {
         width: 100% !important;
         max-width: 100% !important;
         margin-top: 10px !important;
     }
+    
+    .productos-container .productos-layout {
+        flex-direction: column;
+    }
 }
 
-/* Fallback final para casos extremos */
-.wc-productos-template .productos-search,
-.wc-productos-template .productos-header {
-    display: block !important;
+/* Asegurarse de que los íconos de Font Awesome estén visibles */
+.productos-container .productos-search button i,
+.productos-container .productos-search button .fas {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+    color: white !important;
 }
 
-.wc-productos-template .productos-header {
-    overflow: visible !important;
+/* Asegurar que Font Awesome se cargue correctamente */
+@font-face {
+    font-family: 'FontAwesome';
+    src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/webfonts/fa-solid-900.woff2') format('woff2'),
+         url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/webfonts/fa-solid-900.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: block;
+}
+
+.fas.fa-search:before {
+    content: "\f002" !important;
 }
