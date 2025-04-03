@@ -432,7 +432,71 @@ private function is_product_page() {
             
             return $template;
         }
+// Agregar este código al archivo functions.php de tu tema o en un archivo de funciones del plugin
 
+/**
+ * Mejora la búsqueda de WooCommerce para incluir SKU, metadatos y características
+ */
+function wc_productos_template_search_join($join, $query) {
+    global $wpdb;
+    
+    // Solo modificar consultas de búsqueda para productos
+    if (!is_admin() && $query->is_search() && $query->is_main_query() && isset($query->query_vars['post_type']) && $query->query_vars['post_type'] === 'product') {
+        // Unir la tabla de postmeta para poder buscar en metadatos
+        $join .= " LEFT JOIN {$wpdb->postmeta} wpm ON {$wpdb->posts}.ID = wpm.post_id ";
+        
+        // Unir la tabla de términos y relaciones para poder buscar en atributos
+        $join .= " LEFT JOIN {$wpdb->term_relationships} wtr ON {$wpdb->posts}.ID = wtr.object_id ";
+        $join .= " LEFT JOIN {$wpdb->term_taxonomy} wtt ON wtr.term_taxonomy_id = wtt.term_taxonomy_id ";
+        $join .= " LEFT JOIN {$wpdb->terms} wt ON wtt.term_id = wt.term_id ";
+    }
+    
+    return $join;
+}
+add_filter('posts_join', 'wc_productos_template_search_join', 10, 2);
+
+/**
+ * Modifica la cláusula WHERE para buscar en campos adicionales
+ */
+function wc_productos_template_search_where($where, $query) {
+    global $wpdb;
+    
+    // Solo modificar consultas de búsqueda para productos
+    if (!is_admin() && $query->is_search() && $query->is_main_query() && isset($query->query_vars['post_type']) && $query->query_vars['post_type'] === 'product') {
+        $search_term = get_search_query();
+        
+        if (!empty($search_term)) {
+            // Escapar para evitar inyección SQL
+            $like = '%' . $wpdb->esc_like($search_term) . '%';
+            
+            // Construir cláusula WHERE extendida para buscar en campos adicionales
+            $extended_where = $where . $wpdb->prepare(
+                " OR (wpm.meta_key = '_sku' AND wpm.meta_value LIKE %s) 
+                OR (wpm.meta_key = '_volumen_ml' AND wpm.meta_value LIKE %s)
+                OR (wpm.meta_key LIKE 'attribute_pa_%' AND wpm.meta_value LIKE %s)
+                OR (wt.name LIKE %s)",
+                $like, $like, $like, $like
+            );
+            
+            return $extended_where;
+        }
+    }
+    
+    return $where;
+}
+add_filter('posts_where', 'wc_productos_template_search_where', 10, 2);
+
+/**
+ * Evita duplicados en los resultados de búsqueda
+ */
+function wc_productos_template_search_distinct($distinct, $query) {
+    if (!is_admin() && $query->is_search() && $query->is_main_query() && isset($query->query_vars['post_type']) && $query->query_vars['post_type'] === 'product') {
+        return "DISTINCT";
+    }
+    
+    return $distinct;
+}
+add_filter('posts_distinct', 'wc_productos_template_search_distinct', 10, 2);
         /**
          * Cargador de templates personalizado
          */
