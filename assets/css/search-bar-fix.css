@@ -1,183 +1,73 @@
+
 /**
- * Enhanced CSS for fixing header/product hierarchy
- * This ensures that products and search bar always appear below the site header
+ * COMBINED FIX FOR PRODUCTOS HEADER PLACEMENT
+ * This file contains both CSS and JavaScript to fix the H1 and search bar position
  */
 
-/* ===== 1. FORCE DOCUMENT FLOW ===== */
-html, 
-body,
-#page,
-.site,
-.site-content,
-.content-area,
-#content,
-main,
-#main {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    min-height: 0 !important; /* Prevent flex items from expanding unnecessarily */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    position: relative !important;
-}
+/* CSS FIX - Apply this to search-bar-fix.css */
+/* ========================================== */
 
-/* ===== 2. HEADER POSITIONING - EXTREMELY SPECIFIC ===== */
-body > header,
-#page > header,
-.site > header,
-body > .site-header,
-#page > .site-header,
-.site > .site-header,
-#masthead,
-.main-header,
-.header-container,
-.site-header-container,
-body #masthead,
-.site-header,
-.wp-site-header,
-div[class*="header"],
-[class*="header-container"],
-[id*="header"],
-.theme-header,
-.custom-header,
-header.entry-header:first-child {
-    order: -100 !important; /* Extremely negative to ensure it's first */
-    position: relative !important;
-    z-index: 999 !important; /* High z-index to appear above other elements */
+/* 1. Force productos-header outside of the grid */
+.productos-header {
+    grid-column: 1 / -1 !important; /* Span all grid columns */
+    grid-row: 1 !important; /* Force to first row */
     width: 100% !important;
-    margin-bottom: 0 !important;
-    flex-shrink: 0 !important;
-    display: block !important;
-    top: 0 !important;
-}
-
-/* ===== 3. NAVIGATION POSITIONING ===== */
-.main-navigation,
-.site-navigation,
-nav.primary-navigation,
-.primary-menu-container,
-.menu-main-container,
-.nav-primary,
-.main-menu,
-.navigation-wrapper,
-.site-header nav,
-#masthead nav,
-.header-navigation,
-[class*="menu-container"],
-[id*="site-navigation"],
-[class*="site-navigation"],
-.navbar,
-.navbar-collapse,
-.navigation {
-    order: -99 !important;
-    position: relative !important;
-    z-index: 998 !important;
-    width: 100% !important;
-}
-
-/* ===== 4. THE MAIN PRODUCTOS CONTAINER MUST ALWAYS APPEAR AFTER THE HEADER ===== */
-.productos-container,
-.productos-container.wc-productos-template,
-div.productos-container,
-main .productos-container,
-#content .productos-container,
-.site-content .productos-container,
-.content-area .productos-container,
-.woocommerce .productos-container,
-.entry-content .productos-container,
-[class*="content"] .productos-container {
-    order: 100 !important; /* High positive value to ensure it comes after header */
-    position: relative !important;
-    z-index: 10 !important;
-    width: 100% !important;
-    max-width: 1200px !important;
-    margin: 30px auto 0 !important; /* Added top margin for spacing after header */
-    padding: 0 15px !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    float: none !important;
-    clear: both !important;
-    overflow: visible !important;
-}
-
-/* ===== 5. ENSURE PRODUCTOS HEADER AND SEARCH BAR DISPLAY CORRECTLY ===== */
-.productos-container .productos-header {
+    margin-bottom: 30px !important;
+    border-bottom: 1px solid #e2e2e2 !important;
+    padding-bottom: 15px !important;
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: space-between !important;
     align-items: center !important;
-    width: 100% !important;
-    margin-bottom: 25px !important;
-    padding-bottom: 15px !important;
-    border-bottom: 1px solid #e2e2e2 !important;
     position: relative !important;
     z-index: 50 !important;
-    min-height: 60px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    background: #fff !important;
-    clear: both !important;
     float: none !important;
+    clear: both !important;
 }
 
-/* Product Title */
-.productos-container .productos-header h1,
-.productos-container .productos-header h2 {
-    font-size: 24px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    color: #333 !important;
-    flex: 1 0 auto !important;
-    min-width: 200px !important;
-    line-height: 1.4 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* 2. Ensure productos-header is NOT inside the products grid */
+ul.products .productos-header,
+.productos-grid .productos-header {
+    position: absolute !important;
+    top: -80px !important; /* Move it above the grid */
+    left: 0 !important;
+    right: 0 !important;
+    background: #fff !important;
 }
 
-/* Search Bar Container */
-.productos-container .productos-search {
+/* 3. Make sure productos container has proper spacing for the header */
+.productos-container,
+.wc-productos-template {
     position: relative !important;
+    padding-top: 80px !important; /* Add space for the absolute positioned header */
+    margin-top: 20px !important;
+}
+
+/* 4. Fix the search bar specifically */
+.productos-search {
     width: 300px !important;
-    min-width: 200px !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 0 !important;
-    flex: 0 1 auto !important;
-    z-index: 51 !important;
-}
-
-/* Search Bar Form */
-.productos-container .productos-search form {
-    display: flex !important;
-    width: 100% !important;
     position: relative !important;
+    display: block !important;
+    margin: 0 !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Search Input */
-.productos-container .productos-search input[type="text"] {
+.productos-search form {
+    display: flex !important;
+    position: relative !important;
     width: 100% !important;
-    height: auto !important;
-    min-height: 40px !important;
-    display: block !important;
+}
+
+.productos-search input[type="text"] {
+    width: 100% !important;
     padding: 10px 40px 10px 15px !important;
     border: 1px solid #ddd !important;
     border-radius: 4px !important;
     font-size: 14px !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin: 0 !important;
-    flex: 1 !important;
-    box-shadow: none !important;
 }
 
-/* Search Button */
-.productos-container .productos-search button {
+.productos-search button {
     position: absolute !important;
     right: 0 !important;
     top: 0 !important;
@@ -187,96 +77,20 @@ main .productos-container,
     color: white !important;
     border: none !important;
     border-radius: 0 4px 4px 0 !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 52 !important;
 }
 
-.productos-container .productos-search button i,
-.productos-container .productos-search button .fas {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    font-size: 14px !important;
-}
-
-/* ===== 6. HIDE DUPLICATE TITLES ===== */
-.woocommerce-products-header__title,
-.page-title,
-.entry-title,
-.archive-title,
-.woocommerce-products-header h1 {
-    display: none !important;
-}
-
-/* Retain the specific productos-header h1 */
-.productos-header h1,
-.productos-container .productos-header h1 {
-    display: block !important;
-}
-
-/* ===== 7. RESPONSIVE ADJUSTMENTS ===== */
+/* 5. Responsive adjustment */
 @media (max-width: 768px) {
-    .productos-container .productos-header {
+    .productos-header {
         flex-direction: column !important;
         align-items: flex-start !important;
     }
     
-    .productos-container .productos-header h1 {
+    .productos-header h1 {
         margin-bottom: 15px !important;
-        width: 100% !important;
     }
     
-    .productos-container .productos-search {
+    .productos-search {
         width: 100% !important;
-        max-width: 100% !important;
     }
-}
-
-/* ===== 8. ENFORCE CORRECT NESTING ===== */
-/* Ensure productos-layout is directly inside productos-container */
-.productos-container > * {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* Move any header elements that could be misplaced */
-.entry-header:not(.productos-header),
-.site-header:not(.productos-header) {
-    order: -100 !important;
-}
-
-/* ===== 9. FIX STACKING CONTEXT ===== */
-/* Create proper stacking contexts for z-index to work correctly */
-body {
-    isolation: isolate !important;
-}
-
-/* ===== 10. EMERGENCY OVERRIDES ===== */
-/* These declarations are meant to override any theme-specific styles */
-.productos-container {
-    position: static !important;
-    transform: none !important;
-    animation: none !important;
-    transition: none !important;
-}
-
-/* Header must be relative to the viewport, not to the productos-container */
-.site-header,
-#masthead,
-.main-header,
-.header-container {
-    position: relative !important;
-    top: 0 !important;
-}
-
-/* Ensure the entire structure is visually separate from the header */
-.wc-productos-template {
-    margin-top: 20px !important;
-    border-top: 1px solid rgba(0,0,0,0.08) !important;
-    padding-top: 20px !important;
 }
