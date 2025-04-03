@@ -1,5 +1,6 @@
 /**
- * Estilos principales para el template de productos de WooCommerce
+ * Estilos principales para el template de productos de WooCommerce (Optimizados)
+ * Esta versión elimina redundancias con force-grid.css
  *
  * @package WC_Productos_Template
  */
@@ -200,42 +201,8 @@
     text-decoration: underline;
 }
 
-/* ===== CUADRÍCULA DE PRODUCTOS ===== */
-.wc-productos-template ul.products,
-.wc-productos-template .productos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 30px 0;
-    width: 100%;
-}
-
-/* ===== TARJETA DE PRODUCTO ===== */
-.wc-productos-template ul.products li.product,
-.wc-productos-template .productos-grid li.product {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background-color: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin: 0 0 20px 0;
-    padding: 0;
-    width: 100%;
-    float: none;
-    clear: none;
-}
-
-.wc-productos-template ul.products li.product:hover,
-.wc-productos-template .productos-grid li.product:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-3px);
-}
+/* ===== CONTENIDO ESPECÍFICO DE TARJETAS DE PRODUCTO ===== */
+/* (Nota: la estructura del grid está en force-grid.css) */
 
 /* Imagen del producto */
 .wc-productos-template .producto-imagen {
@@ -244,9 +211,6 @@
 }
 
 .wc-productos-template .producto-imagen img {
-    width: 100%;
-    height: auto;
-    display: block;
     transition: transform 0.3s ease;
 }
 
@@ -438,14 +402,31 @@
     margin: 0 5px;
 }
 
-/* ===== RESPONSIVO ===== */
-@media (max-width: 991px) {
-    .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+/* ===== ESTADOS ===== */
+/* Estado de carga */
+.wc-productos-template .loading {
+    padding: 20px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #666;
+    font-size: 16px;
 }
 
+/* Mensaje de no productos */
+.wc-productos-template .no-products-found {
+    padding: 30px;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e2e2e2;
+    margin: 20px 0;
+    color: #666;
+    font-size: 16px;
+}
+
+/* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
     .wc-productos-template .productos-header {
         flex-direction: column;
@@ -472,19 +453,6 @@
         margin-bottom: 20px;
     }
     
-    .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
     .wc-productos-template .producto-footer {
         flex-direction: column;
         align-items: flex-start;
@@ -499,27 +467,4 @@
         width: 100%;
         text-align: center;
     }
-}
-
-/* ===== LOADING STATE ===== */
-.wc-productos-template .loading {
-    padding: 20px;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
-    margin: 20px 0;
-    color: #666;
-    font-size: 16px;
-}
-
-/* ===== NO PRODUCTS MESSAGE ===== */
-.wc-productos-template .no-products-found {
-    padding: 30px;
-    text-align: center;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e2e2e2;
-    margin: 20px 0;
-    color: #666;
-    font-size: 16px;
 }
