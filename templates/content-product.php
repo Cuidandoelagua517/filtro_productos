@@ -2,6 +2,7 @@
 /**
  * Plantilla para cada producto en la cuadrícula
  * Versión corregida para evitar elementos huérfanos y títulos duplicados
+ * Con padding adicional para mejor espaciado
  *
  * @package WC_Productos_Template
  */
@@ -13,10 +14,10 @@ if (!$product || !is_a($product, 'WC_Product')) {
 }
 ?>
 <li <?php wc_product_class('producto-card', $product); ?>>
-    <div class="producto-interior">
+    <div class="producto-interior" style="padding: 15px;">
         <?php
         // Imagen del producto con enlace
-        echo '<div class="producto-imagen">';
+        echo '<div class="producto-imagen" style="margin-bottom: 20px;">';
         
         // Badges en contenedor separado para mejor posicionamiento
         echo '<div class="producto-badges">';
@@ -54,35 +55,35 @@ if (!$product || !is_a($product, 'WC_Product')) {
         echo '</a></div>';
         
         // Información del producto
-        echo '<div class="producto-info">';
+        echo '<div class="producto-info" style="padding: 0 10px;">';
         
         // SKU o ID (movido arriba para destacar la referencia)
         $sku = $product->get_sku();
         if ($sku) {
-            echo '<div class="producto-sku">';
+            echo '<div class="producto-sku" style="margin-bottom: 10px;">';
             echo '<strong>' . esc_html__('REF:', 'wc-productos-template') . '</strong> ';
             echo esc_html($sku) . '</div>';
         }
         
         // Título con enlace
-        echo '<h2 class="producto-titulo woocommerce-loop-product__title">';
+        echo '<h2 class="producto-titulo woocommerce-loop-product__title" style="margin-bottom: 15px;">';
         echo '<a href="' . esc_url(get_permalink()) . '">' . get_the_title() . '</a>';
         echo '</h2>';
         
         // Detalles del producto en formato de tabla para mejor organización
-        echo '<div class="producto-detalles">';
+        echo '<div class="producto-detalles" style="margin-bottom: 20px;">';
         
         // Volumen (desde atributo o meta)
         $volumen = $product->get_attribute('pa_volumen');
         if (!$volumen) {
             $volumen = get_post_meta($product->get_id(), '_volumen_ml', true);
             if ($volumen) {
-                echo '<div class="producto-volumen">';
+                echo '<div class="producto-volumen" style="margin-bottom: 8px;">';
                 echo '<strong>' . esc_html__('Volumen:', 'wc-productos-template') . '</strong> ';
                 echo esc_html($volumen) . ' ml</div>';
             }
         } else {
-            echo '<div class="producto-volumen">';
+            echo '<div class="producto-volumen" style="margin-bottom: 8px;">';
             echo '<strong>' . esc_html__('Volumen:', 'wc-productos-template') . '</strong> ';
             echo esc_html($volumen) . '</div>';
         }
@@ -90,7 +91,7 @@ if (!$product || !is_a($product, 'WC_Product')) {
         // Grado (desde atributo)
         $grado = $product->get_attribute('pa_grado');
         if ($grado) {
-            echo '<div class="producto-grado">';
+            echo '<div class="producto-grado" style="margin-bottom: 8px;">';
             echo '<strong>' . esc_html__('Grado:', 'wc-productos-template') . '</strong> ';
             echo esc_html($grado) . '</div>';
         }
@@ -98,11 +99,11 @@ if (!$product || !is_a($product, 'WC_Product')) {
         echo '</div>'; // Fin detalles
         
         // Contenedor de precio y acción
-        echo '<div class="producto-footer">';
+        echo '<div class="producto-footer" style="padding-top: 15px; margin-top: 15px; border-top: 1px solid #f0f0f0;">';
         
         // Precio
         if ($price_html = $product->get_price_html()) {
-            echo '<div class="producto-precio price">' . $price_html . '</div>';
+            echo '<div class="producto-precio price" style="margin-bottom: 10px;">' . $price_html . '</div>';
         }
         
         // Botón de añadir al carrito
@@ -112,7 +113,8 @@ if (!$product || !is_a($product, 'WC_Product')) {
                class="producto-boton button add_to_cart_button ' . ($product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '') . '"
                data-product_id="' . esc_attr($product->get_id()) . '"
                data-product_sku="' . esc_attr($product->get_sku()) . '"
-               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '">';
+               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '"
+               style="padding: 10px 18px; width: 100%; text-align: center;">';
         echo esc_html($product->is_purchasable() && $product->is_in_stock() ? 
               __('Añadir al carrito', 'wc-productos-template') : 
               __('Leer más', 'wc-productos-template'));

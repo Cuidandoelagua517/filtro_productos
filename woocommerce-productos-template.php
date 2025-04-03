@@ -59,7 +59,8 @@ if (!class_exists('WC_Productos_Template')) {
                 add_action('wp_enqueue_scripts', array($this, 'register_scripts'), 999);
                 
                 // Sobreescribir templates de WooCommerce
-                add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 10, 3);
+                add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 999, 3);
+                add_filter('wc_get_template_part', array($this, 'override_template_parts'), 999, 3);
  
                 // Agregar AJAX handlers
                 add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
@@ -128,7 +129,16 @@ if (!class_exists('WC_Productos_Template')) {
             // Forzar visualización en cuadrícula con alta prioridad
             add_action('wp_enqueue_scripts', array($this, 'force_grid_styles'), 99999);
         }
-        
+        // Añadir este nuevo método
+public function override_template_parts($template, $slug, $name) {
+    if ($slug === 'content' && $name === 'product') {
+        $plugin_template = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'content-product.php';
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
+    return $template;
+}
         /**
          * Crear directorios del plugin si no existen
          */
@@ -548,45 +558,126 @@ private function is_product_page() {
             wc_set_loop_prop('total_pages', $products_query->max_num_pages);
             wc_set_loop_prop('columns', 3);
             
-            ob_start();
-            
-            if ($products_query->have_posts()) {
-                woocommerce_product_loop_start();
-                
-                while ($products_query->have_posts()) {
-                    $products_query->the_post();
-                    wc_get_template_part('content', 'product');
-                }
-                
-                woocommerce_product_loop_end();
-            } else {
-                echo '<div class="woocommerce-info">' . 
-                    esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
-                    '</div>';
-            }
-            
-            $products_html = ob_get_clean();
-            
-            // Generar paginación
-            ob_start();
-            $this->render_pagination($products_query->max_num_pages, $page);
-            $pagination = ob_get_clean();
-            
-            // Resetear datos de consulta
-            wp_reset_postdata();
-            
-            // Enviar respuesta
-            wp_send_json_success(array(
-                'products'     => $products_html,
-                'pagination'   => $pagination,
-                'total'        => $products_query->found_posts,
-                'current_page' => $page,
-                'max_pages'    => $products_query->max_num_pages
-            ));
-            
-            exit;
+             ob_start();
+    
+    if ($products_query->have_posts()) {
+        woocommerce_product_loop_start();
+        
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            wc_get_template_part('content', 'product');
         }
         
+        woocommerce_product_loop_end();
+    } else {
+        echo '<div class="woocommerce-info">' . 
+            esc_html__('No se encontraron productos que coincidan con tu búsqueda.', 'wc-productos-template') . 
+            '</div>';
+    }
+    
+    $products_html = ob_get_clean();
+    
+    // Generar paginación
+    ob_start();
+    $this->render_pagination($products_query->max_num_pages, $page);
+    $pagination = ob_get_clean();
+    
+    // Generar breadcrumb actualizado
+    ob_start();
+    $this->render_breadcrumb($page);
+    $breadcrumb = ob_get_clean();
+    
+    // Resetear datos de consulta
+    wp_reset_postdata();
+    
+    // Enviar respuesta
+    wp_send_json_success(array(
+        'products'     => $products_html,
+        'pagination'   => $pagination,
+        'breadcrumb'   => $breadcrumb,
+        'total'        => $products_query->found_posts,
+        'current_page' => $page,
+        'max_pages'    => $products_query->max_num_pages
+    ));
+    
+    exit;
+}
+/**
+ * Renderiza el breadcrumb con soporte para paginación
+ */
+public function render_breadcrumb($current_page = 1) {
+    // Si estamos en la página 1, usar el breadcrumb normal
+    if ($current_page <= 1) {
+        woocommerce_breadcrumb();
+        return;
+    }
+    
+    // Personalizar el breadcrumb para incluir la página actual
+    $breadcrumb_args = apply_filters('woocommerce_breadcrumb_defaults', array(
+        'delimiter'   => '&nbsp;&#47;&nbsp;',
+        'wrap_before' => '<nav class="woocommerce-breadcrumb">',
+        'wrap_after'  => '</nav>',
+        'before'      => '',
+        'after'       => '',
+        'home'        => _x('Inicio', 'breadcrumb', 'woocommerce'),
+    ));
+    
+    // Obtener el breadcrumb estándar
+    $breadcrumbs = array();
+    
+    // Inicio
+    $breadcrumbs[] = array(
+        'name' => $breadcrumb_args['home'],
+        'link' => get_home_url(),
+    );
+    
+    // Tienda (si existe)
+    $shop_page_id = wc_get_page_id('shop');
+    if ($shop_page_id > 0 && $shop_page_id !== get_option('page_on_front')) {
+        $breadcrumbs[] = array(
+            'name' => get_the_title($shop_page_id),
+            'link' => get_permalink($shop_page_id),
+        );
+    }
+    
+    // Categoría actual (si aplica)
+    if (is_product_category()) {
+        $current_term = get_queried_object();
+        if ($current_term) {
+            $breadcrumbs[] = array(
+                'name' => $current_term->name,
+                'link' => get_term_link($current_term),
+            );
+        }
+    }
+    
+    // Agregar la página actual al final
+    $breadcrumbs[] = array(
+        'name' => sprintf(__('Página %d', 'wc-productos-template'), $current_page),
+        'link' => '',
+    );
+    
+    // Renderizar el breadcrumb personalizado
+    echo $breadcrumb_args['wrap_before'];
+    
+    foreach ($breadcrumbs as $key => $breadcrumb) {
+        echo $breadcrumb_args['before'];
+        
+        if (!empty($breadcrumb['link']) && $key < count($breadcrumbs) - 1) {
+            echo '<a href="' . esc_url($breadcrumb['link']) . '">' . esc_html($breadcrumb['name']) . '</a>';
+        } else {
+            echo esc_html($breadcrumb['name']);
+        }
+        
+        echo $breadcrumb_args['after'];
+        
+        if ($key < count($breadcrumbs) - 1) {
+            echo $breadcrumb_args['delimiter'];
+        }
+    }
+    
+    echo $breadcrumb_args['wrap_after'];
+}
        /**
  * Renderiza la paginación de manera consistente
  * Versión corregida que asegura que los botones de paginación funcionen correctamente

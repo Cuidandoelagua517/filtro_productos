@@ -58,13 +58,15 @@ jQuery(document).ready(function($) {
                 search: currentFilters.search
             },
             success: function(response) {
-                // Eliminar mensaje de carga
-                $mainContent.find('.loading').remove();
-                
-                if (response.success) {
-                    // Actualizar productos y paginación
-                    updateProductGrid(response.data.products);
-                    updatePagination(response.data.pagination);
+    // Eliminar mensaje de carga
+    $mainContent.find('.loading').remove();
+    
+    if (response.success) {
+        // Actualizar productos y paginación
+        updateProductGrid(response.data.products);
+        updatePagination(response.data.pagination);
+        // Actualizar el breadcrumb para mostrar la página actual
+        updateBreadcrumbForPagination(currentFilters.page);
                     
                     // Desplazarse al inicio de los productos
                     $('html, body').animate({
@@ -139,7 +141,46 @@ jQuery(document).ready(function($) {
         // Forzar cuadrícula de nuevo
         forceGridLayout();
     }
+/**
+ * Actualizar el breadcrumb
+ */
+function updateBreadcrumb(breadcrumbHtml) {
+    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+    if ($breadcrumb.length) {
+        $breadcrumb.html(breadcrumbHtml);
+    }
+}
+
+// Y dentro del callback success de la petición AJAX:
+success: function(response) {
+    // Eliminar mensaje de carga
+    $mainContent.find('.loading').remove();
     
+    if (response.success) {
+        // Actualizar productos y paginación
+        updateProductGrid(response.data.products);
+        updatePagination(response.data.pagination);
+        
+        // Actualizar breadcrumb si está disponible
+        if (response.data.breadcrumb) {
+            updateBreadcrumb(response.data.breadcrumb);
+        }
+        
+        // Desplazarse al inicio de los productos
+        $('html, body').animate({
+            scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+        }, 500);
+        
+        // Actualizar estado de URL sin recargar página
+        updateUrlState();
+    } else {
+        // Mostrar mensaje de error
+        showError(typeof WCProductosParams !== 'undefined' ? 
+                 WCProductosParams.i18n.error : 
+                 'Error al cargar productos. Intente nuevamente.');
+    }
+}
+
     /**
      * Actualizar la paginación
      */
@@ -154,7 +195,43 @@ jQuery(document).ready(function($) {
         // Reenlazar eventos de paginación
         bindPaginationEvents();
     }
+    /**
+ * Función para actualizar el breadcrumb según la página actual
+ */
+function updateBreadcrumbForPagination(currentPage) {
+    // Obtener el breadcrumb actual
+    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+    if (!$breadcrumb.length) return;
     
+    // Si estamos en la primera página, no es necesario modificar el breadcrumb
+    if (currentPage <= 1) {
+        // Eliminar página si existe en el breadcrumb
+        var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+        var breadcrumbText = $breadcrumbNav.html();
+        if (breadcrumbText && breadcrumbText.includes('Página')) {
+            breadcrumbText = breadcrumbText.replace(/\s*\/\s*Página\s+\d+/g, '');
+            $breadcrumbNav.html(breadcrumbText);
+        }
+        return;
+    }
+    
+    // Obtener el contenido actual del breadcrumb
+    var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+    if (!$breadcrumbNav.length) return;
+    
+    // Verificar si ya existe un elemento de página en el breadcrumb
+    var breadcrumbText = $breadcrumbNav.html();
+    
+    // Si ya existe una referencia a la página, actualizarla
+    if (breadcrumbText && breadcrumbText.includes('Página')) {
+        breadcrumbText = breadcrumbText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
+        $breadcrumbNav.html(breadcrumbText);
+    } else {
+        // Si no existe, añadir la página al final
+        breadcrumbText = breadcrumbText + ' / Página ' + currentPage;
+        $breadcrumbNav.html(breadcrumbText);
+    }
+}
     /**
      * Mostrar mensaje de error
      */
@@ -300,20 +377,23 @@ jQuery(document).ready(function($) {
     /**
      * Enlazar eventos de paginación - versión mejorada para evitar eventos duplicados
      */
-    function bindPaginationEvents() {
-        // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
-        $(document).off('click', '.wc-productos-template .page-number');
-        
-        // Agregar el nuevo controlador de eventos
-        $(document).on('click', '.wc-productos-template .page-number', function(e) {
-            e.preventDefault();
-            var page = $(this).data('page');
-            if (page) {
-                filterProducts(page);
-            }
-            return false;
-        });
-    }
+  function bindPaginationEvents() {
+    // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
+    $(document).off('click', '.wc-productos-template .page-number');
+    
+    // Agregar el nuevo controlador de eventos
+    $(document).on('click', '.wc-productos-template .page-number', function(e) {
+        e.preventDefault();
+        var page = $(this).data('page');
+        if (page) {
+            // Actualizar inmediatamente el breadcrumb para mejor UX
+            updateBreadcrumbForPagination(page);
+            // Luego filtrar productos
+            filterProducts(page);
+        }
+        return false;
+    });
+}
     
     /**
      * Forzar cuadrícula de tres columnas
@@ -415,7 +495,15 @@ jQuery(document).ready(function($) {
         if (urlParams.has('paged')) {
             currentFilters.page = parseInt(urlParams.get('paged'));
         }
-        
+        // Si hay paginación activa, actualizar el breadcrumb
+if (urlParams.has('paged')) {
+    var pageNum = parseInt(urlParams.get('paged'));
+    if (pageNum > 1) {
+        setTimeout(function() {
+            updateBreadcrumbForPagination(pageNum);
+        }, 300); // Pequeño retraso para asegurar que el DOM está listo
+    }
+}
         // Si hay algún filtro o paginación activo, actualizar los productos
         if (urlParams.has('category') || urlParams.has('grade') || 
             urlParams.has('min_volume') || urlParams.has('max_volume') || 
