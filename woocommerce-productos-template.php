@@ -538,78 +538,82 @@ if (!class_exists('WC_Productos_Template')) {
             exit;
         }
         
-        /**
-         * Renderiza la paginación de manera consistente
-         */
-        public function render_pagination($max_pages, $current_page = 1) {
-            if ($max_pages <= 1) {
-                return;
-            }
-            
-            echo '<div class="productos-pagination">';
-            echo '<div class="pagination-info">';
-            
-            $per_page = get_option('posts_per_page');
-            $total = wc_get_loop_prop('total', 0);
-            
-            printf(
-                esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
-                (($current_page - 1) * $per_page) + 1,
-                min($total, $current_page * $per_page),
-                $total
-            );
-            
-            echo '</div>';
-            echo '<div class="pagination-links">';
-            
-            // Botón "Anterior" si no estamos en la primera página
-            if ($current_page > 1) {
-                printf(
-                    '<button class="page-number page-prev" data-page="%d" aria-label="%s">←</button>',
-                    $current_page - 1,
-                    esc_attr__('Página anterior', 'wc-productos-template')
-                );
-            }
-            
-            // Mostrar números de página
-            $start = max(1, $current_page - 2);
-            $end = min($max_pages, $current_page + 2);
-            
-            if ($start > 1) {
-                echo '<button class="page-number" data-page="1">1</button>';
-                if ($start > 2) {
-                    echo '<span class="page-dots">...</span>';
-                }
-            }
-            
-            for ($i = $start; $i <= $end; $i++) {
-                printf(
-                    '<button class="page-number%s" data-page="%d">%d</button>',
-                    $i === $current_page ? ' active' : '',
-                    $i,
-                    $i
-                );
-            }
-            
-            if ($end < $max_pages) {
-                if ($end < $max_pages - 1) {
-                    echo '<span class="page-dots">...</span>';
-                }
-                printf('<button class="page-number" data-page="%d">%d</button>', $max_pages, $max_pages);
-            }
-            
-            // Botón "Siguiente" si no estamos en la última página
-            if ($current_page < $max_pages) {
-                printf(
-                    '<button class="page-number page-next" data-page="%d" aria-label="%s">→</button>',
-                    $current_page + 1,
-                    esc_attr__('Página siguiente', 'wc-productos-template')
-                );
-            }
-            
-            echo '</div></div>';
+       /**
+ * Renderiza la paginación de manera consistente
+ * Versión corregida que asegura que los botones de paginación funcionen correctamente
+ */
+public function render_pagination($max_pages, $current_page = 1) {
+    if ($max_pages <= 1) {
+        return;
+    }
+    
+    $per_page = get_option('posts_per_page');
+    $total = wc_get_loop_prop('total', 0);
+    
+    echo '<div class="productos-pagination">';
+    echo '<div class="pagination-info">';
+    
+    // Calcular el rango de productos mostrados
+    $start = (($current_page - 1) * $per_page) + 1;
+    $end = min($total, $current_page * $per_page);
+    
+    printf(
+        esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
+        $start,
+        $end,
+        $total
+    );
+    
+    echo '</div>';
+    echo '<div class="pagination-links">';
+    
+    // Botón "Anterior" si no estamos en la primera página
+    if ($current_page > 1) {
+        printf(
+            '<a href="javascript:void(0);" class="page-number page-prev" data-page="%d" aria-label="%s">←</a>',
+            $current_page - 1,
+            esc_attr__('Página anterior', 'wc-productos-template')
+        );
+    }
+    
+    // Mostrar números de página
+    $start = max(1, $current_page - 2);
+    $end = min($max_pages, $current_page + 2);
+    
+    if ($start > 1) {
+        echo '<a href="javascript:void(0);" class="page-number" data-page="1">1</a>';
+        if ($start > 2) {
+            echo '<span class="page-dots">...</span>';
         }
-
+    }
+    
+    for ($i = $start; $i <= $end; $i++) {
+        printf(
+            '<a href="javascript:void(0);" class="page-number%s" data-page="%d">%d</a>',
+            $i === $current_page ? ' active' : '',
+            $i,
+            $i
+        );
+    }
+    
+    if ($end < $max_pages) {
+        if ($end < $max_pages - 1) {
+            echo '<span class="page-dots">...</span>';
+        }
+        printf('<a href="javascript:void(0);" class="page-number" data-page="%d">%d</a>', $max_pages, $max_pages);
+    }
+    
+    // Botón "Siguiente" si no estamos en la última página
+    if ($current_page < $max_pages) {
+        printf(
+            '<a href="javascript:void(0);" class="page-number page-next" data-page="%d" aria-label="%s">→</a>',
+            $current_page + 1,
+            esc_attr__('Página siguiente', 'wc-productos-template')
+        );
+    }
+    
+    echo '</div></div>';
+}
         /**
          * Shortcode para mostrar productos con el nuevo template
          */
