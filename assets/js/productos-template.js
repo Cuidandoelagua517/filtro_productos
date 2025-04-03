@@ -193,7 +193,43 @@ success: function(response) {
         // Reenlazar eventos de paginación
         bindPaginationEvents();
     }
+    /**
+ * Función para actualizar el breadcrumb según la página actual
+ */
+function updateBreadcrumbForPagination(currentPage) {
+    // Obtener el breadcrumb actual
+    var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
+    if (!$breadcrumb.length) return;
     
+    // Si estamos en la primera página, no es necesario modificar el breadcrumb
+    if (currentPage <= 1) {
+        // Eliminar página si existe en el breadcrumb
+        var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+        var breadcrumbText = $breadcrumbNav.html();
+        if (breadcrumbText && breadcrumbText.includes('Página')) {
+            breadcrumbText = breadcrumbText.replace(/\s*\/\s*Página\s+\d+/g, '');
+            $breadcrumbNav.html(breadcrumbText);
+        }
+        return;
+    }
+    
+    // Obtener el contenido actual del breadcrumb
+    var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
+    if (!$breadcrumbNav.length) return;
+    
+    // Verificar si ya existe un elemento de página en el breadcrumb
+    var breadcrumbText = $breadcrumbNav.html();
+    
+    // Si ya existe una referencia a la página, actualizarla
+    if (breadcrumbText && breadcrumbText.includes('Página')) {
+        breadcrumbText = breadcrumbText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
+        $breadcrumbNav.html(breadcrumbText);
+    } else {
+        // Si no existe, añadir la página al final
+        breadcrumbText = breadcrumbText + ' / Página ' + currentPage;
+        $breadcrumbNav.html(breadcrumbText);
+    }
+}
     /**
      * Mostrar mensaje de error
      */
