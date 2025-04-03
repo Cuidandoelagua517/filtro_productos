@@ -25,9 +25,10 @@ do_action('woocommerce_before_main_content');
 ?>
 
 <div class="productos-container wc-productos-template">
-    <!-- Header de productos - AHORA CORRECTAMENTE POSICIONADO DESPUÉS DEL HEADER PRINCIPAL -->
+    <!-- Header should be FIRST, before the product grid -->
     <div class="productos-header">
-        <h1><?php echo esc_html(woocommerce_page_title(false)); ?></h1>
+        <h1>Productos</h1>
+ 
         
         <!-- Barra de búsqueda -->
         <div class="productos-search">
