@@ -58,13 +58,15 @@ jQuery(document).ready(function($) {
                 search: currentFilters.search
             },
             success: function(response) {
-                // Eliminar mensaje de carga
-                $mainContent.find('.loading').remove();
-                
-                if (response.success) {
-                    // Actualizar productos y paginación
-                    updateProductGrid(response.data.products);
-                    updatePagination(response.data.pagination);
+    // Eliminar mensaje de carga
+    $mainContent.find('.loading').remove();
+    
+    if (response.success) {
+        // Actualizar productos y paginación
+        updateProductGrid(response.data.products);
+        updatePagination(response.data.pagination);
+        // Actualizar el breadcrumb para mostrar la página actual
+        updateBreadcrumbForPagination(currentFilters.page);
                     
                     // Desplazarse al inicio de los productos
                     $('html, body').animate({
@@ -375,20 +377,23 @@ function updateBreadcrumbForPagination(currentPage) {
     /**
      * Enlazar eventos de paginación - versión mejorada para evitar eventos duplicados
      */
-    function bindPaginationEvents() {
-        // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
-        $(document).off('click', '.wc-productos-template .page-number');
-        
-        // Agregar el nuevo controlador de eventos
-        $(document).on('click', '.wc-productos-template .page-number', function(e) {
-            e.preventDefault();
-            var page = $(this).data('page');
-            if (page) {
-                filterProducts(page);
-            }
-            return false;
-        });
-    }
+  function bindPaginationEvents() {
+    // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
+    $(document).off('click', '.wc-productos-template .page-number');
+    
+    // Agregar el nuevo controlador de eventos
+    $(document).on('click', '.wc-productos-template .page-number', function(e) {
+        e.preventDefault();
+        var page = $(this).data('page');
+        if (page) {
+            // Actualizar inmediatamente el breadcrumb para mejor UX
+            updateBreadcrumbForPagination(page);
+            // Luego filtrar productos
+            filterProducts(page);
+        }
+        return false;
+    });
+}
     
     /**
      * Forzar cuadrícula de tres columnas
@@ -490,7 +495,15 @@ function updateBreadcrumbForPagination(currentPage) {
         if (urlParams.has('paged')) {
             currentFilters.page = parseInt(urlParams.get('paged'));
         }
-        
+        // Si hay paginación activa, actualizar el breadcrumb
+if (urlParams.has('paged')) {
+    var pageNum = parseInt(urlParams.get('paged'));
+    if (pageNum > 1) {
+        setTimeout(function() {
+            updateBreadcrumbForPagination(pageNum);
+        }, 300); // Pequeño retraso para asegurar que el DOM está listo
+    }
+}
         // Si hay algún filtro o paginación activo, actualizar los productos
         if (urlParams.has('category') || urlParams.has('grade') || 
             urlParams.has('min_volume') || urlParams.has('max_volume') || 
