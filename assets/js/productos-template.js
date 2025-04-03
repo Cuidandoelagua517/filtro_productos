@@ -475,7 +475,93 @@ jQuery(document).ready(function($) {
         // Establecer explícitamente grid-template-columns
         $('.wc-productos-template ul.products, .productos-grid').css('grid-template-columns', 'repeat(3, 1fr)');
     }
+    /**
+ * JavaScript para manejar la expansión/contracción de categorías jerárquicas
+ * Para agregar al archivo productos-template.js
+ */
+
+// Función para inicializar comportamiento de categorías jerárquicas
+function initCategoryFilters() {
+    console.log('Inicializando filtros de categorías jerárquicas');
     
+    // Manejar clic en el icono de expansión
+    $('.wc-productos-template .category-toggle').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Evitar que se propague al checkbox
+        
+        var categorySlug = $(this).data('category');
+        var childrenList = $('#children-' + categorySlug);
+        
+        // Alternar expansión
+        $(this).toggleClass('expanded');
+        childrenList.toggleClass('expanded');
+        
+        // Rotar icono
+        if ($(this).hasClass('expanded')) {
+            $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        } else {
+            $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        }
+    });
+    
+    // Marcar/desmarcar automáticamente categorías hijas cuando se selecciona la categoría padre
+    $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
+        var isChecked = $(this).prop('checked');
+        var categorySlug = $(this).val();
+        var childrenContainer = $('#children-' + categorySlug);
+        
+        // Si el padre está seleccionado, expandir automáticamente
+        if (isChecked) {
+            var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+            toggle.addClass('expanded');
+            toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            childrenContainer.addClass('expanded');
+        }
+        
+        // Seleccionar o deseleccionar todas las categorías hijas
+        childrenContainer.find('.filtro-child').prop('checked', isChecked);
+    });
+    
+    // Al cargar, expandir automáticamente categorías que ya tienen selecciones
+    $('.wc-productos-template .filtro-parent-option .filtro-category:checked').each(function() {
+        var categorySlug = $(this).val();
+        var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+        toggle.addClass('expanded');
+        toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        $('#children-' + categorySlug).addClass('expanded');
+    });
+    
+    // También expandir si alguna categoría hija está seleccionada
+    $('.wc-productos-template .filtro-child-option .filtro-category:checked').each(function() {
+        var parentContainer = $(this).closest('.filtro-children-list');
+        var parentId = parentContainer.attr('id');
+        if (parentId && parentId.startsWith('children-')) {
+            var categorySlug = parentId.replace('children-', '');
+            var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+            toggle.addClass('expanded');
+            toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            parentContainer.addClass('expanded');
+        }
+    });
+}
+
+// Añadir la inicialización a la función existente
+$(document).ready(function($) {
+    // Verificar si estamos en una página con el template de productos
+    if ($('.wc-productos-template').length) {
+        // Inicializar filtros de categorías jerárquicas
+        initCategoryFilters();
+        
+        // Volver a inicializar después de AJAX
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            if (settings.url && settings.url.includes('productos_filter')) {
+                setTimeout(function() {
+                    initCategoryFilters();
+                }, 200);
+            }
+        });
+    }
+});
     // Inicializar todo - VERSIÓN CORREGIDA
     function init() {
         console.log('Inicializando productos template');
