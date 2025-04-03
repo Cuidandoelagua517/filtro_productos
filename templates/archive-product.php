@@ -33,94 +33,89 @@ do_action('woocommerce_before_main_content');
     <!-- 2. LAYOUT DE DOS COLUMNAS (siempre después del header) -->
     <div class="productos-layout">
         <!-- Sidebar de filtros (columna izquierda) -->
-        <aside class="productos-sidebar">
-            <h2><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h2>
-            
-            <!-- Filtro de categorías -->
-            <div class="filtro-grupo" id="filtro-categorias">
-                <h3><?php esc_html_e('Categoría', 'wc-productos-template'); ?></h3>
-                <?php
-                $product_categories = get_terms(array(
+<aside class="productos-sidebar">
+    <h2><?php esc_html_e('Filtros', 'wc-productos-template'); ?></h2>
+    
+    <!-- Filtro de categorías jerárquico -->
+    <div class="filtro-grupo" id="filtro-categorias">
+        <h3><?php esc_html_e('Categorías', 'wc-productos-template'); ?></h3>
+        <?php
+        // Obtener solo categorías padre (parent = 0)
+        $parent_categories = get_terms(array(
+            'taxonomy' => 'product_cat',
+            'hide_empty' => true,
+            'parent' => 0
+        ));
+        
+        if (!empty($parent_categories) && !is_wp_error($parent_categories)) {
+            echo '<div class="filtro-lista">';
+            foreach ($parent_categories as $parent) {
+                // Excluir la categoría "Uncategorized" o su equivalente
+                if ($parent->slug === 'uncategorized') {
+                    continue;
+                }
+                
+                // Verificar si la categoría padre está activa
+                $parent_active = false;
+                if (isset($_GET['category'])) {
+                    $active_cats = explode(',', $_GET['category']);
+                    $parent_active = in_array($parent->slug, $active_cats);
+                }
+                
+                // Obtener categorías hijas
+                $child_categories = get_terms(array(
                     'taxonomy' => 'product_cat',
                     'hide_empty' => true,
+                    'parent' => $parent->term_id
                 ));
                 
-                if (!empty($product_categories) && !is_wp_error($product_categories)) {
-                    echo '<div class="filtro-lista">';
-                    foreach ($product_categories as $category) {
-                        // Excluir la categoría "Uncategorized" o su equivalente
-                        if ($category->slug === 'uncategorized') {
-                            continue;
-                        }
-                        
-                        $active = false;
-                        if (isset($_GET['category'])) {
-                            $active_cats = explode(',', $_GET['category']);
-                            $active = in_array($category->slug, $active_cats);
-                        }
-                        ?>
-                        <div class="filtro-option">
-                            <input type="checkbox" id="cat-<?php echo esc_attr($category->slug); ?>" 
-                                class="filtro-category" value="<?php echo esc_attr($category->slug); ?>"
-                                <?php checked($active, true); ?> />
-                            <label for="cat-<?php echo esc_attr($category->slug); ?>">
-                                <?php echo esc_html($category->name); ?>
-                            </label>
-                        </div>
-                        <?php
-                    }
-                    echo '</div>';
-                }
-                ?>
-            </div>
-            
-            <!-- Filtro de grado -->
-            <div class="filtro-grupo" id="filtro-grados">
-                <h3><?php esc_html_e('Grado', 'wc-productos-template'); ?></h3>
-                <?php
-                $grado_terms = get_terms(array(
-                    'taxonomy' => 'pa_grado',
-                    'hide_empty' => true,
-                ));
+                $has_children = !empty($child_categories) && !is_wp_error($child_categories);
                 
-                if (!empty($grado_terms) && !is_wp_error($grado_terms)) {
-                    echo '<div class="filtro-lista">';
-                    foreach ($grado_terms as $term) {
-                        $active = false;
-                        if (isset($_GET['grade'])) {
-                            $active_grades = explode(',', $_GET['grade']);
-                            $active = in_array($term->slug, $active_grades);
-                        }
-                        ?>
-                        <div class="filtro-option">
-                            <input type="checkbox" id="grade-<?php echo esc_attr($term->slug); ?>" 
-                                class="filtro-grade" value="<?php echo esc_attr($term->slug); ?>"
-                                <?php checked($active, true); ?> />
-                            <label for="grade-<?php echo esc_attr($term->slug); ?>">
-                                <?php echo esc_html($term->name); ?>
-                            </label>
-                        </div>
-                        <?php
-                    }
-                    echo '</div>';
-                }
                 ?>
-            </div>
-            
-            <!-- Filtro de volumen -->
-            <div class="filtro-grupo">
-                <h3><?php esc_html_e('Volumen', 'wc-productos-template'); ?></h3>
-                <div class="volumen-slider">
-                    <div class="volumen-range"></div>
-                    <div class="volumen-values">
-                        <span id="volumen-min">100 ml</span>
-                        <span id="volumen-max">5000 ml</span>
+                <div class="filtro-category-parent">
+                    <div class="filtro-parent-option">
+                        <input type="checkbox" id="cat-<?php echo esc_attr($parent->slug); ?>" 
+                            class="filtro-category" value="<?php echo esc_attr($parent->slug); ?>"
+                            <?php checked($parent_active, true); ?> />
+                        <label for="cat-<?php echo esc_attr($parent->slug); ?>">
+                            <?php echo esc_html($parent->name); ?>
+                            <?php if ($has_children): ?>
+                                <span class="category-toggle" data-category="<?php echo esc_attr($parent->slug); ?>">
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            <?php endif; ?>
+                        </label>
                     </div>
-                    <input type="hidden" name="min_volume" value="100" />
-                    <input type="hidden" name="max_volume" value="5000" />
+                    
+                    <?php if ($has_children): ?>
+                        <div class="filtro-children-list" id="children-<?php echo esc_attr($parent->slug); ?>">
+                            <?php foreach ($child_categories as $child): 
+                                // Verificar si la categoría hija está activa
+                                $child_active = false;
+                                if (isset($_GET['category'])) {
+                                    $active_cats = explode(',', $_GET['category']);
+                                    $child_active = in_array($child->slug, $active_cats);
+                                }
+                            ?>
+                                <div class="filtro-child-option">
+                                    <input type="checkbox" id="cat-<?php echo esc_attr($child->slug); ?>" 
+                                        class="filtro-category filtro-child" value="<?php echo esc_attr($child->slug); ?>"
+                                        <?php checked($child_active, true); ?> />
+                                    <label for="cat-<?php echo esc_attr($child->slug); ?>">
+                                        <?php echo esc_html($child->name); ?>
+                                    </label>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
-            </div>
-        </aside>
+                <?php
+            }
+            echo '</div>';
+        }
+        ?>
+    </div>
+</aside>
         
         <!-- Contenido principal (columna derecha) -->
         <main class="productos-main">
