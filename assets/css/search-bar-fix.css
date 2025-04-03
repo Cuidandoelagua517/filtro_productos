@@ -1,0 +1,148 @@
+/**
+ * Estilos críticos para garantizar la visibilidad de la barra de búsqueda
+ * Este CSS debe tener prioridad sobre cualquier otro estilo
+ */
+
+/* Estilos del contenedor de encabezado */
+.productos-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 20px 0 !important;
+    margin-bottom: 25px !important;
+    border-bottom: 1px solid #e2e2e2 !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 100 !important;
+    height: auto !important;
+    min-height: 60px !important;
+}
+
+/* Estilos del título en el encabezado */
+.productos-header h1 {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: #333 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Contenedor de la barra de búsqueda */
+.productos-search {
+    position: relative !important;
+    width: 300px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    z-index: 101 !important;
+    height: auto !important;
+    min-height: 40px !important;
+}
+
+/* Formulario de búsqueda */
+.productos-search form {
+    display: flex !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    height: auto !important;
+}
+
+/* Input de búsqueda */
+.productos-search input[type="text"],
+.productos-search #productos-search-input {
+    width: 100% !important;
+    display: block !important;
+    padding: 10px 40px 10px 15px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 40px !important;
+    box-sizing: border-box !important;
+    background-color: #fff !important;
+    color: #333 !important;
+}
+
+/* Botón de búsqueda */
+.productos-search button {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    width: 40px !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 4px 4px 0 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 102 !important;
+}
+
+.productos-search button:hover {
+    background-color: #004494 !important;
+}
+
+/* Icono dentro del botón */
+.productos-search button i,
+.productos-search button .fas {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+    font-family: "Font Awesome 5 Free", FontAwesome, "fa", sans-serif !important;
+}
+
+/* Asegurarse de que ninguna regla de grid afecte al header */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
+.wc-productos-template ul.products,
+.productos-grid {
+    /* Excluir el header de cualquier restricción de altura */
+    max-height: none !important;
+}
+
+/* Responsive para dispositivos móviles */
+@media (max-width: 768px) {
+    .productos-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .productos-header h1 {
+        margin-bottom: 15px !important;
+    }
+    
+    .productos-search {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 10px !important;
+    }
+}
+
+/* Fallback final para casos extremos */
+.wc-productos-template .productos-search,
+.wc-productos-template .productos-header {
+    display: block !important;
+}
+
+.wc-productos-template .productos-header {
+    overflow: visible !important;
+}
