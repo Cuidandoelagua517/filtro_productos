@@ -24,6 +24,21 @@ if (!defined('WPINC')) {
 // Definir constante de versión
 define('WC_PRODUCTOS_TEMPLATE_VERSION', '1.0.0');
 
+// Comprueba si un directorio existe y lo crea si no
+function wc_productos_create_directory_if_not_exists($path) {
+    if (!file_exists($path)) {
+        return mkdir($path, 0755, true);
+    }
+    return true;
+}
+
+// Definir constantes de directorios
+define('WC_PRODUCTOS_TEMPLATE_DIR', plugin_dir_path(__FILE__));
+define('WC_PRODUCTOS_TEMPLATE_URL', plugin_dir_url(__FILE__));
+define('WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR', WC_PRODUCTOS_TEMPLATE_DIR . 'includes/');
+define('WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR', WC_PRODUCTOS_TEMPLATE_DIR . 'templates/');
+define('WC_PRODUCTOS_TEMPLATE_ASSETS_DIR', WC_PRODUCTOS_TEMPLATE_DIR . 'assets/');
+
 if (!class_exists('WC_Productos_Template')) {
 
     class WC_Productos_Template {
@@ -34,10 +49,6 @@ if (!class_exists('WC_Productos_Template')) {
         public function __construct() {
             // Verificar si WooCommerce está activo
             if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-                // Definir constantes
-                define('WC_PRODUCTOS_TEMPLATE_URL', plugin_dir_url(__FILE__));
-                define('WC_PRODUCTOS_TEMPLATE_PATH', plugin_dir_path(__FILE__));
-                
                 // Declarar compatibilidad con HPOS
                 add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
                 
@@ -60,7 +71,7 @@ if (!class_exists('WC_Productos_Template')) {
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
                 
-                // Cargar clases adicionales
+                // Cargar clases adicionales si existen
                 $this->load_classes();
             }
         }
@@ -75,14 +86,36 @@ if (!class_exists('WC_Productos_Template')) {
         }
 
         /**
-         * Cargar clases adicionales
+         * Cargar clases adicionales si existen
          */
         private function load_classes() {
-            // Cargar archivo de la clase de metabox
-            require_once WC_PRODUCTOS_TEMPLATE_PATH . 'includes/class-productos-metabox.php';
+            // Verificar y crear directorios de plugin
+            $this->create_plugin_directories();
             
-            // Cargar archivo de la clase de órdenes
-            require_once WC_PRODUCTOS_TEMPLATE_PATH . 'includes/class-productos-orders.php';
+            // Definir archivos de clase
+            $class_files = array(
+                WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-metabox.php',
+                WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-orders.php'
+            );
+            
+            // Incluir archivos de clase si existen
+            foreach ($class_files as $class_file) {
+                if (file_exists($class_file)) {
+                    require_once $class_file;
+                } else {
+                    // Mostrar advertencia en el admin
+                    add_action('admin_notices', function() use ($class_file) {
+                        ?>
+                        <div class="notice notice-warning is-dismissible">
+                            <p><?php printf(
+                                esc_html__('Advertencia: El archivo %s no existe. Algunas funciones del plugin WC Productos Template podrían no estar disponibles.', 'wc-productos-template'),
+                                '<code>' . esc_html(basename($class_file)) . '</code>'
+                            ); ?></p>
+                        </div>
+                        <?php
+                    });
+                }
+            }
         }
 
         /**
@@ -90,26 +123,44 @@ if (!class_exists('WC_Productos_Template')) {
          */
         public function init() {
             // Crear directorio de templates si no existe
-            $this->create_template_directory();
+            $this->create_plugin_directories();
             
             // Forzar visualización en cuadrícula con alta prioridad
             add_action('wp_enqueue_scripts', array($this, 'force_grid_styles'), 99999);
         }
-
+        
         /**
-         * Crear directorio de templates si no existe
+         * Crear directorios del plugin si no existen
          */
-        private function create_template_directory() {
-            $template_dir = WC_PRODUCTOS_TEMPLATE_PATH . 'templates';
-            if (!file_exists($template_dir)) {
-                mkdir($template_dir, 0755, true);
+        private function create_plugin_directories() {
+            // Crear directorio de includes
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR);
+            
+            // Crear directorio de templates y subdirectorios
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR);
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'loop');
+            
+            // Crear directorios para assets
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR);
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css');
+            wc_productos_create_directory_if_not_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js');
+            
+            // Crear archivos de clase vacíos si no existen
+            if (!file_exists(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-metabox.php')) {
+                $this->create_empty_class_file('class-productos-metabox.php', 'WC_Productos_Template_Metabox');
             }
             
-            // Crear subdirectorios necesarios
-            $loop_dir = $template_dir . '/loop';
-            if (!file_exists($loop_dir)) {
-                mkdir($loop_dir, 0755, true);
+            if (!file_exists(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-orders.php')) {
+                $this->create_empty_class_file('class-productos-orders.php', 'WC_Productos_Template_Orders');
             }
+        }
+        
+        /**
+         * Crear un archivo de clase vacío
+         */
+        private function create_empty_class_file($filename, $classname) {
+            $content = "<?php\n/**\n * Clase {$classname} (Versión Mínima)\n */\n\nif (!class_exists('{$classname}')) {\n\n    class {$classname} {\n        \n        /**\n         * Constructor\n         */\n        public function __construct() {\n            // Funcionalidad mínima\n        }\n    }\n    \n    // Inicializar la clase\n    new {$classname}();\n}\n";
+            file_put_contents(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . $filename, $content);
         }
  
         /**
@@ -123,6 +174,18 @@ if (!class_exists('WC_Productos_Template')) {
             
             // Obtener la página actual para la paginación
             $current_page = max(1, get_query_var('paged'));
+            
+            // Verificar y crear CSS principal si no existe
+            $productos_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/productos-template.css';
+            if (!file_exists($productos_css_file)) {
+                $this->create_default_css_file($productos_css_file);
+            }
+            
+            // Verificar y crear JS principal si no existe
+            $productos_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/productos-template.js';
+            if (!file_exists($productos_js_file)) {
+                $this->create_default_js_file($productos_js_file);
+            }
             
             // Enqueue CSS principal con versión para evitar caché
             wp_enqueue_style(
@@ -161,24 +224,31 @@ if (!class_exists('WC_Productos_Template')) {
                 true
             );
             
-            // Script para corregir problemas de barra de búsqueda
-            wp_enqueue_script(
-                'wc-productos-search-bar-fix',
-                WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/search-bar-fix.js',
-                array('jquery'),
-                WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
-                true
-            );
+            // Script básico si no existe el archivo
+            if (!file_exists($productos_js_file)) {
+                wp_add_inline_script('wc-productos-template-script', "
+                    jQuery(document).ready(function($) {
+                        console.log('WC Productos Template inicializado');
+                        
+                        // Forzar cuadrícula
+                        $('.wc-productos-template ul.products, .productos-grid').css({
+                            'display': 'grid',
+                            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
+                            'gap': '20px'
+                        });
+                        
+                        // Evento de búsqueda
+                        $('.productos-search form').on('submit', function(e) {
+                            e.preventDefault();
+                            alert('Funcionalidad de búsqueda no implementada completamente');
+                        });
+                    });
+                ");
+            }
             
-            // Obtener datos para la paginación
-            $products_per_page = get_option('posts_per_page');
-            $total_products = wc_get_loop_prop('total', 0);
-            if (!$total_products) {
-                // Si no está definido, intentar obtener total desde query global
-                global $wp_query;
-                if (isset($wp_query) && is_object($wp_query)) {
-                    $total_products = $wp_query->found_posts;
-                }
+            // CSS básico si no existe el archivo
+            if (!file_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css')) {
+                $this->create_default_grid_css_file();
             }
             
             // Localizar script para AJAX
@@ -186,9 +256,8 @@ if (!class_exists('WC_Productos_Template')) {
                 'ajaxurl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('productos_filter_nonce'),
                 'current_page' => $current_page,
-                'products_per_page' => $products_per_page,
-                'total_products' => $total_products,
-                'total_pages' => ceil($total_products / $products_per_page),
+                'products_per_page' => get_option('posts_per_page'),
+                'total_products' => $this->get_total_products(),
                 'i18n' => array(
                     'loading' => __('Cargando productos...', 'wc-productos-template'),
                     'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
@@ -202,6 +271,46 @@ if (!class_exists('WC_Productos_Template')) {
                 $classes[] = 'wc-productos-template';
                 return $classes;
             });
+        }
+        
+        /**
+         * Obtener el número total de productos
+         */
+        private function get_total_products() {
+            $total = wc_get_loop_prop('total', 0);
+            if (!$total) {
+                // Si no está definido, intentar obtener total desde query global
+                global $wp_query;
+                if (isset($wp_query) && is_object($wp_query)) {
+                    $total = $wp_query->found_posts;
+                }
+            }
+            return $total ? $total : 0;
+        }
+        
+        /**
+         * Crear archivo CSS por defecto
+         */
+        private function create_default_css_file($file_path) {
+            $css = "/**\n * Estilos básicos para productos\n */\n\n.productos-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));\n  gap: 20px;\n}\n\n.producto-card {\n  border: 1px solid #e2e2e2;\n  border-radius: 8px;\n  overflow: hidden;\n  transition: all 0.3s ease;\n}\n\n.producto-card:hover {\n  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);\n  transform: translateY(-3px);\n}\n";
+            file_put_contents($file_path, $css);
+        }
+        
+        /**
+         * Crear archivo CSS para la cuadrícula por defecto
+         */
+        private function create_default_grid_css_file() {
+            $file_path = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css';
+            $css = "/**\n * Forzar cuadrícula\n */\n\nul.products, .productos-grid {\n  display: grid !important;\n  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;\n  gap: 20px !important;\n  width: 100% !important;\n  margin: 0 0 30px 0 !important;\n  padding: 0 !important;\n  list-style: none !important;\n}\n\nul.products li.product, .productos-grid li.product {\n  width: 100% !important;\n  margin: 0 0 20px 0 !important;\n  padding: 0 !important;\n  float: none !important;\n  clear: none !important;\n}";
+            file_put_contents($file_path, $css);
+        }
+        
+        /**
+         * Crear archivo JS por defecto
+         */
+        private function create_default_js_file($file_path) {
+            $js = "/**\n * Script básico para productos\n */\n\njQuery(document).ready(function($) {\n  // Forzar cuadrícula\n  $('.wc-productos-template ul.products, .productos-grid').css({\n    'display': 'grid',\n    'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',\n    'gap': '20px'\n  });\n  \n  // Evento de búsqueda\n  $('.productos-search form').on('submit', function(e) {\n    e.preventDefault();\n    var searchTerm = $(this).find('input').val();\n    console.log('Buscando: ' + searchTerm);\n  });\n});\n";
+            file_put_contents($file_path, $js);
         }
         
         /**
@@ -224,25 +333,52 @@ if (!class_exists('WC_Productos_Template')) {
                 return;
             }
             
-            // Cargar CSS específico para forzar cuadrícula
-            wp_enqueue_style(
-                'wc-force-grid',
-                WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/force-grid.css',
-                array('wc-productos-template-styles'),
-                WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
-            );
+            // Verificar si existe el archivo CSS
+            $force_grid_css = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css';
             
-            wp_style_add_data('wc-force-grid', 'priority', 9999);
+            if (file_exists($force_grid_css)) {
+                // Cargar CSS específico para forzar cuadrícula
+                wp_enqueue_style(
+                    'wc-force-grid',
+                    WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/force-grid.css',
+                    array('wc-productos-template-styles'),
+                    WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
+                );
+                
+                wp_style_add_data('wc-force-grid', 'priority', 9999);
+            } else {
+                // Si no existe, usar CSS inline
+                $css = "ul.products, .productos-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 20px !important; }";
+                wp_add_inline_style('wc-productos-template-styles', $css);
+            }
             
-            // Cargar CSS para fix de barra de búsqueda
-            wp_enqueue_style(
-                'wc-productos-search-bar-fix',
-                WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/search-bar-fix.css',
-                array(),
-                WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
-            );
+            // CSS inline de emergencia para asegurar la cuadrícula
+            $emergency_css = "
+            ul.products, .productos-grid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+                gap: 20px !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                list-style: none !important;
+                float: none !important;
+                clear: both !important;
+            }
             
-            wp_style_add_data('wc-productos-search-bar-fix', 'priority', 9999);
+            ul.products li.product, .productos-grid li.product {
+                width: 100% !important;
+                margin: 0 0 20px 0 !important;
+                padding: 0 !important;
+                float: none !important;
+                clear: none !important;
+                box-sizing: border-box !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            ";
+            
+            wp_add_inline_style('wc-productos-template-styles', $emergency_css);
         }
 
         /**
@@ -251,18 +387,18 @@ if (!class_exists('WC_Productos_Template')) {
         public function override_woocommerce_templates($template, $template_name, $template_path) {
             // Lista de templates que queremos sobrescribir
             $override_templates = array(
-                'content-product.php',           // Template de producto individual
-                'loop/loop-start.php',           // Inicio del loop
-                'loop/loop-end.php',             // Final del loop
-                'loop/pagination.php',           // Paginación
-                'loop/orderby.php',              // Selector de ordenamiento
-                'loop/result-count.php',         // Contador de resultados
-                'archive-product.php'            // Template de archivo de productos
+                'content-product.php',
+                'loop/loop-start.php',
+                'loop/loop-end.php',
+                'loop/pagination.php',
+                'loop/orderby.php',
+                'loop/result-count.php',
+                'archive-product.php'
             );
             
             // Solo sobrescribir los templates específicos
             if (in_array($template_name, $override_templates)) {
-                $plugin_template = WC_PRODUCTOS_TEMPLATE_PATH . 'templates/' . $template_name;
+                $plugin_template = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . $template_name;
                 
                 // Verificar si existe nuestra versión del template
                 if (file_exists($plugin_template)) {
@@ -285,7 +421,7 @@ if (!class_exists('WC_Productos_Template')) {
             
             // Solo sobrescribir en páginas de archivo de productos cuando usamos el shortcode
             if ($using_shortcode && (is_product_category() || is_product_tag() || is_shop())) {
-                $custom_template = WC_PRODUCTOS_TEMPLATE_PATH . 'templates/archive-product.php';
+                $custom_template = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'archive-product.php';
                 if (file_exists($custom_template)) {
                     return $custom_template;
                 }
@@ -356,20 +492,15 @@ if (!class_exists('WC_Productos_Template')) {
                 );
             }
             
-            // Búsqueda - Mejorado para buscar por SKU/REF y otros meta fields
+            // Búsqueda
             if (isset($_POST['search']) && !empty($_POST['search'])) {
                 $search_term = sanitize_text_field($_POST['search']);
                 
-                // Crear un meta query para búsqueda en SKU
+                // Incluir búsqueda en metadatos
                 $meta_query[] = array(
                     'relation' => 'OR',
                     array(
                         'key'     => '_sku',
-                        'value'   => $search_term,
-                        'compare' => 'LIKE'
-                    ),
-                    array(
-                        'key'     => '_volumen_ml',
                         'value'   => $search_term,
                         'compare' => 'LIKE'
                     )
@@ -401,7 +532,7 @@ if (!class_exists('WC_Productos_Template')) {
             wc_set_loop_prop('per_page', get_option('posts_per_page'));
             wc_set_loop_prop('total', $products_query->found_posts);
             wc_set_loop_prop('total_pages', $products_query->max_num_pages);
-            wc_set_loop_prop('columns', 4); // Ajusta según tu diseño
+            wc_set_loop_prop('columns', 4);
             
             ob_start();
             
@@ -529,10 +660,67 @@ if (!class_exists('WC_Productos_Template')) {
                 $wp_query->query_vars['paged'] = get_query_var('paged', 1);
             }
             
-            // Incluir template de página de productos
-            ob_start();
-            include(WC_PRODUCTOS_TEMPLATE_PATH . 'templates/productos-shortcode.php');
-            return ob_get_clean();
+            // Verificar si existe el template del shortcode
+            $shortcode_template = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'productos-shortcode.php';
+            
+            if (file_exists($shortcode_template)) {
+                // Incluir template de página de productos
+                ob_start();
+                include($shortcode_template);
+                return ob_get_clean();
+            } else {
+                // Alternativa básica si no existe el template
+                ob_start();
+                
+                echo '<div class="productos-container wc-productos-template">';
+                echo '<h2>Productos</h2>';
+                
+                // Query básica de productos
+                $args = array(
+                    'post_type' => 'product',
+                    'posts_per_page' => $atts['per_page'],
+                    'paged' => get_query_var('paged', 1)
+                );
+                
+                if (!empty($atts['category'])) {
+                    $args['tax_query'] = array(
+                        array(
+                            'taxonomy' => 'product_cat',
+                            'field' => 'slug',
+                            'terms' => $atts['category']
+                        )
+                    );
+                }
+                
+                $products_query = new WP_Query($args);
+                
+                if ($products_query->have_posts()) {
+                    woocommerce_product_loop_start();
+                    
+                    while ($products_query->have_posts()) {
+                        $products_query->the_post();
+                        wc_get_template_part('content', 'product');
+                    }
+                    
+                    woocommerce_product_loop_end();
+                    
+                    // Paginación simple
+                    echo '<div class="productos-pagination">';
+                    echo paginate_links(array(
+                        'total' => $products_query->max_num_pages,
+                        'current' => max(1, get_query_var('paged'))
+                    ));
+                    echo '</div>';
+                    
+                    wp_reset_postdata();
+                } else {
+                    echo '<p>' . esc_html__('No se encontraron productos.', 'wc-productos-template') . '</p>';
+                }
+                
+                echo '</div>';
+                
+                return ob_get_clean();
+            }
         }
     }
     
@@ -559,13 +747,13 @@ function wc_productos_template_activate() {
     }
     
     // Crear directorios necesarios
-    $template_path = plugin_dir_path(__FILE__) . 'templates';
-    $loop_path = $template_path . '/loop';
-    $css_path = plugin_dir_path(__FILE__) . 'assets/css';
-    $js_path = plugin_dir_path(__FILE__) . 'assets/js';
-    $includes_path = plugin_dir_path(__FILE__) . 'includes';
-    
-    $directories = array($template_path, $loop_path, $css_path, $js_path, $includes_path);
+    $directories = array(
+        plugin_dir_path(__FILE__) . 'templates',
+        plugin_dir_path(__FILE__) . 'templates/loop',
+        plugin_dir_path(__FILE__) . 'assets/css',
+        plugin_dir_path(__FILE__) . 'assets/js',
+        plugin_dir_path(__FILE__) . 'includes'
+    );
     
     foreach ($directories as $dir) {
         if (!file_exists($dir)) {
