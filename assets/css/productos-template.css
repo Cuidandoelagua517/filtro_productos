@@ -216,54 +216,16 @@
     text-decoration: underline;
 }
 
-/* ===== 7. CUADRÍCULA DE PRODUCTOS ===== */
-/* Selector específico para nuestro template */
-.wc-productos-template ul.products,
-.wc-productos-template .productos-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 30px 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    float: none !important;
-    clear: both !important;
-}
-
-/* Eliminar flotadores y clearfix solo en nuestra cuadrícula */
-.wc-productos-template ul.products::before,
-.wc-productos-template ul.products::after,
-.wc-productos-template .productos-grid::before,
-.wc-productos-template .productos-grid::after {
-    display: none !important;
-    content: none !important;
-    clear: none !important;
-}
-
-/* Estilo base para cada producto con scope adecuado */
+/* ===== 7. PRODUCTO CARD (VERSIÓN OPTIMIZADA) ===== */
 .wc-productos-template ul.products li.product,
 .wc-productos-template .productos-grid li.product {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 20px 0 !important;
+    border: 1px solid #e2e2e2 !important;
+    border-radius: 8px !important;
+    background-color: #fff !important;
     padding: 15px !important;
-    float: none !important;
-    clear: none !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    opacity: 1 !important;
-    position: relative !important;
-    visibility: visible !important;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+    overflow: hidden !important;
 }
 
 .wc-productos-template li.product:hover {
@@ -271,42 +233,7 @@
     transform: translateY(-3px);
 }
 
-/* Contenido interior del producto */
-.wc-productos-template .producto-interior {
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-/* Limitar a 9 productos visibles por página */
-.wc-productos-template ul.products li.product:nth-child(n+10),
-.wc-productos-template .productos-grid li.product:nth-child(n+10) {
-    display: none !important;
-}
-
-/* Imagen del producto */
-.wc-productos-template .producto-imagen {
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.wc-productos-template .producto-imagen img {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    max-height: 200px !important;
-    object-fit: contain !important;
-    margin: 0 auto !important;
-    transition: transform 0.3s ease;
-}
-
-.wc-productos-template .producto-imagen-link:hover img {
-    transform: scale(1.05);
-}
-
-/* Badges */
+/* Badges de producto */
 .wc-productos-template .producto-badges {
     position: absolute;
     top: 10px;
@@ -341,24 +268,69 @@
     color: #664d03;
 }
 
-/* Información del producto */
-.wc-productos-template .producto-info {
-    padding: 0;
+/* Contenedor de imagen con efectos */
+.wc-productos-template .producto-imagen {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.wc-productos-template .producto-imagen img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 200px !important;
+    object-fit: contain !important;
+    margin: 0 auto !important;
+    transition: transform 0.3s ease;
+}
+
+.wc-productos-template .producto-imagen-link:hover img {
+    transform: scale(1.05);
+}
+
+/* Vista rápida */
+.wc-productos-template .producto-vista-rapida {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.wc-productos-template li.product:hover .producto-vista-rapida {
+    bottom: 0;
+}
+
+/* Meta información (SKU y categoría) */
+.wc-productos-template .producto-meta {
     display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
 
 .wc-productos-template .producto-sku {
     font-size: 13px;
     color: #666;
-    margin-bottom: 6px;
+    margin-bottom: 0;
 }
 
+.wc-productos-template .producto-categoria {
+    font-size: 13px;
+    color: #0056b3;
+}
+
+/* Títulos mejorados */
 .wc-productos-template .producto-titulo {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 10px 0;
+    margin: 0 0 15px 0;
     line-height: 1.3;
 }
 
@@ -371,47 +343,43 @@
     color: #0056b3;
 }
 
+/* Especificaciones del producto */
 .wc-productos-template .producto-detalles {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
     font-size: 13px;
     color: #666;
-    margin-bottom: 15px;
 }
 
 .wc-productos-template .producto-volumen,
 .wc-productos-template .producto-grado {
+    display: flex;
+    align-items: center;
     margin-bottom: 5px;
 }
 
 .wc-productos-template .producto-detalles strong {
     font-weight: 600;
     color: #555;
+    margin-right: 5px;
 }
 
-/* Footer del producto (precio y botón) */
+/* Footer mejorado */
 .wc-productos-template .producto-footer {
     margin-top: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #f0f0f0;
     padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
 }
 
 .wc-productos-template .producto-precio {
     font-size: 17px;
     font-weight: 700;
     color: #0056b3;
-}
-
-.wc-productos-template .producto-precio del {
-    font-size: 14px;
-    color: #999;
-    font-weight: normal;
-    margin-right: 5px;
-}
-
-.wc-productos-template .producto-precio ins {
-    text-decoration: none;
 }
 
 .wc-productos-template .producto-accion {
@@ -429,13 +397,24 @@
     cursor: pointer;
     transition: background-color 0.2s;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
 .wc-productos-template .producto-boton:hover {
     background-color: #004494;
+}
+
+/* Icono de carrito */
+.wc-productos-template .producto-boton svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
 }
 
 /* ===== 8. PAGINACIÓN ===== */
