@@ -1,30 +1,27 @@
 /**
- * Script mejorado para corregir problemas con la barra de búsqueda
- * y forzar la visualización en cuadrícula
+ * SOLUCIÓN: Script optimizado para corregir problemas con la barra de búsqueda
+ * sin interferir con la funcionalidad principal de la paginación y filtros.
  *
  * @package WC_Productos_Template
  */
 
 jQuery(document).ready(function($) {
     /**
-     * Forzar la visualización en cuadrícula para listas de productos
-     * Función principal que asegura que la cuadrícula se aplique correctamente
+     * Verificar si estamos en una página con el template de productos
      */
-function forceGrid() {
-    // Aplicar estilos directamente mediante jQuery para garantizar que se apliquen
-    $('ul.products, .productos-grid').css({
-        'display': 'grid',
-        'grid-template-columns': 'repeat(3, 1fr)', // CAMBIADO DE: repeat(auto-fill, minmax(220px, 1fr))
-        'gap': '20px',
-        'width': '100%',
-        'max-width': '100%',
-        'margin': '0 0 30px 0',
-        'padding': '0',
-        'list-style': 'none',
-        'float': 'none',
-        'clear': 'both',
-        'box-sizing': 'border-box'
-    });
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+    
+    console.log('Search Bar Fix - Versión corregida');
+    
+    /**
+     * Forzar disposición en cuadrícula de manera segura
+     * Esta versión no interfiere con la paginación
+     */
+    function safeForceGrid() {
+        // Aplicar estilos mediante clase en lugar de CSS directo
+        $('ul.products, .productos-grid').addClass('force-grid three-column-grid');
         
         // Eliminar flotadores que pueden romper la cuadrícula
         $('ul.products::before, ul.products::after, .productos-grid::before, .productos-grid::after').css({
@@ -34,46 +31,9 @@ function forceGrid() {
             'visibility': 'hidden'
         });
         
-        // Aplicar estilos a cada producto
-        $('ul.products li.product, .productos-grid li.product').css({
-            'width': '100%',
-            'max-width': '100%',
-            'margin': '0 0 20px 0',
-            'padding': '0',
-            'float': 'none',
-            'clear': 'none',
-            'box-sizing': 'border-box',
-            'display': 'flex',
-            'flex-direction': 'column',
-            'height': '100%',
-            'opacity': '1',
-            'position': 'relative',
-            'visibility': 'visible'
-        });
-        
-        // Aplicar clases adicionales para asegurar la cuadrícula
-        $('ul.products, .productos-grid').addClass('force-grid');
+        // NO manipular directamente los elementos de paginación
     }
-    jQuery(document).ready(function($) {
-    // Cuando el DOM esté listo
-    forceThreeColumnLayout();
     
-    // También en resize y después de cargar
-    $(window).on('resize', forceThreeColumnLayout);
-    $(window).on('load', forceThreeColumnLayout);
-    
-    function forceThreeColumnLayout() {
-        // Siempre forzar 3 columnas, sin importar el ancho de pantalla
-        $('.wc-productos-template ul.products, .wc-productos-template .productos-grid').css({
-            'grid-template-columns': 'repeat(3, 1fr)'
-        });
-        
-        // Para cualquier elemento con la clase force-grid o three-column-grid
-        $('.force-grid, .three-column-grid').css({
-            'grid-template-columns': 'repeat(3, 1fr)'
-        });
-    }
-});
     /**
      * Verificar y reparar la barra de búsqueda si es necesario
      */
@@ -82,8 +42,6 @@ function forceGrid() {
         if (!$('.wc-productos-template').length) {
             return;
         }
-        
-        console.log('Verificando barra de búsqueda dentro del template...');
         
         // Verificar si existe el header de productos dentro de nuestro contenedor
         var $header = $('.wc-productos-template .productos-header');
@@ -104,6 +62,22 @@ function forceGrid() {
                 '</div>' +
                 '</div>'
             );
+            
+            // Asegurarse de que se enlacen los eventos de búsqueda
+            setTimeout(function() {
+                if (typeof window.filterProducts === 'function') {
+                    $('.productos-search-form').on('submit', function(e) {
+                        e.preventDefault();
+                        window.filterProducts(1);
+                    });
+                    
+                    $('.productos-search-button').on('click', function(e) {
+                        e.preventDefault();
+                        window.filterProducts(1);
+                    });
+                }
+            }, 500);
+            
             return;
         }
         
@@ -123,34 +97,30 @@ function forceGrid() {
                 '</form>' +
                 '</div>'
             );
-            return;
+            
+            // Asegurarse de que se enlacen los eventos de búsqueda
+            setTimeout(function() {
+                if (typeof window.filterProducts === 'function') {
+                    $('.productos-search-form').on('submit', function(e) {
+                        e.preventDefault();
+                        window.filterProducts(1);
+                    });
+                    
+                    $('.productos-search-button').on('click', function(e) {
+                        e.preventDefault();
+                        window.filterProducts(1);
+                    });
+                }
+            }, 500);
         }
     }
     
     /**
-     * Forzar estructura de cuadrícula para productos
+     * Forzar estructura de cuadrícula para productos sin interferir con la paginación
      */
     function fixGridStructure() {
-        // Verificar si hay cuadrículas duplicadas dentro de nuestro contenedor
-        if ($('.wc-productos-template .productos-grid, .wc-productos-template ul.products').length > 1) {
-            // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
-            var $grids = $('.wc-productos-template .productos-grid, .wc-productos-template ul.products');
-            var $validGrid = null;
-            
-            $grids.each(function() {
-                if ($(this).find('li.product').length > 0 && !$validGrid) {
-                    $validGrid = $(this);
-                } else if ($(this) !== $validGrid) {
-                    $(this).remove();
-                }
-            });
-        }
-        
-        // Forzar estilos de cuadrícula a 3 columnas
+        // Aplicar clases en lugar de manipular directamente
         $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').addClass('three-column-grid');
-        
-        // Ocultar productos después del noveno
-        $('.wc-productos-template .productos-grid li.product:nth-child(n+10), .wc-productos-template ul.products li.product:nth-child(n+10)').addClass('hide-product');
         
         // Adaptar a móviles pero manteniendo máximo 3 columnas
         if (window.innerWidth <= 480) {
@@ -163,11 +133,18 @@ function forceGrid() {
     }
     
     /**
-     * Corrección de elementos huérfanos
+     * Corrección de elementos huérfanos sin eliminar elementos importantes
      */
     function fixOrphanedElements() {
-        // Eliminar elementos vacíos que pueden causar problemas
-        $('.wc-productos-template *:empty').not('input, textarea, select, button, img, br, hr').remove();
+        // Eliminar solo elementos realmente vacíos que causan problemas
+        $('.wc-productos-template *:empty').not('input, textarea, select, button, img, br, hr, i').each(function() {
+            // No eliminar contenedores importantes
+            if (!$(this).hasClass('productos-pagination') && 
+                !$(this).hasClass('page-dots') && 
+                !$(this).parents('.productos-pagination').length) {
+                $(this).remove();
+            }
+        });
         
         // Mover elementos que puedan haber quedado en lugar incorrecto
         $('.wc-productos-template .productos-grid > .productos-header, .wc-productos-template ul.products > .productos-header').each(function() {
@@ -175,42 +152,36 @@ function forceGrid() {
         });
     }
     
-    // Ejecutar inmediatamente después de que el DOM esté listo
-    forceGrid();
-    
-    // Si estamos en una página con el template personalizado
-    if ($('.wc-productos-template').length) {
-        fixSearchBar();
-        fixGridStructure();
-        fixOrphanedElements();
-    }
+    // Ejecutar las funciones seguras inmediatamente
+    safeForceGrid();
+    fixSearchBar();
+    fixGridStructure();
+    fixOrphanedElements();
     
     // Volver a aplicar después de una pequeña demora para asegurar que todos los elementos se hayan cargado
     setTimeout(function() {
-        forceGrid();
-        if ($('.wc-productos-template').length) {
-            fixGridStructure();
-            fixOrphanedElements();
-        }
-    }, 500);
+        safeForceGrid();
+        fixSearchBar();
+        fixGridStructure();
+        fixOrphanedElements();
+    }, 1000);
     
     // Volver a aplicar al cambiar el tamaño de la ventana
     $(window).on('resize', function() {
-        forceGrid();
-        if ($('.wc-productos-template').length) {
-            fixGridStructure();
-        }
+        safeForceGrid();
+        fixGridStructure();
     });
     
     // Aplicar después de que las imágenes se hayan cargado
     $(window).on('load', function() {
-        forceGrid();
-        if ($('.wc-productos-template').length) {
-            fixGridStructure();
-            fixOrphanedElements();
-        }
+        safeForceGrid();
+        fixSearchBar();
+        fixGridStructure();
+        fixOrphanedElements();
+        
+        // IMPORTANTE: No enlazar eventos de paginación aquí
     });
     
-    // Exponer función para uso global
-    window.forceGridLayout = forceGrid;
+    // Exponer función modificada para uso global que no interfiera con la paginación
+    window.forceGridLayout = safeForceGrid;
 });
