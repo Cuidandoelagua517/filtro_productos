@@ -59,7 +59,8 @@ if (!class_exists('WC_Productos_Template')) {
                 add_action('wp_enqueue_scripts', array($this, 'register_scripts'), 999);
                 
                 // Sobreescribir templates de WooCommerce
-                add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 10, 3);
+                add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 999, 3);
+                add_filter('wc_get_template_part', array($this, 'override_template_parts'), 999, 3);
  
                 // Agregar AJAX handlers
                 add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
@@ -128,7 +129,16 @@ if (!class_exists('WC_Productos_Template')) {
             // Forzar visualización en cuadrícula con alta prioridad
             add_action('wp_enqueue_scripts', array($this, 'force_grid_styles'), 99999);
         }
-        
+        // Añadir este nuevo método
+public function override_template_parts($template, $slug, $name) {
+    if ($slug === 'content' && $name === 'product') {
+        $plugin_template = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'content-product.php';
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
+    return $template;
+}
         /**
          * Crear directorios del plugin si no existen
          */
