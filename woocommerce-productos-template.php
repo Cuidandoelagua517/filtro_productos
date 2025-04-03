@@ -352,34 +352,6 @@ if (!class_exists('WC_Productos_Template')) {
                 wp_add_inline_style('wc-productos-template-styles', $css);
             }
             
-            // CSS inline de emergencia para asegurar la cuadrícula
-            $emergency_css = "
-            ul.products, .productos-grid {
-                display: grid !important;
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
-                gap: 20px !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                list-style: none !important;
-                float: none !important;
-                clear: both !important;
-            }
-            
-            ul.products li.product, .productos-grid li.product {
-                width: 100% !important;
-                margin: 0 0 20px 0 !important;
-                padding: 0 !important;
-                float: none !important;
-                clear: none !important;
-                box-sizing: border-box !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            ";
-            
-            wp_add_inline_style('wc-productos-template-styles', $emergency_css);
-        }
 
         /**
          * Sobreescribir templates de WooCommerce selectivamente
