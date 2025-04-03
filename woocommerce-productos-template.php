@@ -163,108 +163,104 @@ if (!class_exists('WC_Productos_Template')) {
             file_put_contents(WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . $filename, $content);
         }
  
-        /**
-         * Función para registrar scripts y estilos
-         */
-        public function register_scripts() {
-            // Sólo cargar en páginas de WooCommerce o con el shortcode
-            if (!$this->is_product_page()) {
-                return;
-            }
-            
-            // Obtener la página actual para la paginación
-            $current_page = max(1, get_query_var('paged'));
-            
-            // Verificar y crear CSS principal si no existe
-            $productos_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/productos-template.css';
-            if (!file_exists($productos_css_file)) {
-                $this->create_default_css_file($productos_css_file);
-            }
-            
-            // Verificar y crear JS principal si no existe
-            $productos_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/productos-template.js';
-            if (!file_exists($productos_js_file)) {
-                $this->create_default_js_file($productos_js_file);
-            }
-            
-            // Enqueue CSS principal con versión para evitar caché
-            wp_enqueue_style(
-                'wc-productos-template-styles', 
-                WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template.css', 
-                array(), 
-                WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
-            );
-            
-            // Establecer prioridad alta
-            wp_style_add_data('wc-productos-template-styles', 'priority', 999);
-            
-            // Agregar soporte para la barra de rango
-            wp_enqueue_script('jquery-ui-slider');
-            wp_enqueue_style(
-                'jquery-ui-style', 
-                '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
-                array(),
-                '1.12.1'
-            );
-            
-            // Asegurar que Font Awesome está cargado para los iconos
-            wp_enqueue_style(
-                'font-awesome',
-                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-                array(),
-                '5.15.4'
-            );
-            
-            // JavaScript con jQuery como dependencia
-            wp_enqueue_script(
-                'wc-productos-template-script', 
-                WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
-                array('jquery', 'jquery-ui-slider'), 
-                WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
-                true
-            );
-            
-            // Script básico si no existe el archivo
-           if (!file_exists($productos_js_file)) {
-    wp_add_inline_script('wc-productos-template-script', "
-        jQuery(document).ready(function($) {
-            console.log('WC Productos Template inicializado');
-            
-            // Evento de búsqueda
-            $('.productos-search form').on('submit', function(e) {
-                e.preventDefault();
-                alert('Funcionalidad de búsqueda no implementada completamente');
-            });
-        });
-    ");
+       **
+ * Función para registrar scripts y estilos
+ */
+public function register_scripts() {
+    // Sólo cargar en páginas de WooCommerce o con el shortcode
+    if (!$this->is_product_page()) {
+        return;
+    }
+    
+    // Obtener la página actual para la paginación
+    $current_page = max(1, get_query_var('paged'));
+    
+    // Verificar y crear CSS principal si no existe
+    $productos_css_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/productos-template-optimized.css';
+    if (!file_exists($productos_css_file)) {
+        // Puedes copiar el CSS optimizado aquí como fallback
+        file_put_contents($productos_css_file, '/* CSS Optimizado - Ver contenido completo en el archivo */');
+    }
+    
+    // Verificar y crear JS principal si no existe
+    $productos_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/productos-template.js';
+    if (!file_exists($productos_js_file)) {
+        $this->create_default_js_file($productos_js_file);
+    }
+    
+    // Verificar y crear JS para corrección de búsqueda
+    $search_fix_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/search-bar-fix-optimized.js';
+    if (!file_exists($search_fix_js_file)) {
+        // Puedes copiar el JS optimizado aquí como fallback
+        file_put_contents($search_fix_js_file, '/* JS Optimizado - Ver contenido completo en el archivo */');
+    }
+    
+    // Enqueue CSS principal con versión para evitar caché
+    wp_enqueue_style(
+        'wc-productos-template-styles', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/productos-template-optimized.css', 
+        array(), 
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
+    );
+    
+    // Enqueue JS para corrección de búsqueda
+    wp_enqueue_script(
+        'wc-search-bar-fix', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/search-bar-fix-optimized.js', 
+        array('jquery'), 
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
+        true
+    );
+    
+    // Agregar soporte para la barra de rango
+    wp_enqueue_script('jquery-ui-slider');
+    wp_enqueue_style(
+        'jquery-ui-style', 
+        '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
+        array(),
+        '1.12.1'
+    );
+    
+    // Asegurar que Font Awesome está cargado para los iconos
+    wp_enqueue_style(
+        'font-awesome',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+        array(),
+        '5.15.4'
+    );
+    
+    // JavaScript principal
+    wp_enqueue_script(
+        'wc-productos-template-script', 
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/productos-template.js', 
+        array('jquery', 'jquery-ui-slider'), 
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
+        true
+    );
+    
+    // Localizar script para AJAX
+    wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('productos_filter_nonce'),
+        'current_page' => $current_page,
+        'products_per_page' => get_option('posts_per_page'),
+        'total_products' => $this->get_total_products(),
+        'i18n' => array(
+            'loading' => __('Cargando productos...', 'wc-productos-template'),
+            'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
+            'added' => __('Producto añadido al carrito', 'wc-productos-template'),
+            'no_results' => __('No se encontraron productos.', 'wc-productos-template')
+        )
+    ));
+    
+    // Añadir clase al body para namespace CSS
+    add_filter('body_class', function($classes) {
+        $classes[] = 'wc-productos-template-page';
+        return $classes;
+    });
 }
-            
-            // CSS básico si no existe el archivo
-            if (!file_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css')) {
-                $this->create_default_grid_css_file();
-            }
-            
-            // Localizar script para AJAX
-            wp_localize_script('wc-productos-template-script', 'WCProductosParams', array(
-                'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('productos_filter_nonce'),
-                'current_page' => $current_page,
-                'products_per_page' => get_option('posts_per_page'),
-                'total_products' => $this->get_total_products(),
-                'i18n' => array(
-                    'loading' => __('Cargando productos...', 'wc-productos-template'),
-                    'error' => __('Error al cargar productos. Intente nuevamente.', 'wc-productos-template'),
-                    'added' => __('Producto añadido al carrito', 'wc-productos-template'),
-                    'no_results' => __('No se encontraron productos.', 'wc-productos-template')
-                )
-            ));
-            
-            // Añadir clase al body para namespace CSS
-            add_filter('body_class', function($classes) {
-                $classes[] = 'wc-productos-template';
-                return $classes;
-            });
-        }
+
+
         
         /**
          * Obtener el número total de productos
@@ -305,18 +301,37 @@ if (!class_exists('WC_Productos_Template')) {
             $js = "/**\n * Script básico para productos\n */\n\njQuery(document).ready(function($) {\n  // Forzar cuadrícula\n  $('.wc-productos-template ul.products, .productos-grid').css({\n    'display': 'grid',\n    'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',\n    'gap': '20px'\n  });\n  \n  // Evento de búsqueda\n  $('.productos-search form').on('submit', function(e) {\n    e.preventDefault();\n    var searchTerm = $(this).find('input').val();\n    console.log('Buscando: ' + searchTerm);\n  });\n});\n";
             file_put_contents($file_path, $js);
         }
-        
         /**
-         * Verificar si estamos en una página de productos
-         */
-        private function is_product_page() {
-            return is_shop() || 
-                   is_product_category() || 
-                   is_product_tag() || 
-                   is_product() || 
-                   is_woocommerce() || 
-                   (is_a(get_post(), 'WP_Post') && has_shortcode(get_post()->post_content, 'productos_personalizados'));
-        }
+ * Función para eliminar estilos forzados en páginas no relevantes
+ * Esta función asegura que nuestros estilos solo se cargan en páginas adecuadas
+ */
+public function maybe_remove_template_styles() {
+    // Si no estamos en una página de productos, desencolar nuestros estilos
+    if (!$this->is_product_page() && !is_admin()) {
+        wp_dequeue_style('wc-productos-template-styles');
+        wp_dequeue_style('wc-force-grid');
+        wp_dequeue_script('wc-productos-template-script');
+        wp_dequeue_script('wc-search-bar-fix');
+    }
+}
+      /**
+ * Método mejorado para verificar si estamos en una página de productos
+ */
+private function is_product_page() {
+    // Verificar si estamos en una página de WooCommerce
+    $is_wc_page = is_shop() || is_product_category() || is_product_tag() || is_product() || is_woocommerce();
+    
+    // Verificar si estamos en una página con el shortcode
+    $has_shortcode = false;
+    if (is_a(get_post(), 'WP_Post')) {
+        $has_shortcode = has_shortcode(get_post()->post_content, 'productos_personalizados');
+    }
+    
+    // Verificar si estamos en una URL con parámetros específicos del plugin
+    $has_plugin_params = isset($_GET['category']) || isset($_GET['grade']) || isset($_GET['min_volume']) || isset($_GET['max_volume']);
+    
+    return $is_wc_page || $has_shortcode || $has_plugin_params;
+}
         
         /**
          * Estilos de cuadrícula forzados
