@@ -89,7 +89,9 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
+      // Agregar esta línea al final de la función filterProducts existente
+    setTimeout(forceThreeColumnGrid, 100);
+}
     /**
      * Recopilar valores actuales de los filtros
      */
@@ -400,3 +402,41 @@ jQuery(document).ready(function($) {
     // Exponer la función a nivel global para otros scripts
     window.filterProducts = filterProducts;
 });
+// Agregar esta función dentro del document.ready
+function forceThreeColumnGrid() {
+    // Forzar cuadrícula de 3 columnas en todos los dispositivos excepto móviles
+    $('.wc-productos-template ul.products, .productos-grid').css({
+        'display': 'grid',
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'gap': '20px',
+        'width': '100%',
+        'margin': '0 0 30px 0',
+        'padding': '0',
+        'list-style': 'none',
+        'float': 'none',
+        'clear': 'both'
+    });
+    
+    // Adaptar a dispositivos móviles
+    if (window.innerWidth <= 768) {
+        $('.wc-productos-template ul.products, .productos-grid').css({
+            'grid-template-columns': 'repeat(2, 1fr)',
+            'gap': '15px'
+        });
+    }
+    
+    if (window.innerWidth <= 480) {
+        $('.wc-productos-template ul.products, .productos-grid').css({
+            'grid-template-columns': 'repeat(1, 1fr)',
+            'gap': '10px'
+        });
+    }
+    
+    // Ocultar productos después del noveno
+    $('.wc-productos-template ul.products li.product:nth-child(n+10), .productos-grid li.product:nth-child(n+10)').css({
+        'display': 'none'
+    });
+}
+
+// Llamar a esta función tanto al cargar como al redimensionar la ventana
+jQuery(window).on('load resize', forceThreeColumnGrid);
