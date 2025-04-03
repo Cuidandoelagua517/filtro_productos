@@ -480,3 +480,197 @@ jQuery(document).ready(function($) {
         clearInterval(fixInterval);
     }, 10000);
 });
+/**
+ * Script para garantizar la correcta estructura del header y los productos
+ * Agregar al archivo assets/js/productos-template.js
+ */
+
+jQuery(document).ready(function($) {
+    // 1. Verificar que estamos en una página relevante
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+
+    /**
+     * 2. Función principal para corregir el orden de los elementos
+     * Esta función asegura que el header del sitio aparezca antes que el contenido de productos
+     */
+    function fixHeaderStructure() {
+        console.log('Corrigiendo estructura del header...');
+        
+        // 2.1 Referencias a los elementos clave
+        var $siteHeader = $('header.site-header, #masthead, .header-container, .main-header').first();
+        var $productosContainer = $('.productos-container.wc-productos-template');
+        var $siteContent = $('#content, .site-content, main.site-main, .content-area').first();
+        
+        // 2.2 Si no encontramos el contenedor de productos, no hacemos nada
+        if ($productosContainer.length === 0) {
+            console.log('No se encontró el contenedor de productos.');
+            return;
+        }
+        
+        // 2.3 Si encontramos un header, aseguramos que esté antes del contenedor de productos
+        if ($siteHeader.length > 0) {
+            console.log('Header encontrado, corrigiendo posición...');
+            
+            // 2.3.1 Si el header es un hermano del contenedor de productos, reordenar
+            if ($siteHeader.parent().is($productosContainer.parent())) {
+                if ($siteHeader.index() > $productosContainer.index()) {
+                    $siteHeader.insertBefore($productosContainer);
+                }
+            }
+            
+            // 2.3.2 Si el header está dentro del contenedor de productos, sacarlo
+            if ($siteHeader.parents('.productos-container').length > 0) {
+                $siteHeader.insertBefore($productosContainer);
+            }
+            
+            // 2.3.3 Aplicar estilos para garantizar visibilidad correcta
+            $siteHeader.css({
+                'order': '-2',
+                'position': 'relative',
+                'z-index': '100',
+                'width': '100%'
+            });
+            
+            $productosContainer.css({
+                'order': '1',
+                'position': 'relative',
+                'z-index': '1',
+                'width': '100%',
+                'margin-top': '20px'
+            });
+        } else {
+            console.log('No se encontró un header estándar. Verificando estructura alternativa...');
+        }
+        
+        // 2.4 Si encontramos un contenedor de contenido principal, asegurar estructura
+        if ($siteContent.length > 0) {
+            $siteContent.css({
+                'display': 'flex',
+                'flex-direction': 'column',
+                'width': '100%'
+            });
+        }
+        
+        // 2.5 Comprobar si el título "Productos" y la barra de búsqueda están correctamente posicionados
+        var $productosHeader = $('.productos-header');
+        var $productosGrid = $('.productos-grid, ul.products');
+        
+        if ($productosHeader.length > 0 && $productosGrid.length > 0) {
+            // Asegurar que estén en el orden correcto dentro del contenedor
+            if ($productosHeader.index() > $productosGrid.index()) {
+                $productosHeader.insertBefore($productosGrid);
+            }
+        }
+    }
+    
+    /**
+     * 3. Función para verificar y corregir la estructura del título y barra de búsqueda
+     */
+    function fixSearchAndTitleSection() {
+        // 3.1 Verificar si el título de productos y la barra de búsqueda existen
+        var $productosHeader = $('.productos-header');
+        var $productosSearch = $('.productos-search');
+        
+        // 3.2 Si no existe el header de productos, recrearlo
+        if ($productosHeader.length === 0) {
+            console.log('Recreando el header de productos...');
+            $('.productos-container').prepend(
+                '<div class="productos-header">' +
+                '<h1>' + ($('.woocommerce-products-header__title').text() || 'Productos') + '</h1>' +
+                '<div class="productos-search">' +
+                '<form role="search" method="get" id="productos-search-form" action="/">' +
+                '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<input type="hidden" name="post_type" value="product" />' +
+                '<button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>' +
+                '</form>' +
+                '</div>' +
+                '</div>'
+            );
+        } 
+        // 3.3 Si existe el header pero no la barra de búsqueda, recrearla
+        else if ($productosSearch.length === 0) {
+            console.log('Recreando la barra de búsqueda...');
+            $productosHeader.append(
+                '<div class="productos-search">' +
+                '<form role="search" method="get" id="productos-search-form" action="/">' +
+                '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<input type="hidden" name="post_type" value="product" />' +
+                '<button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>' +
+                '</form>' +
+                '</div>'
+            );
+        }
+        
+        // 3.4 Aplicar estilos para garantizar la correcta visualización
+        $('.productos-header').css({
+            'display': 'flex',
+            'flex-wrap': 'wrap',
+            'justify-content': 'space-between',
+            'align-items': 'center',
+            'width': '100%',
+            'margin-bottom': '25px',
+            'padding-bottom': '10px',
+            'border-bottom': '1px solid #e2e2e2'
+        });
+        
+        $('.productos-search').css({
+            'position': 'relative',
+            'width': '300px',
+            'display': 'block',
+            'visibility': 'visible',
+            'opacity': '1'
+        });
+        
+        // 3.5 Ajustes responsivos
+        if (window.innerWidth <= 768) {
+            $('.productos-header').css({
+                'flex-direction': 'column',
+                'align-items': 'flex-start'
+            });
+            
+            $('.productos-header h1').css({
+                'margin-bottom': '15px'
+            });
+            
+            $('.productos-search').css({
+                'width': '100%',
+                'max-width': '100%'
+            });
+        }
+    }
+    
+    // 4. Ejecutar las correcciones
+    // Ejecución inmediata
+    fixHeaderStructure();
+    fixSearchAndTitleSection();
+    
+    // 5. Ejecutar después de cada carga de AJAX (puede ser necesario para filtros)
+    $(document).ajaxComplete(function() {
+        fixHeaderStructure();
+        fixSearchAndTitleSection();
+    });
+    
+    // 6. Ejecutar después de que todas las imágenes se hayan cargado
+    $(window).on('load', function() {
+        fixHeaderStructure();
+        fixSearchAndTitleSection();
+    });
+    
+    // 7. Ejecutar cuando cambie el tamaño de la ventana (para ajustes responsivos)
+    $(window).on('resize', function() {
+        fixSearchAndTitleSection();
+    });
+    
+    // 8. Para mayor seguridad, ejecutar periódicamente durante los primeros segundos
+    var safetyInterval = setInterval(function() {
+        fixHeaderStructure();
+        fixSearchAndTitleSection();
+    }, 1000);
+    
+    // 9. Detener el intervalo después de 10 segundos
+    setTimeout(function() {
+        clearInterval(safetyInterval);
+    }, 10000);
+});
