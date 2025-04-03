@@ -454,117 +454,136 @@ private function is_product_page() {
             return $template;
         }
 
-        /**
-         * AJAX handler para filtrar productos
-         */
-        public function ajax_filter_products() {
-            // Verificar nonce
-            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
-                wp_send_json_error('Nonce inválido');
-                exit;
-            }
-            
-            // Obtener página actual
-            $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
-            
-            // Configurar argumentos base de la consulta
-            $args = array(
-                'post_type'      => 'product',
-                'posts_per_page' => get_option('posts_per_page'),
-                'paged'          => $page,
-                'post_status'    => 'publish',
+       /**
+ * AJAX handler para filtrar productos - VERSIÓN CORREGIDA
+ */
+public function ajax_filter_products() {
+    // Verificar nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
+        wp_send_json_error(array('message' => 'Nonce inválido'));
+        exit;
+    }
+    
+    // Log para depuración
+    error_log('Recibida solicitud AJAX para filtrar productos');
+    
+    // Obtener página actual
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    
+    // Configurar argumentos base de la consulta
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => get_option('posts_per_page'),
+        'paged'          => $page,
+        'post_status'    => 'publish',
+    );
+    
+    // Inicializar arrays para taxonomías y meta
+    $tax_query = array('relation' => 'AND');
+    $meta_query = array('relation' => 'AND');
+    
+    // Filtrar por categoría
+    if (isset($_POST['category']) && !empty($_POST['category'])) {
+        $categories = explode(',', sanitize_text_field($_POST['category']));
+        if (!empty($categories)) {
+            $tax_query[] = array(
+                'taxonomy' => 'product_cat',
+                'field'    => 'slug',
+                'terms'    => $categories,
+                'operator' => 'IN'
             );
-            
-            // Inicializar arrays para taxonomías y meta
-            $tax_query = array('relation' => 'AND');
-            $meta_query = array('relation' => 'AND');
-            
-            // Filtrar por categoría
-            if (isset($_POST['category']) && !empty($_POST['category'])) {
-                $categories = explode(',', sanitize_text_field($_POST['category']));
-                if (!empty($categories)) {
-                    $tax_query[] = array(
-                        'taxonomy' => 'product_cat',
-                        'field'    => 'slug',
-                        'terms'    => $categories,
-                        'operator' => 'IN'
-                    );
-                }
-            }
-            
-            // Filtrar por grado (atributo personalizado)
-            if (isset($_POST['grade']) && !empty($_POST['grade'])) {
-                $grades = explode(',', sanitize_text_field($_POST['grade']));
-                if (!empty($grades)) {
-                    $tax_query[] = array(
-                        'taxonomy' => 'pa_grado',
-                        'field'    => 'slug',
-                        'terms'    => $grades,
-                        'operator' => 'IN'
-                    );
-                }
-            }
-            
-            // Filtrar por volumen (rango)
-            if (isset($_POST['min_volume']) && isset($_POST['max_volume']) && 
-                (intval($_POST['min_volume']) > 100 || intval($_POST['max_volume']) < 5000)) {
-                $meta_query[] = array(
-                    'key'     => '_volumen_ml',
-                    'value'   => array(intval($_POST['min_volume']), intval($_POST['max_volume'])),
-                    'type'    => 'NUMERIC',
-                    'compare' => 'BETWEEN'
-                );
-            }
-            
-            // Búsqueda
-            if (isset($_POST['search']) && !empty($_POST['search'])) {
-                $search_term = sanitize_text_field($_POST['search']);
-                
-                // Incluir búsqueda en metadatos
-                $meta_query[] = array(
-                    'relation' => 'OR',
-                    array(
-                        'key'     => '_sku',
-                        'value'   => $search_term,
-                        'compare' => 'LIKE'
-                    )
-                );
-                
-                // También buscar en el título y contenido del producto
-                $args['s'] = $search_term;
-            }
-            
-            // Añadir las consultas de taxonomía y meta solo si hay filtros activos
-            if (count($tax_query) > 1) {
-                $args['tax_query'] = $tax_query;
-            }
-            
-            if (count($meta_query) > 1) {
-                $args['meta_query'] = $meta_query;
-            }
-            
-            // Aplicar filtros de WooCommerce
-            $args = apply_filters('woocommerce_product_query_args', $args);
-            
-            // Ejecutar la consulta
-            $products_query = new WP_Query($args);
-            
-            // Configurar las propiedades del bucle de WooCommerce
-            wc_set_loop_prop('current_page', $page);
-            wc_set_loop_prop('is_paginated', true);
-            wc_set_loop_prop('page_template', 'productos-template');
-            wc_set_loop_prop('per_page', get_option('posts_per_page'));
-            wc_set_loop_prop('total', $products_query->found_posts);
-            wc_set_loop_prop('total_pages', $products_query->max_num_pages);
-            wc_set_loop_prop('columns', 3);
-            
-             ob_start();
+        }
+    }
+    
+    // Filtrar por grado (atributo personalizado)
+    if (isset($_POST['grade']) && !empty($_POST['grade'])) {
+        $grades = explode(',', sanitize_text_field($_POST['grade']));
+        if (!empty($grades)) {
+            $tax_query[] = array(
+                'taxonomy' => 'pa_grado',
+                'field'    => 'slug',
+                'terms'    => $grades,
+                'operator' => 'IN'
+            );
+        }
+    }
+    
+    // Filtrar por volumen (rango)
+    if (isset($_POST['min_volume']) && isset($_POST['max_volume'])) {
+        $min_volume = intval($_POST['min_volume']);
+        $max_volume = intval($_POST['max_volume']);
+        
+        if ($min_volume > 100 || $max_volume < 5000) {
+            $meta_query[] = array(
+                'key'     => '_volumen_ml',
+                'value'   => array($min_volume, $max_volume),
+                'type'    => 'NUMERIC',
+                'compare' => 'BETWEEN'
+            );
+        }
+    }
+    
+    // Búsqueda
+    if (isset($_POST['search']) && !empty($_POST['search'])) {
+        $search_term = sanitize_text_field($_POST['search']);
+        
+        // Incluir búsqueda en metadatos (SKU)
+        $meta_query[] = array(
+            'relation' => 'OR',
+            array(
+                'key'     => '_sku',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            )
+        );
+        
+        // También buscar en el título y contenido del producto
+        $args['s'] = $search_term;
+    }
+    
+    // Añadir las consultas de taxonomía y meta solo si hay filtros activos
+    if (count($tax_query) > 1) {
+        $args['tax_query'] = $tax_query;
+    }
+    
+    if (count($meta_query) > 1) {
+        $args['meta_query'] = $meta_query;
+    }
+    
+    // Aplicar filtros de WooCommerce
+    $args = apply_filters('woocommerce_product_query_args', $args);
+    
+    // Ejecutar la consulta
+    $products_query = new WP_Query($args);
+    
+    // Log para depuración
+    error_log('Consulta WP_Query ejecutada, encontrados: ' . $products_query->found_posts . ' productos');
+    
+    // Configurar las propiedades del bucle de WooCommerce
+    wc_set_loop_prop('current_page', $page);
+    wc_set_loop_prop('is_paginated', true);
+    wc_set_loop_prop('page_template', 'productos-template');
+    wc_set_loop_prop('per_page', get_option('posts_per_page'));
+    wc_set_loop_prop('total', $products_query->found_posts);
+    wc_set_loop_prop('total_pages', $products_query->max_num_pages);
+    wc_set_loop_prop('columns', 3);
+    
+    // Capturar la salida de la cuadrícula de productos
+    ob_start();
     
     if ($products_query->have_posts()) {
         woocommerce_product_loop_start();
         
         while ($products_query->have_posts()) {
             $products_query->the_post();
+            global $product;
+            
+            // Asegurarse de que $product esté configurado correctamente
+            if (!is_a($product, 'WC_Product')) {
+                $product = wc_get_product(get_the_ID());
+            }
+            
+            // Usar el template part correcto
             wc_get_template_part('content', 'product');
         }
         
@@ -575,7 +594,11 @@ private function is_product_page() {
             '</div>';
     }
     
+    // Obtener el HTML de productos
     $products_html = ob_get_clean();
+    
+    // Restablecer datos del post después de la consulta
+    wp_reset_postdata();
     
     // Generar paginación
     ob_start();
@@ -584,65 +607,33 @@ private function is_product_page() {
     
     // Generar breadcrumb actualizado
     ob_start();
-    
-    // Si estamos en la página 1, usar el breadcrumb normal
-    if ($page <= 1) {
-        woocommerce_breadcrumb();
-    } else {
-        // Personalizar el breadcrumb para incluir la página actual
-        $breadcrumb_args = apply_filters('woocommerce_breadcrumb_defaults', array(
-            'delimiter'   => '&nbsp;&#47;&nbsp;',
-            'wrap_before' => '<nav class="woocommerce-breadcrumb">',
-            'wrap_after'  => '</nav>',
-            'before'      => '',
-            'after'       => '',
-            'home'        => _x('Inicio', 'breadcrumb', 'woocommerce'),
-        ));
-        
-        // Generar breadcrumb con página actual
-        echo $breadcrumb_args['wrap_before'];
-        
-        // Inicio
-        echo $breadcrumb_args['before'];
-        echo '<a href="' . esc_url(home_url()) . '">' . esc_html($breadcrumb_args['home']) . '</a>';
-        echo $breadcrumb_args['after'];
-        echo $breadcrumb_args['delimiter'];
-        
-        // Tienda (si existe)
-        $shop_page_id = wc_get_page_id('shop');
-        if ($shop_page_id > 0 && $shop_page_id !== get_option('page_on_front')) {
-            echo $breadcrumb_args['before'];
-            echo '<a href="' . esc_url(get_permalink($shop_page_id)) . '">' . esc_html(get_the_title($shop_page_id)) . '</a>';
-            echo $breadcrumb_args['after'];
-            echo $breadcrumb_args['delimiter'];
-        }
-        
-        // Categoría actual (si aplica)
-        if (is_product_category()) {
-            $current_term = get_queried_object();
-            if ($current_term) {
-                echo $breadcrumb_args['before'];
-                echo '<a href="' . esc_url(get_term_link($current_term)) . '">' . esc_html($current_term->name) . '</a>';
-                echo $breadcrumb_args['after'];
-                echo $breadcrumb_args['delimiter'];
-            }
-        }
-        
-        // Página actual
-        echo $breadcrumb_args['before'];
-        echo esc_html(sprintf(__('Página %d', 'wc-productos-template'), $page));
-        echo $breadcrumb_args['after'];
-        
-        echo $breadcrumb_args['wrap_after'];
-    }
-    
+    $this->render_breadcrumb($page);
     $breadcrumb = ob_get_clean();
     
-    // Modificar la respuesta para incluir el breadcrumb
+    // Incluir scripts de inicialización en la respuesta
+    $init_script = '<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Forzar cuadrícula después de la carga AJAX
+        $(".wc-productos-template ul.products, .productos-grid").addClass("force-grid three-column-grid");
+        
+        // Vincular eventos de paginación
+        $(".productos-pagination .page-number").on("click", function(e) {
+            e.preventDefault();
+            var page = $(this).data("page");
+            if (typeof window.filterProducts === "function" && page) {
+                window.filterProducts(page);
+            }
+            return false;
+        });
+    });
+    </script>';
+    
+    // Enviar respuesta completa
     wp_send_json_success(array(
         'products'     => $products_html,
         'pagination'   => $pagination,
-        'breadcrumb'   => $breadcrumb, // Añadir el breadcrumb
+        'breadcrumb'   => $breadcrumb,
+        'init_script'  => $init_script,
         'total'        => $products_query->found_posts,
         'current_page' => $page,
         'max_pages'    => $products_query->max_num_pages
@@ -651,7 +642,7 @@ private function is_product_page() {
     exit;
 }
 /**
- * Renderiza el breadcrumb con soporte para paginación
+ * Renderiza el breadcrumb con soporte para paginación - VERSIÓN CORREGIDA
  */
 public function render_breadcrumb($current_page = 1) {
     // Si estamos en la página 1, usar el breadcrumb normal
@@ -691,7 +682,7 @@ public function render_breadcrumb($current_page = 1) {
     // Categoría actual (si aplica)
     if (is_product_category()) {
         $current_term = get_queried_object();
-        if ($current_term) {
+        if ($current_term && isset($current_term->term_id)) {
             $breadcrumbs[] = array(
                 'name' => $current_term->name,
                 'link' => get_term_link($current_term),
@@ -726,9 +717,9 @@ public function render_breadcrumb($current_page = 1) {
     
     echo $breadcrumb_args['wrap_after'];
 }
-       /**
- * Renderiza la paginación de manera consistente
- * Versión corregida que asegura que los botones de paginación funcionen correctamente
+
+/**
+ * Renderiza la paginación de manera consistente - VERSIÓN CORREGIDA
  */
 public function render_pagination($max_pages, $current_page = 1) {
     if ($max_pages <= 1) {
