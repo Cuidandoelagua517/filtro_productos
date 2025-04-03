@@ -153,13 +153,13 @@ html body .productos-grid li.product,
 
 /* ===== 4. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
 /* Estilos para elementos huérfanos */
-.wc-productos-template *:empty,
-.productos-grid *:empty,
-ul.products *:empty {
-    display: none !important;
-    height: 0 !important;
-    width: 0 !important;
-}
+/*.wc-productos-template *:empty,
+/*.productos-grid *:empty,
+/*ul.products *:empty {
+/*    display: none !important;
+ /*   height: 0 !important;
+ /*   width: 0 !important;
+/*}
 
 /* Corrección de posición del header de productos */
 .productos-header {
