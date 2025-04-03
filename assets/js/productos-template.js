@@ -88,10 +88,11 @@ jQuery(document).ready(function($) {
                          'Error al cargar productos. Intente nuevamente.');
             }
         });
+        
+        // Forzar cuadrícula de tres columnas después de cargar
+        setTimeout(forceThreeColumnGrid, 100);
     }
-      // Agregar esta línea al final de la función filterProducts existente
-    setTimeout(forceThreeColumnGrid, 100);
-}
+    
     /**
      * Recopilar valores actuales de los filtros
      */
@@ -166,21 +167,20 @@ jQuery(document).ready(function($) {
      * Forzar disposición en cuadrícula con JavaScript
      */
     function forceGridLayout() {
-    // Asegurarse de que la clase principal esté presente
-    $('.wc-productos-template ul.products, .productos-grid').addClass('force-grid');
-    
-    // Agregar clases responsive según el ancho de pantalla
-    $('body').removeClass('screen-small screen-medium screen-large');
-    
-    if (window.innerWidth <= 480) {
-        $('body').addClass('screen-small');
-    } else if (window.innerWidth <= 768) {
-        $('body').addClass('screen-medium');
-    } else {
-        $('body').addClass('screen-large');
+        // Asegurarse de que la clase principal esté presente
+        $('.wc-productos-template ul.products, .productos-grid').addClass('force-grid');
+        
+        // Agregar clases responsive según el ancho de pantalla
+        $('body').removeClass('screen-small screen-medium screen-large');
+        
+        if (window.innerWidth <= 480) {
+            $('body').addClass('screen-small');
+        } else if (window.innerWidth <= 768) {
+            $('body').addClass('screen-medium');
+        } else {
+            $('body').addClass('screen-large');
+        }
     }
-}
-
     
     /**
      * Actualizar URL sin recargar la página (History API)
@@ -298,16 +298,52 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Enlazar eventos de paginación
+     * Enlazar eventos de paginación - versión mejorada para evitar eventos duplicados
      */
     function bindPaginationEvents() {
-        $(document).on('click', '.wc-productos-template .page-number', function() {
+        // Eliminar cualquier controlador de eventos previo antes de agregar uno nuevo
+        $(document).off('click', '.wc-productos-template .page-number');
+        
+        // Agregar el nuevo controlador de eventos
+        $(document).on('click', '.wc-productos-template .page-number', function(e) {
+            e.preventDefault();
             var page = $(this).data('page');
             if (page) {
                 filterProducts(page);
             }
             return false;
         });
+    }
+    
+    /**
+     * Forzar cuadrícula de tres columnas
+     */
+    function forceThreeColumnGrid() {
+        // Aplicar clases para la cuadrícula de 3 columnas
+        $('.wc-productos-template ul.products, .productos-grid').addClass('three-column-grid');
+        
+        // Asegurarse de que los productos estén visibles
+        $('.wc-productos-template ul.products li.product, .productos-grid li.product').removeClass('hide-product');
+        
+        // Limitar a número correcto de productos por página según configuración
+        var productsPerPage = typeof WCProductosParams !== 'undefined' ? 
+                             parseInt(WCProductosParams.products_per_page) || 9 : 9;
+                             
+        // Solo ocultar productos si estamos en la página 1 y hay más productos que el límite
+        if (currentFilters.page === 1) {
+            $('.wc-productos-template ul.products li.product:nth-child(n+' + (productsPerPage + 1) + '), .productos-grid li.product:nth-child(n+' + (productsPerPage + 1) + ')').addClass('hide-product');
+        }
+        
+        // Agregar clases responsive según el ancho de pantalla
+        $('body').removeClass('screen-small screen-medium screen-large');
+        
+        if (window.innerWidth <= 480) {
+            $('body').addClass('screen-small');
+        } else if (window.innerWidth <= 768) {
+            $('body').addClass('screen-medium');
+        } else {
+            $('body').addClass('screen-large');
+        }
     }
     
     // Inicializar todo
@@ -321,12 +357,19 @@ jQuery(document).ready(function($) {
         
         // Forzar cuadrícula al inicio
         forceGridLayout();
+        forceThreeColumnGrid();
         
         // Forzar cuadrícula después de cargar imágenes
-        $(window).on('load', forceGridLayout);
+        $(window).on('load', function() {
+            forceGridLayout();
+            forceThreeColumnGrid();
+        });
         
         // Ajustar cuadrícula al cambiar tamaño de ventana
-        $(window).on('resize', forceGridLayout);
+        $(window).on('resize', function() {
+            forceGridLayout();
+            forceThreeColumnGrid();
+        });
         
         // Extraer filtros de la URL al cargar
         var urlParams = new URLSearchParams(window.location.search);
@@ -372,6 +415,16 @@ jQuery(document).ready(function($) {
         if (urlParams.has('paged')) {
             currentFilters.page = parseInt(urlParams.get('paged'));
         }
+        
+        // Si hay algún filtro o paginación activo, actualizar los productos
+        if (urlParams.has('category') || urlParams.has('grade') || 
+            urlParams.has('min_volume') || urlParams.has('max_volume') || 
+            urlParams.has('s') || urlParams.has('paged')) {
+            // Usar timeout para asegurar que los elementos del DOM estén listos
+            setTimeout(function() {
+                filterProducts(currentFilters.page);
+            }, 100);
+        }
     }
     
     // Iniciar todo
@@ -380,25 +433,3 @@ jQuery(document).ready(function($) {
     // Exponer la función a nivel global para otros scripts
     window.filterProducts = filterProducts;
 });
-// Agregar esta función dentro del document.ready
-function forceThreeColumnGrid() {
-    // Aplicar clases para la cuadrícula de 3 columnas
-    $('.wc-productos-template ul.products, .productos-grid').addClass('three-column-grid');
-    
-    // Agregar clases responsive según el ancho de pantalla
-    $('body').removeClass('screen-small screen-medium screen-large');
-    
-    if (window.innerWidth <= 480) {
-        $('body').addClass('screen-small');
-    } else if (window.innerWidth <= 768) {
-        $('body').addClass('screen-medium');
-    } else {
-        $('body').addClass('screen-large');
-    }
-    
-    // Ocultar productos después del noveno
-    $('.wc-productos-template ul.products li.product:nth-child(n+10), .productos-grid li.product:nth-child(n+10)').addClass('hide-product');
-}
-
-// Llamar a esta función tanto al cargar como al redimensionar la ventana
-jQuery(window).on('load resize', forceThreeColumnGrid);
