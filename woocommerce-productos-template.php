@@ -546,7 +546,7 @@ private function is_product_page() {
             wc_set_loop_prop('per_page', get_option('posts_per_page'));
             wc_set_loop_prop('total', $products_query->found_posts);
             wc_set_loop_prop('total_pages', $products_query->max_num_pages);
-            wc_set_loop_prop('columns', 4);
+            wc_set_loop_prop('columns', 3);
             
             ob_start();
             
