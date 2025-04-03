@@ -1,15 +1,14 @@
 /**
- * Script para corregir problemas con la barra de búsqueda y header
+ * Script optimizado para corregir problemas con la barra de búsqueda
+ * Modificado para solo afectar elementos dentro de .wc-productos-template
  * 
- * Este script garantiza que la barra de búsqueda siempre aparezca
- * en la UI, incluso cuando haya conflictos de CSS.
- *
  * @package WC_Productos_Template
  */
 
 jQuery(document).ready(function($) {
     /**
      * Verificar y reparar la barra de búsqueda si es necesario
+     * pero solo dentro del scope de .wc-productos-template
      */
     function fixSearchBar() {
         // Verificar si estamos en una página con el template de productos
@@ -17,21 +16,21 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        console.log('Verificando barra de búsqueda...');
+        console.log('Verificando barra de búsqueda dentro del template...');
         
-        // Verificar si existe el header de productos
-        var $header = $('.productos-header');
+        // Verificar si existe el header de productos dentro de nuestro contenedor
+        var $header = $('.wc-productos-template .productos-header');
         if ($header.length === 0 || $header.css('display') === 'none' || $header.css('visibility') === 'hidden') {
             console.log('Header no encontrado o no visible, recreando...');
             
             // Recrear el header al inicio del contenedor
             $('.wc-productos-template').prepend(
-                '<div class="productos-header" style="display:flex !important; width:100% !important; justify-content:space-between !important; align-items:center !important; margin-bottom:25px !important; visibility:visible !important; opacity:1 !important; z-index:10 !important;">' +
+                '<div class="productos-header search-fix-header">' +
                 '<h1>' + ($('.woocommerce-products-header__title').text() || 'Productos') + '</h1>' +
-                '<div class="productos-search" style="position:relative !important; width:300px !important; display:block !important; visibility:visible !important; opacity:1 !important; margin:0 !important;">' +
-                '<form role="search" method="get" class="productos-search-form" action="javascript:void(0);">' +
-                '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" style="width:100% !important; display:block !important; padding:10px 40px 10px 15px !important; border:1px solid #ddd !important; border-radius:4px !important; visibility:visible !important; opacity:1 !important;" />' +
-                '<button type="submit" class="productos-search-button" aria-label="Buscar" style="position:absolute !important; right:0 !important; top:0 !important; height:100% !important; width:40px !important; background-color:#0056b3 !important; color:white !important; border:none !important; border-radius:0 4px 4px 0 !important; cursor:pointer !important; display:block !important; visibility:visible !important; opacity:1 !important;">' +
+                '<div class="productos-search search-fix-bar">' +
+                '<form role="search" method="get" class="productos-search-form search-fix-form" action="javascript:void(0);">' +
+                '<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<button type="submit" class="productos-search-button search-fix-button" aria-label="Buscar">' +
                 '<i class="fas fa-search" aria-hidden="true"></i>' +
                 '</button>' +
                 '</form>' +
@@ -41,17 +40,17 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        // Verificar si existe la barra de búsqueda
-        var $searchBar = $('.productos-search');
+        // Verificar si existe la barra de búsqueda dentro de nuestro header
+        var $searchBar = $header.find('.productos-search');
         if ($searchBar.length === 0 || $searchBar.css('display') === 'none' || $searchBar.css('visibility') === 'hidden') {
             console.log('Barra de búsqueda no encontrada o no visible, recreando...');
             
             // Recrear la barra de búsqueda dentro del header
             $header.append(
-                '<div class="productos-search" style="position:relative !important; width:300px !important; display:block !important; visibility:visible !important; opacity:1 !important; margin:0 !important;">' +
-                '<form role="search" method="get" class="productos-search-form" action="javascript:void(0);">' +
-                '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" style="width:100% !important; display:block !important; padding:10px 40px 10px 15px !important; border:1px solid #ddd !important; border-radius:4px !important; visibility:visible !important; opacity:1 !important;" />' +
-                '<button type="submit" class="productos-search-button" aria-label="Buscar" style="position:absolute !important; right:0 !important; top:0 !important; height:100% !important; width:40px !important; background-color:#0056b3 !important; color:white !important; border:none !important; border-radius:0 4px 4px 0 !important; cursor:pointer !important; display:block !important; visibility:visible !important; opacity:1 !important;">' +
+                '<div class="productos-search search-fix-bar">' +
+                '<form role="search" method="get" class="productos-search-form search-fix-form" action="javascript:void(0);">' +
+                '<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<button type="submit" class="productos-search-button search-fix-button" aria-label="Buscar">' +
                 '<i class="fas fa-search" aria-hidden="true"></i>' +
                 '</button>' +
                 '</form>' +
@@ -71,9 +70,9 @@ jQuery(document).ready(function($) {
             
             // Reemplazar el contenido completo de la barra de búsqueda
             $searchBar.html(
-                '<form role="search" method="get" class="productos-search-form" action="javascript:void(0);">' +
-                '<input type="text" id="productos-search-input" name="s" placeholder="Buscar por nombre, referencia o características..." value="" style="width:100% !important; display:block !important; padding:10px 40px 10px 15px !important; border:1px solid #ddd !important; border-radius:4px !important; visibility:visible !important; opacity:1 !important;" />' +
-                '<button type="submit" class="productos-search-button" aria-label="Buscar" style="position:absolute !important; right:0 !important; top:0 !important; height:100% !important; width:40px !important; background-color:#0056b3 !important; color:white !important; border:none !important; border-radius:0 4px 4px 0 !important; cursor:pointer !important; display:block !important; visibility:visible !important; opacity:1 !important;">' +
+                '<form role="search" method="get" class="productos-search-form search-fix-form" action="javascript:void(0);">' +
+                '<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<button type="submit" class="productos-search-button search-fix-button" aria-label="Buscar">' +
                 '<i class="fas fa-search" aria-hidden="true"></i>' +
                 '</button>' +
                 '</form>'
@@ -85,65 +84,6 @@ jQuery(document).ready(function($) {
             console.log('Font Awesome no detectado, cargando...');
             $('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">');
         }
-        
-        // Forzar estilos críticos para la barra de búsqueda
-        $header.css({
-            'display': 'flex',
-            'flex-wrap': 'wrap',
-            'justify-content': 'space-between',
-            'align-items': 'center',
-            'margin-bottom': '25px',
-            'width': '100%',
-            'visibility': 'visible',
-            'opacity': '1',
-            'z-index': '50'
-        });
-        
-        $searchBar.css({
-            'position': 'relative',
-            'width': '300px',
-            'display': 'block',
-            'visibility': 'visible',
-            'opacity': '1',
-            'margin': '0',
-            'z-index': '1'
-        });
-        
-        $form = $searchBar.find('form, .productos-search-form');
-        $input = $searchBar.find('input[type="text"]');
-        $button = $searchBar.find('button, .productos-search-button');
-        
-        $form.css({
-            'display': 'flex',
-            'width': '100%',
-            'position': 'relative'
-        });
-        
-        $input.css({
-            'width': '100%',
-            'display': 'block',
-            'padding': '10px 40px 10px 15px',
-            'border': '1px solid #ddd',
-            'border-radius': '4px',
-            'visibility': 'visible',
-            'opacity': '1'
-        });
-        
-        $button.css({
-            'position': 'absolute',
-            'right': '0',
-            'top': '0',
-            'height': '100%',
-            'width': '40px',
-            'background-color': '#0056b3',
-            'color': 'white',
-            'border': 'none',
-            'border-radius': '0 4px 4px 0',
-            'cursor': 'pointer',
-            'display': 'block',
-            'visibility': 'visible',
-            'opacity': '1'
-        });
         
         // Asegurarse que el botón tenga el evento de clic
         $button.off('click').on('click', function(e) {
@@ -168,18 +108,19 @@ jQuery(document).ready(function($) {
     
     /**
      * Corregir la estructura del header y eliminar elementos duplicados
+     * pero solo dentro del scope de .wc-productos-template
      */
     function fixHeaderStructure() {
-        // Verificar si hay headers duplicados
-        if ($('.productos-header').length > 1) {
+        // Verificar si hay headers duplicados dentro de nuestro contenedor
+        if ($('.wc-productos-template .productos-header').length > 1) {
             // Eliminar todos excepto el primero
-            $('.productos-header:gt(0)').remove();
+            $('.wc-productos-template .productos-header:gt(0)').remove();
         }
         
         // Eliminar headers mal posicionados
-        $('.productos-grid > .productos-header, ul.products > .productos-header').each(function() {
+        $('.wc-productos-template .productos-grid > .productos-header, .wc-productos-template ul.products > .productos-header').each(function() {
             var $header = $(this);
-            var $container = $('.productos-container, .wc-productos-template').first();
+            var $container = $('.wc-productos-template').first();
             
             // Mover al inicio del contenedor si está en lugar incorrecto
             if ($container.length > 0) {
@@ -187,8 +128,8 @@ jQuery(document).ready(function($) {
             }
         });
         
-        // Eliminar cualquier texto de "Productos" que esté fuera del header
-        $('.productos-grid, ul.products').contents().each(function() {
+        // Eliminar cualquier texto de "Productos" que esté fuera del header pero dentro de nuestro scope
+        $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').contents().each(function() {
             if (this.nodeType === 3 && this.nodeValue.trim() === 'Productos') {
                 $(this).remove();
             }
@@ -197,59 +138,49 @@ jQuery(document).ready(function($) {
     
     /**
      * Corregir la estructura general de la cuadrícula
+     * pero solo dentro del scope de .wc-productos-template
      */
-  function fixGridStructure() {
-    // Verificar si hay cuadrículas duplicadas
-    if ($('.productos-grid, ul.products').length > 1) {
-        // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
-        var $grids = $('.productos-grid, ul.products');
-        var $validGrid = null;
+    function fixGridStructure() {
+        // Verificar si hay cuadrículas duplicadas dentro de nuestro contenedor
+        if ($('.wc-productos-template .productos-grid, .wc-productos-template ul.products').length > 1) {
+            // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
+            var $grids = $('.wc-productos-template .productos-grid, .wc-productos-template ul.products');
+            var $validGrid = null;
+            
+            $grids.each(function() {
+                if ($(this).find('li.product').length > 0 && !$validGrid) {
+                    $validGrid = $(this);
+                } else if ($(this) !== $validGrid) {
+                    $(this).remove();
+                }
+            });
+        }
         
-        $grids.each(function() {
-            if ($(this).find('li.product').length > 0 && !$validGrid) {
-                $validGrid = $(this);
-            } else if ($(this) !== $validGrid) {
-                $(this).remove();
-            }
-        });
+        // Forzar estilos de cuadrícula a 3 columnas
+        $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').addClass('three-column-grid');
+        
+        // Ocultar productos después del noveno
+        $('.wc-productos-template .productos-grid li.product:nth-child(n+10), .wc-productos-template ul.products li.product:nth-child(n+10)').addClass('hide-product');
+        
+        // Adaptar a móviles pero manteniendo máximo 3 columnas
+        if (window.innerWidth <= 480) {
+            $('body').addClass('screen-small').removeClass('screen-medium screen-large');
+        } else if (window.innerWidth <= 768) {
+            $('body').addClass('screen-medium').removeClass('screen-small screen-large');
+        } else {
+            $('body').addClass('screen-large').removeClass('screen-small screen-medium');
+        }
     }
     
-    // Forzar estilos de cuadrícula a 3 columnas
-    $('.productos-grid, ul.products').css({
-        'display': 'grid',
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'gap': '20px',
-        'width': '100%',
-        'margin': '0 auto 30px auto',
-        'padding': '0',
-        'list-style': 'none',
-        'float': 'none',
-        'max-width': '1200px'
-    });
-    
-    $('.productos-grid li.product, ul.products li.product').css({
-        'width': '100%',
-        'margin': '0 0 20px 0',
-        'float': 'none',
-        'clear': 'none',
-        'height': 'auto'
-    });
-    
-    // Ocultar productos después del noveno
-    $('.productos-grid li.product:nth-child(n+10), ul.products li.product:nth-child(n+10)').css({
-        'display': 'none'
-    });
-    
-    // Adaptar a móviles pero manteniendo máximo 3 columnas
-    if (window.innerWidth <= 480) {
-        $('.productos-grid, ul.products').css({
-            'grid-template-columns': 'repeat(1, 1fr)',
-            'gap': '10px'
-        });
-    } else if (window.innerWidth <= 768) {
-        $('.productos-grid, ul.products').css({
-            'grid-template-columns': 'repeat(2, 1fr)',
-            'gap': '15px'
+    // Ejecutar las funciones solo si estamos en una página con el template
+    if ($('.wc-productos-template').length) {
+        fixSearchBar();
+        fixHeaderStructure();
+        fixGridStructure();
+        
+        // Volver a ejecutar al cambiar el tamaño de la ventana
+        $(window).on('resize', function() {
+            fixGridStructure();
         });
     }
-}
+});
