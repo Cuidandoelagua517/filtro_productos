@@ -602,6 +602,9 @@ private function is_product_page() {
     
     exit;
 }
+/**
+ * Renderiza el breadcrumb con soporte para paginación
+ */
 public function render_breadcrumb($current_page = 1) {
     // Si estamos en la página 1, usar el breadcrumb normal
     if ($current_page <= 1) {
@@ -674,7 +677,7 @@ public function render_breadcrumb($current_page = 1) {
     }
     
     echo $breadcrumb_args['wrap_after'];
-}        
+}
        /**
  * Renderiza la paginación de manera consistente
  * Versión corregida que asegura que los botones de paginación funcionen correctamente
