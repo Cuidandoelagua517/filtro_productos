@@ -1,29 +1,30 @@
 /**
  * CSS OPTIMIZADO PARA WC PRODUCTOS TEMPLATE
- * Versión unificada y optimizada que evita afectar otras páginas
+ * Versión unificada que evita afectar otras páginas del sitio
  * 
  * @package WC_Productos_Template
  */
 
-/* ===== 1. CONTENEDOR PRINCIPAL (SCOPE FUNDAMENTAL) ===== */
-.wc-productos-template {
+/* ===== 1. RESET ESPECÍFICO PARA EL TEMPLATE ===== */
+/* Este reset solo afecta a elementos dentro del contenedor principal */
+.wc-productos-template * {
     box-sizing: border-box;
+}
+
+.wc-productos-template img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ===== 2. CONTENEDOR PRINCIPAL (SCOPE PRINCIPAL) ===== */
+.wc-productos-template {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 15px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-/* Asegurar que solo afecte a las páginas de productos */
-.woocommerce-page .wc-productos-template,
-.post-type-archive-product .wc-productos-template,
-.tax-product_cat .wc-productos-template,
-.tax-product_tag .wc-productos-template,
-.single-product .wc-productos-template {
-    /* Los estilos ya están definidos arriba */
-}
-
-/* ===== 2. HEADER CON TÍTULO Y BUSCADOR ===== */
+/* ===== 3. HEADER CON TÍTULO Y BUSCADOR ===== */
 .wc-productos-template .productos-header {
     display: flex;
     flex-wrap: wrap;
@@ -50,13 +51,15 @@
     width: 300px;
 }
 
-.wc-productos-template .productos-search form {
+.wc-productos-template .productos-search form,
+.wc-productos-template .productos-search-form {
     display: flex;
     width: 100%;
     position: relative;
 }
 
-.wc-productos-template .productos-search input {
+.wc-productos-template .productos-search input[type="text"],
+.wc-productos-template #productos-search-input {
     width: 100%;
     padding: 10px 40px 10px 15px;
     border: 1px solid #ddd;
@@ -65,13 +68,15 @@
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.wc-productos-template .productos-search input:focus {
+.wc-productos-template .productos-search input[type="text"]:focus,
+.wc-productos-template #productos-search-input:focus {
     outline: none;
     border-color: #0056b3;
     box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
-.wc-productos-template .productos-search button {
+.wc-productos-template .productos-search button,
+.wc-productos-template .productos-search-button {
     position: absolute;
     right: 0;
     top: 0;
@@ -85,18 +90,19 @@
     transition: background-color 0.2s;
 }
 
-.wc-productos-template .productos-search button:hover {
+.wc-productos-template .productos-search button:hover,
+.wc-productos-template .productos-search-button:hover {
     background-color: #004494;
 }
 
-/* ===== 3. LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
+/* ===== 4. LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
 .wc-productos-template .productos-layout {
     display: flex;
     gap: 30px;
     margin-bottom: 40px;
 }
 
-/* ===== 4. SIDEBAR DE FILTROS ===== */
+/* ===== 5. SIDEBAR DE FILTROS ===== */
 .wc-productos-template .productos-sidebar {
     flex: 0 0 250px;
     width: 250px;
@@ -162,7 +168,7 @@
     color: #666;
 }
 
-/* Estilo UI Slider */
+/* Estilo jQuery UI Slider (dentro del scope) */
 .wc-productos-template .ui-slider {
     position: relative;
     height: 6px;
@@ -189,7 +195,7 @@
     position: absolute;
 }
 
-/* ===== 5. ÁREA PRINCIPAL DE PRODUCTOS ===== */
+/* ===== 6. ÁREA PRINCIPAL DE PRODUCTOS ===== */
 .wc-productos-template .productos-main {
     flex: 1;
     min-width: 0; /* Importante para flex */
@@ -210,49 +216,48 @@
     text-decoration: underline;
 }
 
-/* ===== 6. CUADRÍCULA DE PRODUCTOS ===== */
+/* ===== 7. CUADRÍCULA DE PRODUCTOS ===== */
 /* Selector específico para nuestro template */
 .wc-productos-template ul.products,
 .wc-productos-template .productos-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 0 30px 0;
-    padding: 0;
-    list-style: none;
-    float: none;
-    clear: both;
-    box-sizing: border-box;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
 }
 
-/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
+/* Eliminar flotadores y clearfix solo en nuestra cuadrícula */
 .wc-productos-template ul.products::before,
 .wc-productos-template ul.products::after,
 .wc-productos-template .productos-grid::before,
 .wc-productos-template .productos-grid::after {
-    display: none;
-    content: none;
-    clear: none;
+    display: none !important;
+    content: none !important;
+    clear: none !important;
 }
 
 /* Estilo base para cada producto con scope adecuado */
 .wc-productos-template ul.products li.product,
 .wc-productos-template .productos-grid li.product {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 0 20px 0;
-    padding: 15px;
-    float: none;
-    clear: none;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    opacity: 1;
-    position: relative;
-    visibility: visible;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 15px !important;
+    float: none !important;
+    clear: none !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    opacity: 1 !important;
+    position: relative !important;
+    visibility: visible !important;
     border: 1px solid #e2e2e2;
     border-radius: 8px;
     background-color: #fff;
@@ -266,18 +271,18 @@
     transform: translateY(-3px);
 }
 
-/* Restablecer marginnes en contenido interior */
+/* Contenido interior del producto */
 .wc-productos-template .producto-interior {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 /* Limitar a 9 productos visibles por página */
 .wc-productos-template ul.products li.product:nth-child(n+10),
 .wc-productos-template .productos-grid li.product:nth-child(n+10) {
-    display: none;
+    display: none !important;
 }
 
 /* Imagen del producto */
@@ -288,12 +293,12 @@
 }
 
 .wc-productos-template .producto-imagen img {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    margin: 0 auto;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 200px !important;
+    object-fit: contain !important;
+    margin: 0 auto !important;
     transition: transform 0.3s ease;
 }
 
@@ -416,7 +421,7 @@
 
 .wc-productos-template .producto-boton {
     background-color: #0056b3;
-    color: white;
+    color: white !important;
     border: none;
     padding: 8px 15px;
     font-size: 14px;
@@ -425,13 +430,15 @@
     transition: background-color 0.2s;
     text-decoration: none;
     display: inline-block;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .wc-productos-template .producto-boton:hover {
     background-color: #004494;
 }
 
-/* ===== 7. PAGINACIÓN ===== */
+/* ===== 8. PAGINACIÓN ===== */
 .wc-productos-template .productos-pagination {
     display: flex;
     flex-direction: column;
@@ -485,7 +492,7 @@
     margin: 0 5px;
 }
 
-/* ===== 8. ESTADOS ===== */
+/* ===== 9. ESTADOS ===== */
 /* Estado de carga */
 .wc-productos-template .loading {
     padding: 20px;
@@ -509,12 +516,21 @@
     font-size: 16px;
 }
 
-/* ===== 9. RESPONSIVO ===== */
+/* ===== 10. CORRECCIONES ESPECÍFICAS PARA TEMAS POPULARES ===== */
+/* Corrige el estilo de los botones en varios temas pero dentro de nuestro scope */
+.wc-productos-template.theme-storefront ul.products li.product .button,
+.wc-productos-template.theme-astra ul.products li.product .button,
+.wc-productos-template.theme-oceanwp ul.products li.product .button {
+    width: auto !important;
+    margin-bottom: 0 !important;
+}
+
+/* ===== 11. RESPONSIVO ===== */
 /* Pantallas grandes (4 columnas) */
 @media (min-width: 992px) {
     .wc-productos-template ul.products,
     .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, 1fr) !important;
     }
 }
 
@@ -522,7 +538,7 @@
 @media (max-width: 991px) and (min-width: 769px) {
     .wc-productos-template ul.products,
     .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 }
 
@@ -530,8 +546,8 @@
 @media (max-width: 768px) {
     .wc-productos-template ul.products,
     .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
     }
     
     .wc-productos-template .productos-header {
@@ -579,7 +595,94 @@
 @media (max-width: 480px) {
     .wc-productos-template ul.products,
     .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(1, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(1, 1fr) !important;
+        gap: 10px !important;
     }
+}
+
+/* ===== 12. CORRECCIONES PARA LA BARRA DE BÚSQUEDA ===== */
+/* Versión optimizada y con scope del archivo search-bar-fix.css */
+.wc-productos-template .search-fix-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10 !important;
+}
+
+.wc-productos-template .search-fix-bar {
+    position: relative !important;
+    width: 300px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    z-index: 1 !important;
+}
+
+.wc-productos-template .search-fix-form {
+    display: flex !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+.wc-productos-template .search-fix-input {
+    width: 100% !important;
+    display: block !important;
+    padding: 10px 40px 10px 15px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.wc-productos-template .search-fix-button {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    width: 40px !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 4px 4px 0 !important;
+    cursor: pointer !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Correcciones JS para forzar la cuadrícula */
+.wc-productos-template .force-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+    box-sizing: border-box !important;
+}
+
+.wc-productos-template .three-column-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+.wc-productos-template .hide-product {
+    display: none !important;
 }
