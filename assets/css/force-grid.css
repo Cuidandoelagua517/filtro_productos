@@ -7,6 +7,45 @@
  */
 
 /* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
+/* Forzar grid de 3 columnas para todas las pantallas normales */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
+.wc-productos-template ul.products,
+.productos-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+/* Mantener 3 columnas en pantallas grandes */
+@media (min-width: 992px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Limitar a 9 productos visibles por página */
+body ul.products li.product:nth-child(n+10),
+body.woocommerce ul.products li.product:nth-child(n+10),
+body.woocommerce-page ul.products li.product:nth-child(n+10),
+body .woocommerce ul.products li.product:nth-child(n+10),
+html body .productos-grid li.product:nth-child(n+10),
+#main ul.products li.product:nth-child(n+10),
+#content ul.products li.product:nth-child(n+10),
+.woocommerce .products li.product:nth-child(n+10),
+.wc-productos-template ul.products li.product:nth-child(n+10),
+.productos-grid li.product:nth-child(n+10) {
+    display: none !important;
+}
 body ul.products,
 body.woocommerce ul.products,
 body.woocommerce-page ul.products,
