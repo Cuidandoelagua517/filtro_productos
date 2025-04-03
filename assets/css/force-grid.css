@@ -32,7 +32,12 @@ html body .productos-grid,
     clear: both !important;
     box-sizing: border-box !important;
 }
-
+.woocommerce.wc-productos-template ul.products,
+.wc-productos-template .productos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 20px !important;
+}
 /* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
 body ul.products::before,
 body ul.products::after,
