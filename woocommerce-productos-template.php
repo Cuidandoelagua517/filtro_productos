@@ -225,26 +225,19 @@ if (!class_exists('WC_Productos_Template')) {
             );
             
             // Script básico si no existe el archivo
-            if (!file_exists($productos_js_file)) {
-                wp_add_inline_script('wc-productos-template-script', "
-                    jQuery(document).ready(function($) {
-                        console.log('WC Productos Template inicializado');
-                        
-                        // Forzar cuadrícula
-                        $('.wc-productos-template ul.products, .productos-grid').css({
-                            'display': 'grid',
-                            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
-                            'gap': '20px'
-                        });
-                        
-                        // Evento de búsqueda
-                        $('.productos-search form').on('submit', function(e) {
-                            e.preventDefault();
-                            alert('Funcionalidad de búsqueda no implementada completamente');
-                        });
-                    });
-                ");
-            }
+           if (!file_exists($productos_js_file)) {
+    wp_add_inline_script('wc-productos-template-script', "
+        jQuery(document).ready(function($) {
+            console.log('WC Productos Template inicializado');
+            
+            // Evento de búsqueda
+            $('.productos-search form').on('submit', function(e) {
+                e.preventDefault();
+                alert('Funcionalidad de búsqueda no implementada completamente');
+            });
+        });
+    ");
+}
             
             // CSS básico si no existe el archivo
             if (!file_exists(WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'css/force-grid.css')) {
