@@ -1,7 +1,8 @@
 <?php
 /**
- * Plantilla para cada producto en la cuadrícula - VERSIÓN OPTIMIZADA
- * Con elementos mejorados para UX/UI
+ * Plantilla para cada producto en la cuadrícula
+ * Versión corregida para evitar elementos huérfanos y títulos duplicados
+ * Con padding adicional para mejor espaciado
  *
  * @package WC_Productos_Template
  */
@@ -13,8 +14,11 @@ if (!$product || !is_a($product, 'WC_Product')) {
 }
 ?>
 <li <?php wc_product_class('producto-card', $product); ?>>
-    <div class="producto-interior">
+    <div class="producto-interior" style="padding: 15px;">
         <?php
+        // Imagen del producto con enlace
+        echo '<div class="producto-imagen" style="margin-bottom: 20px;">';
+        
         // Badges en contenedor separado para mejor posicionamiento
         echo '<div class="producto-badges">';
         
@@ -35,11 +39,10 @@ if (!$product || !is_a($product, 'WC_Product')) {
             echo '<span class="producto-badge badge-danger">' . 
                 esc_html__('Peligroso', 'wc-productos-template') . '</span>';
         }
-    
+        
         echo '</div>'; // Fin de badges
         
-        // Imagen del producto con enlace y vista rápida
-        echo '<div class="producto-imagen">';
+        // Enlace a la imagen
         echo '<a href="' . esc_url(get_permalink()) . '" class="producto-imagen-link">';
         
         // Mostrar imagen principal
@@ -49,55 +52,38 @@ if (!$product || !is_a($product, 'WC_Product')) {
             echo wc_placeholder_img();
         }
         
-        echo '</a>';
-        
-        // Añadir vista rápida
-        echo '<a href="' . esc_url(get_permalink()) . '" class="producto-vista-rapida">' . 
-            esc_html__('Vista rápida', 'wc-productos-template') . '</a>';
-        
-        echo '</div>'; // Fin producto-imagen
+        echo '</a></div>';
         
         // Información del producto
-        echo '<div class="producto-info">';
+        echo '<div class="producto-info" style="padding: 0 10px;">';
         
-        // Meta información (SKU y categoría)
-        echo '<div class="producto-meta">';
-        
-        // SKU o ID
+        // SKU o ID (movido arriba para destacar la referencia)
         $sku = $product->get_sku();
         if ($sku) {
-            echo '<div class="producto-sku">';
+            echo '<div class="producto-sku" style="margin-bottom: 10px;">';
             echo '<strong>' . esc_html__('REF:', 'wc-productos-template') . '</strong> ';
             echo esc_html($sku) . '</div>';
         }
         
-        // Categoría principal
-        $categories = wc_get_product_category_list($product->get_id(), ', ', '<span class="producto-categoria">', '</span>');
-        if ($categories) {
-            echo $categories;
-        }
-        
-        echo '</div>'; // Fin producto-meta
-        
         // Título con enlace
-        echo '<h2 class="producto-titulo woocommerce-loop-product__title">';
+        echo '<h2 class="producto-titulo woocommerce-loop-product__title" style="margin-bottom: 15px;">';
         echo '<a href="' . esc_url(get_permalink()) . '">' . get_the_title() . '</a>';
         echo '</h2>';
         
-        // Detalles del producto
-        echo '<div class="producto-detalles">';
+        // Detalles del producto en formato de tabla para mejor organización
+        echo '<div class="producto-detalles" style="margin-bottom: 20px;">';
         
         // Volumen (desde atributo o meta)
         $volumen = $product->get_attribute('pa_volumen');
         if (!$volumen) {
             $volumen = get_post_meta($product->get_id(), '_volumen_ml', true);
             if ($volumen) {
-                echo '<div class="producto-volumen">';
+                echo '<div class="producto-volumen" style="margin-bottom: 8px;">';
                 echo '<strong>' . esc_html__('Volumen:', 'wc-productos-template') . '</strong> ';
                 echo esc_html($volumen) . ' ml</div>';
             }
         } else {
-            echo '<div class="producto-volumen">';
+            echo '<div class="producto-volumen" style="margin-bottom: 8px;">';
             echo '<strong>' . esc_html__('Volumen:', 'wc-productos-template') . '</strong> ';
             echo esc_html($volumen) . '</div>';
         }
@@ -105,37 +91,30 @@ if (!$product || !is_a($product, 'WC_Product')) {
         // Grado (desde atributo)
         $grado = $product->get_attribute('pa_grado');
         if ($grado) {
-            echo '<div class="producto-grado">';
+            echo '<div class="producto-grado" style="margin-bottom: 8px;">';
             echo '<strong>' . esc_html__('Grado:', 'wc-productos-template') . '</strong> ';
             echo esc_html($grado) . '</div>';
         }
         
         echo '</div>'; // Fin detalles
         
-        // Footer con precio y botón de acción
-        echo '<div class="producto-footer">';
+        // Contenedor de precio y acción
+        echo '<div class="producto-footer" style="padding-top: 15px; margin-top: 15px; border-top: 1px solid #f0f0f0;">';
         
         // Precio
         if ($price_html = $product->get_price_html()) {
-            echo '<div class="producto-precio price">' . $price_html . '</div>';
+            echo '<div class="producto-precio price" style="margin-bottom: 10px;">' . $price_html . '</div>';
         }
         
-        // Botón de añadir al carrito con icono
+        // Botón de añadir al carrito
         echo '<div class="producto-accion">';
         
         echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
                class="producto-boton button add_to_cart_button ' . ($product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '') . '"
                data-product_id="' . esc_attr($product->get_id()) . '"
                data-product_sku="' . esc_attr($product->get_sku()) . '"
-               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '">';
-               
-        // Icono de carrito
-        echo '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>';
-              
+               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '"
+               style="padding: 10px 18px; width: 100%; text-align: center;">';
         echo esc_html($product->is_purchasable() && $product->is_in_stock() ? 
               __('Añadir al carrito', 'wc-productos-template') : 
               __('Leer más', 'wc-productos-template'));
