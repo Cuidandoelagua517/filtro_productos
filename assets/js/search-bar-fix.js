@@ -195,45 +195,7 @@ jQuery(document).ready(function($) {
         });
     }
     
-    /**
-     * Corregir la estructura general de la cuadrícula
-     */
-    function fixGridStructure() {
-        // Verificar si hay cuadrículas duplicadas
-        if ($('.productos-grid, ul.products').length > 1) {
-            // Si hay múltiples cuadrículas, mantener solo la primera que tenga productos
-            var $grids = $('.productos-grid, ul.products');
-            var $validGrid = null;
-            
-            $grids.each(function() {
-                if ($(this).find('li.product').length > 0 && !$validGrid) {
-                    $validGrid = $(this);
-                } else if ($(this) !== $validGrid) {
-                    $(this).remove();
-                }
-            });
-        }
-        
-        // Forzar estilos de cuadrícula
-        $('.productos-grid, ul.products').css({
-            'display': 'grid',
-            'grid-template-columns': 'repeat(auto-fill, minmax(220px, 1fr))',
-            'gap': '20px',
-            'width': '100%',
-            'margin': '0 0 30px 0',
-            'padding': '0',
-            'list-style': 'none',
-            'float': 'none'
-        });
-        
-        $('.productos-grid li.product, ul.products li.product').css({
-            'width': '100%',
-            'margin': '0 0 20px 0',
-            'float': 'none',
-            'clear': 'none',
-            'height': 'auto'
-        });
-    }
+
     
     // Ejecutar todas las correcciones
     function runAllFixes() {
