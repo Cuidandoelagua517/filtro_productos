@@ -181,7 +181,10 @@ add_filter('woocommerce_show_page_title', '__return_false');
                                float: none !important;
                                clear: both !important;">';
                     
-                    while ($products_query->have_posts()) {
+                    // Contador para limitar a 9 productos
+                    $product_count = 0;
+                    
+                    while ($products_query->have_posts() && $product_count < 9) {
                         $products_query->the_post();
                         
                         // Configurar la variable global $product
@@ -189,6 +192,9 @@ add_filter('woocommerce_show_page_title', '__return_false');
                         $product = wc_get_product(get_the_ID());
                         
                         wc_get_template_part('content', 'product');
+                        
+                        // Incrementar contador
+                        $product_count++;
                     }
                     
                     echo '</ul><!-- .productos-grid -->';
@@ -258,38 +264,73 @@ add_filter('woocommerce_show_page_title', '__return_false');
     </div>
 </div>
 
-<!-- Script para inicializar los controles de filtrado -->
+<style>
+/* Estilos directos para la cuadrícula de 3 columnas */
+.productos-grid,
+.wc-productos-template ul.products,
+.woocommerce ul.products.productos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+/* Ajusta para pantallas más pequeñas */
+@media (max-width: 768px) {
+    .productos-grid,
+    .wc-productos-template ul.products,
+    .woocommerce ul.products.productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .productos-grid,
+    .wc-productos-template ul.products,
+    .woocommerce ul.products.productos-grid {
+        grid-template-columns: repeat(1, 1fr) !important;
+        gap: 10px !important;
+    }
+}
+</style>
+
 <script type="text/javascript">
-    jQuery(document).ready(function($) {
-        // Forzar cuadrícula de 3 columnas
-        $('.productos-grid, ul.products').css({
-            'display': 'grid',
-            'grid-template-columns': 'repeat(3, 1fr)',
-            'gap': '20px',
-            'width': '100%',
-            'margin': '0 0 30px 0',
-            'padding': '0',
-            'list-style': 'none',
-            'float': 'none',
-            'clear': 'both'
-        });
-        
-        // Ajustar visualización en móviles
-        if (window.innerWidth <= 768) {
-            $('.productos-grid, ul.products').css({
-                'grid-template-columns': 'repeat(2, 1fr)'
-            });
-        }
-        
-        if (window.innerWidth <= 480) {
-            $('.productos-grid, ul.products').css({
-                'grid-template-columns': 'repeat(1, 1fr)'
-            });
-        }
-        
-        if (typeof filterProducts === 'function') {
-            // Los event listeners se manejan en productos-template.js
-            console.log('Filtros inicializados');
-        }
+jQuery(document).ready(function($) {
+    // Aplicar estilos de cuadrícula forzados
+    $('.productos-grid, .wc-productos-template ul.products').css({
+        'display': 'grid',
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'gap': '20px'
     });
+    
+    // Ajustar visualización en móviles
+    function adjustGridForScreenSize() {
+        if (window.innerWidth <= 768 && window.innerWidth > 480) {
+            $('.productos-grid, .wc-productos-template ul.products').css({
+                'grid-template-columns': 'repeat(2, 1fr)',
+                'gap': '15px'
+            });
+        } else if (window.innerWidth <= 480) {
+            $('.productos-grid, .wc-productos-template ul.products').css({
+                'grid-template-columns': 'repeat(1, 1fr)',
+                'gap': '10px'
+            });
+        } else {
+            $('.productos-grid, .wc-productos-template ul.products').css({
+                'grid-template-columns': 'repeat(3, 1fr)',
+                'gap': '20px'
+            });
+        }
+    }
+    
+    // Ejecutar al cargar y al cambiar el tamaño de la ventana
+    adjustGridForScreenSize();
+    $(window).on('resize', adjustGridForScreenSize);
+});
 </script>
