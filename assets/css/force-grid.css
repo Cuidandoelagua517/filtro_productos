@@ -5,7 +5,133 @@
  *
  * @package WC_Productos_Template
  */
+.force-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+    box-sizing: border-box !important;
+}
 
+/* Clase para la cuadrícula de 3 columnas específicamente */
+.three-column-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+/* Clase para ocultar productos después del noveno */
+.hide-product {
+    display: none !important;
+}
+
+/* Ajustes responsivos basados en clases de body */
+body.screen-large .force-grid,
+body.screen-large .three-column-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+body.screen-medium .force-grid,
+body.screen-medium .three-column-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+body.screen-small .force-grid,
+body.screen-small .three-column-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+}
+
+@media (max-width: 480px) {
+    body .force-grid,
+    body .three-column-grid {
+        grid-template-columns: repeat(1, 1fr) !important;
+        gap: 10px !important;
+    }
+}
+
+
+/* ======= MODIFICACIONES A assets/css/search-bar-fix.css ======= */
+/* Agregar las siguientes clases para reemplazar los estilos aplicados por JS */
+
+/* Estilos para el header con la buscador */
+.search-fix-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 50 !important;
+}
+
+/* Estilos para la barra de búsqueda */
+.search-fix-bar {
+    position: relative !important;
+    width: 300px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    z-index: 1 !important;
+}
+
+/* Estilos para el formulario */
+.search-fix-form {
+    display: flex !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+/* Estilos para el campo de entrada */
+.search-fix-input {
+    width: 100% !important;
+    display: block !important;
+    padding: 10px 40px 10px 15px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Estilos para el botón de búsqueda */
+.search-fix-button {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    width: 40px !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 4px 4px 0 !important;
+    cursor: pointer !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Estilos responsivos para la barra de búsqueda */
+@media (max-width: 768px) {
+    .search-fix-bar {
+        width: 100% !important;
+        margin-top: 10px !important;
+    }
+}
 /* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
 /* Selector universal para todos los contenedores de productos */
 body ul.products,
