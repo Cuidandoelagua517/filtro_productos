@@ -7,85 +7,7 @@
  */
 
 /* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
-/* Forzar grid de 3 columnas para todas las pantallas normales */
-body ul.products,
-body.woocommerce ul.products,
-body.woocommerce-page ul.products,
-body .woocommerce ul.products,
-html body .productos-grid,
-#main ul.products,
-#content ul.products,
-.woocommerce .products,
-.wc-productos-template ul.products,
-.productos-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-}
-/* Asegura que cada tarjeta de producto tenga la estructura adecuada */
-.wc-productos-template ul.products li.product,
-.productos-grid li.product {
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
-  background-color: #fff;
-  padding: 15px !important;
-  margin-bottom: 20px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  overflow: hidden;
-  height: 100%;
-}
-
-/* Asegura que las imágenes tengan tamaño consistente y aparezcan correctamente */
-.wc-productos-template .producto-imagen,
-.wc-productos-template .producto-imagen-link,
-.wc-productos-template .producto-imagen img {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  max-height: 200px !important;
-  object-fit: contain !important;
-  margin: 0 auto 15px auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Fuerza el grid a 3 columnas con el mismo tamaño */
-.wc-productos-template ul.products,
-.productos-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 25px !important;
-  width: 100% !important;
-  margin: 0 0 30px 0 !important;
-  padding: 0 !important;
-}
-/* Mantener 3 columnas en pantallas grandes */
-@media (min-width: 992px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    body.woocommerce-page ul.products,
-    body .woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
-}
-
-/* Limitar a 9 productos visibles por página */
-body ul.products li.product:nth-child(n+10),
-body.woocommerce ul.products li.product:nth-child(n+10),
-body.woocommerce-page ul.products li.product:nth-child(n+10),
-body .woocommerce ul.products li.product:nth-child(n+10),
-html body .productos-grid li.product:nth-child(n+10),
-#main ul.products li.product:nth-child(n+10),
-#content ul.products li.product:nth-child(n+10),
-.woocommerce .products li.product:nth-child(n+10),
-.wc-productos-template ul.products li.product:nth-child(n+10),
-.productos-grid li.product:nth-child(n+10) {
-    display: none !important;
-}
+/* Selector universal para todos los contenedores de productos */
 body ul.products,
 body.woocommerce ul.products,
 body.woocommerce-page ul.products,
@@ -98,7 +20,7 @@ html body .productos-grid,
 .productos-grid {
     /* Configuración principal del grid */
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 20px !important;
     
     /* Resetear estilos que puedan interferir */
@@ -111,12 +33,7 @@ html body .productos-grid,
     clear: both !important;
     box-sizing: border-box !important;
 }
-.woocommerce.wc-productos-template ul.products,
-.wc-productos-template .productos-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
-    gap: 20px !important;
-}
+
 /* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
 body ul.products::before,
 body ul.products::after,
@@ -157,12 +74,52 @@ html body .productos-grid li.product,
     visibility: visible !important;
 }
 
-/* Restablecer marginnes en contenido interior */
+/* Estilos específicos para tarjetas de producto en nuestro template */
+.wc-productos-template ul.products li.product,
+.productos-grid li.product {
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    background-color: #fff;
+    padding: 15px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* Estilo de imágenes de producto */
+.wc-productos-template .producto-imagen,
+.wc-productos-template .producto-imagen-link,
+.wc-productos-template .producto-imagen img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 200px !important;
+    object-fit: contain !important;
+    margin: 0 auto 15px auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Restablecer márgenes en contenido interior */
 .producto-interior {
     width: 100% !important;
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
+}
+
+/* Limitar a 9 productos visibles por página */
+body ul.products li.product:nth-child(n+10),
+body.woocommerce ul.products li.product:nth-child(n+10),
+body.woocommerce-page ul.products li.product:nth-child(n+10),
+body .woocommerce ul.products li.product:nth-child(n+10),
+html body .productos-grid li.product:nth-child(n+10),
+#main ul.products li.product:nth-child(n+10),
+#content ul.products li.product:nth-child(n+10),
+.woocommerce .products li.product:nth-child(n+10),
+.wc-productos-template ul.products li.product:nth-child(n+10),
+.productos-grid li.product:nth-child(n+10) {
+    display: none !important;
 }
 
 /* ===== 2. MEDIA QUERIES PARA RESPONSIVE ===== */
@@ -217,27 +174,17 @@ html body .productos-grid li.product,
 }
 
 /* ===== 3. CORRECCIONES ESPECÍFICAS PARA TEMAS COMUNES ===== */
-/* Corrige el estilo de los productos del tema Storefront */
+/* Corrige el estilo de los botones en varios temas */
 .theme-storefront ul.products li.product .button,
-.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link {
+.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link,
+.theme-astra ul.products li.product .button,
+.theme-astra .astra-shop-summary-wrap,
+.theme-oceanwp ul.products li.product .button {
     width: auto !important;
     margin-bottom: 0 !important;
 }
 
-/* Corrige el estilo de los productos del tema Astra */
-.theme-astra ul.products li.product .button,
-.theme-astra .astra-shop-summary-wrap {
-    width: auto !important;
-}
-
-/* Corrige el estilo de los productos del tema OceanWP */
-.theme-oceanwp ul.products li.product .button {
-    width: auto !important;
-}
-
 /* ===== 4. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
-
-
 /* Corrección de posición del header de productos */
 .productos-header {
     grid-column: 1 / -1 !important;
