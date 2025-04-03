@@ -1,525 +1,179 @@
 /**
- * Estilos principales para el template de productos de WooCommerce
+ * FORCE-GRID.CSS (VERSIÓN OPTIMIZADA)
+ * Estilos forzados para cuadrícula de productos WooCommerce
+ * Compatible con la mayoría de temas y optimizado para evitar conflictos
  *
  * @package WC_Productos_Template
  */
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
-.wc-productos-template {
-    box-sizing: border-box;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-}
-
-/* ===== HEADER CON TÍTULO Y BUSCADOR ===== */
-.wc-productos-template .productos-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e2e2e2;
-    position: relative;
-    z-index: 10;
-}
-
-.wc-productos-template .productos-header h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    color: #333;
-}
-
-/* Barra de búsqueda */
-.wc-productos-template .productos-search {
-    position: relative;
-    width: 300px;
-}
-
-.wc-productos-template .productos-search form {
-    display: flex;
-    width: 100%;
-    position: relative;
-}
-
-.wc-productos-template .productos-search input {
-    width: 100%;
-    padding: 10px 40px 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.wc-productos-template .productos-search input:focus {
-    outline: none;
-    border-color: #0056b3;
-    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
-}
-
-.wc-productos-template .productos-search button {
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 100%;
-    width: 40px;
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.wc-productos-template .productos-search button:hover {
-    background-color: #004494;
-}
-
-/* ===== LAYOUT PRINCIPAL (DOS COLUMNAS) ===== */
-.wc-productos-template .productos-layout {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 40px;
-}
-
-/* ===== SIDEBAR DE FILTROS ===== */
-.wc-productos-template .productos-sidebar {
-    flex: 0 0 250px;
-    width: 250px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    padding: 20px;
-    border: 1px solid #e2e2e2;
-}
-
-.wc-productos-template .productos-sidebar h2 {
-    font-size: 18px;
-    margin: 0 0 15px 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e2e2e2;
-    color: #333;
-}
-
-.wc-productos-template .filtro-grupo {
-    margin-bottom: 20px;
-}
-
-.wc-productos-template .filtro-grupo h3 {
-    font-size: 16px;
-    margin: 0 0 10px 0;
-    color: #555;
-    font-weight: 500;
-}
-
-.wc-productos-template .filtro-lista {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.wc-productos-template .filtro-option {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.wc-productos-template .filtro-option input[type="checkbox"] {
-    margin-right: 8px;
-}
-
-.wc-productos-template .filtro-option label {
-    cursor: pointer;
-    font-size: 14px;
-    color: #555;
-}
-
-/* Estilo para slider de volumen */
-.wc-productos-template .volumen-slider {
-    padding: 10px 5px 0;
-}
-
-.wc-productos-template .volumen-range {
-    margin-bottom: 15px;
-}
-
-.wc-productos-template .volumen-values {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: #666;
-}
-
-/* Estilo UI Slider */
-.wc-productos-template .ui-slider {
-    position: relative;
-    height: 6px;
-    background: #e2e2e2;
-    border: none;
-    border-radius: 3px;
-}
-
-.wc-productos-template .ui-slider .ui-slider-range {
-    background: #0056b3;
-    height: 6px;
-    border-radius: 3px;
-}
-
-.wc-productos-template .ui-slider .ui-slider-handle {
-    width: 16px;
-    height: 16px;
-    background: #ffffff;
-    border: 2px solid #0056b3;
-    border-radius: 50%;
-    cursor: pointer;
-    top: -5px;
-    margin-left: -8px;
-    position: absolute;
-}
-
-/* ===== ÁREA PRINCIPAL DE PRODUCTOS ===== */
-.wc-productos-template .productos-main {
-    flex: 1;
-    min-width: 0; /* Importante para flex */
-}
-
-.wc-productos-template .productos-breadcrumb {
-    margin-bottom: 15px;
-    font-size: 13px;
-    color: #777;
-}
-
-.wc-productos-template .productos-breadcrumb a {
-    color: #0056b3;
-    text-decoration: none;
-}
-
-.wc-productos-template .productos-breadcrumb a:hover {
-    text-decoration: underline;
-}
-
-/* ===== CUADRÍCULA DE PRODUCTOS ===== */
+/* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
+body ul.products,
+body.woocommerce ul.products,
+body.woocommerce-page ul.products,
+body .woocommerce ul.products,
+html body .productos-grid,
+#main ul.products,
+#content ul.products,
+.woocommerce .products,
 .wc-productos-template ul.products,
-.wc-productos-template .productos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 30px 0;
-    width: 100%;
+.productos-grid {
+    /* Configuración principal del grid */
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 20px !important;
+    
+    /* Resetear estilos que puedan interferir */
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+    box-sizing: border-box !important;
 }
 
-/* ===== TARJETA DE PRODUCTO ===== */
+/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
+body ul.products::before,
+body ul.products::after,
+body.woocommerce ul.products::before,
+body.woocommerce ul.products::after,
+.woocommerce .products::before,
+.woocommerce .products::after,
+.productos-grid::before,
+.productos-grid::after {
+    display: none !important;
+    content: none !important;
+    clear: none !important;
+}
+
+/* Estilo base para cada producto */
+body ul.products li.product,
+body.woocommerce ul.products li.product,
+body.woocommerce-page ul.products li.product,
+body .woocommerce ul.products li.product,
+html body .productos-grid li.product,
+#main ul.products li.product,
+#content ul.products li.product,
+.woocommerce .products li.product,
 .wc-productos-template ul.products li.product,
-.wc-productos-template .productos-grid li.product {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background-color: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin: 0 0 20px 0;
-    padding: 0;
-    width: 100%;
-    float: none;
-    clear: none;
+.productos-grid li.product {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    opacity: 1 !important;
+    position: relative !important;
+    visibility: visible !important;
 }
 
-.wc-productos-template ul.products li.product:hover,
-.wc-productos-template .productos-grid li.product:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-3px);
+/* Restablecer marginnes en contenido interior */
+.producto-interior {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
-/* Imagen del producto */
-.wc-productos-template .producto-imagen {
-    position: relative;
-    overflow: hidden;
-}
-
-.wc-productos-template .producto-imagen img {
-    width: 100%;
-    height: auto;
-    display: block;
-    transition: transform 0.3s ease;
-}
-
-.wc-productos-template .producto-imagen-link:hover img {
-    transform: scale(1.05);
-}
-
-/* Badges */
-.wc-productos-template .producto-badges {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.wc-productos-template .producto-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-}
-
-.wc-productos-template .badge-stock {
-    background-color: #28a745;
-    color: white;
-}
-
-.wc-productos-template .badge-out-stock {
-    background-color: #dc3545;
-    color: white;
-}
-
-.wc-productos-template .badge-danger {
-    background-color: #f0ad4e;
-    color: #664d03;
-}
-
-/* Información del producto */
-.wc-productos-template .producto-info {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-.wc-productos-template .producto-sku {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 6px;
-}
-
-.wc-productos-template .producto-titulo {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    line-height: 1.3;
-}
-
-.wc-productos-template .producto-titulo a {
-    color: #333;
-    text-decoration: none;
-}
-
-.wc-productos-template .producto-titulo a:hover {
-    color: #0056b3;
-}
-
-.wc-productos-template .producto-detalles {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 15px;
-}
-
-.wc-productos-template .producto-volumen,
-.wc-productos-template .producto-grado {
-    margin-bottom: 5px;
-}
-
-.wc-productos-template .producto-detalles strong {
-    font-weight: 600;
-    color: #555;
-}
-
-/* Footer del producto (precio y botón) */
-.wc-productos-template .producto-footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 12px;
-}
-
-.wc-productos-template .producto-precio {
-    font-size: 17px;
-    font-weight: 700;
-    color: #0056b3;
-}
-
-.wc-productos-template .producto-precio del {
-    font-size: 14px;
-    color: #999;
-    font-weight: normal;
-    margin-right: 5px;
-}
-
-.wc-productos-template .producto-precio ins {
-    text-decoration: none;
-}
-
-.wc-productos-template .producto-accion {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.wc-productos-template .producto-boton {
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    font-size: 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.wc-productos-template .producto-boton:hover {
-    background-color: #004494;
-}
-
-/* ===== PAGINACIÓN ===== */
-.wc-productos-template .productos-pagination {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 30px 0;
-}
-
-.wc-productos-template .pagination-info {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 15px;
-}
-
-.wc-productos-template .pagination-links {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.wc-productos-template .page-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    height: 32px;
-    padding: 0 8px;
-    font-size: 14px;
-    border: 1px solid #e2e2e2;
-    border-radius: 4px;
-    background-color: #fff;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.wc-productos-template .page-number:hover {
-    background-color: #f0f0f0;
-    border-color: #ccc;
-}
-
-.wc-productos-template .page-number.active {
-    background-color: #0056b3;
-    border-color: #0056b3;
-    color: white;
-    font-weight: 600;
-}
-
-.wc-productos-template .page-dots {
-    font-size: 14px;
-    color: #666;
-    margin: 0 5px;
-}
-
-/* ===== RESPONSIVO ===== */
-@media (max-width: 991px) {
+/* ===== 2. MEDIA QUERIES PARA RESPONSIVE ===== */
+/* Pantallas grandes (4 columnas) */
+@media (min-width: 992px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
     .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(3, 1fr);
+    .productos-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
     }
 }
 
+/* Pantallas medianas (3 columnas) */
+@media (max-width: 991px) and (min-width: 769px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
+    .wc-productos-template ul.products,
+    .productos-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Pantallas pequeñas (2 columnas) */
 @media (max-width: 768px) {
-    .wc-productos-template .productos-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .wc-productos-template .productos-header h1 {
-        margin-bottom: 15px;
-    }
-    
-    .wc-productos-template .productos-search {
-        width: 100%;
-        max-width: 100%;
-        margin-top: 10px;
-    }
-    
-    .wc-productos-template .productos-layout {
-        flex-direction: column;
-    }
-    
-    .wc-productos-template .productos-sidebar {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
-    
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
     .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
     }
 }
 
+/* Dispositivos muy pequeños (2 columnas más ajustadas) */
 @media (max-width: 480px) {
+    body ul.products,
+    body.woocommerce ul.products,
+    body.woocommerce-page ul.products,
+    body .woocommerce ul.products,
     .wc-productos-template ul.products,
-    .wc-productos-template .productos-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
-    .wc-productos-template .producto-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .wc-productos-template .producto-accion {
-        width: 100%;
-    }
-    
-    .wc-productos-template .producto-boton {
-        width: 100%;
-        text-align: center;
+    .productos-grid {
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 10px !important;
     }
 }
 
-/* ===== LOADING STATE ===== */
-.wc-productos-template .loading {
-    padding: 20px;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
-    margin: 20px 0;
-    color: #666;
-    font-size: 16px;
+/* ===== 3. CORRECCIONES ESPECÍFICAS PARA TEMAS COMUNES ===== */
+/* Corrige el estilo de los productos del tema Storefront */
+.theme-storefront ul.products li.product .button,
+.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link {
+    width: auto !important;
+    margin-bottom: 0 !important;
 }
 
-/* ===== NO PRODUCTS MESSAGE ===== */
-.wc-productos-template .no-products-found {
-    padding: 30px;
-    text-align: center;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e2e2e2;
-    margin: 20px 0;
-    color: #666;
-    font-size: 16px;
+/* Corrige el estilo de los productos del tema Astra */
+.theme-astra ul.products li.product .button,
+.theme-astra .astra-shop-summary-wrap {
+    width: auto !important;
+}
+
+/* Corrige el estilo de los productos del tema OceanWP */
+.theme-oceanwp ul.products li.product .button {
+    width: auto !important;
+}
+
+/* ===== 4. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
+/* Estilos para elementos huérfanos */
+.wc-productos-template *:empty,
+.productos-grid *:empty,
+ul.products *:empty {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+/* Corrección de posición del header de productos */
+.productos-header {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+/* Estilos para mantener visible el botón de añadir al carrito */
+.productos-boton.add_to_cart_button,
+.product_type_simple.add_to_cart_button {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
 }
