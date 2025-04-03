@@ -70,7 +70,6 @@ if (!class_exists('WC_Productos_Template')) {
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
-                add_action('wp_enqueue_scripts', 'wc_productos_transparency_fix', 100);
                 
                 // Cargar clases adicionales si existen
                 $this->load_classes();
@@ -445,12 +444,12 @@ if (!class_exists('WC_Productos_Template')) {
             $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
             
             // Configurar argumentos base de la consulta
-       $args = array(
-    'post_type'      => 'product',
-    'posts_per_page' => 9, // Forzar exactamente 9 productos
-    'paged'          => $page,
-    'post_status'    => 'publish',
-);;
+            $args = array(
+                'post_type'      => 'product',
+                'posts_per_page' => get_option('posts_per_page'),
+                'paged'          => $page,
+                'post_status'    => 'publish',
+            );
             
             // Inicializar arrays para taxonomías y meta
             $tax_query = array('relation' => 'AND');
@@ -768,39 +767,62 @@ function wc_productos_template_activate() {
  * MOVIDA FUERA DE LA CLASE
  */
 function wc_productos_transparency_fix() {
-    // SOLUCIÓN: Agregar verificación para ejecutar solo en páginas relevantes
-    if (!is_woocommerce() && !is_product() && !is_product_category() && !is_product_tag() && 
-        !is_shop() && !has_shortcode(get_post()->post_content ?? '', 'productos_personalizados')) {
-        return;
+    // Solo cargar si el archivo existe
+    $fix_css_file = plugin_dir_path(__FILE__) . 'assets/css/transparency-fix.css';
+    
+    if (file_exists($fix_css_file)) {
+        wp_enqueue_style(
+            'wc-transparency-fix',
+            plugin_dir_url(__FILE__) . 'assets/css/transparency-fix.css',
+            array(),
+            time(), // Usar timestamp para evitar caché
+            'all'
+        );
+        
+        // Asignar prioridad extremadamente alta
+        wp_style_add_data('wc-transparency-fix', 'priority', 99999);
+    } else {
+        // Si el archivo no existe, usar estilos inline
+        $css_fix = "
+        /* Fix de emergencia para problemas de transparencia */
+        body, img, header, footer, .site-header, .site-footer, #masthead, #colophon, .logo, .brand-logo {
+            opacity: 1 !important;
+            visibility: visible !important;
+            background-color: initial !important;
+            filter: none !important;
+        }
+        ";
+        wp_add_inline_style('wp-block-library', $css_fix);
     }
     
-    // SOLUCIÓN: Hacer que los selectores sean más específicos
-    $css_fix = "
-    /* Fix de transparencia con selectores específicos */
-    .woocommerce-page img, 
-    .wc-productos-template img, 
-    .wc-productos-template header, 
-    .wc-productos-template footer {
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
-    ";
-    wp_add_inline_style('woocommerce-general', $css_fix);
-    
-    // SOLUCIÓN: Limitar JavaScript solo a elementos dentro del contenedor del plugin
+    // Script para corregir transparencia con JavaScript
     wp_add_inline_script('jquery', "
     jQuery(document).ready(function($) {
-        // Restringido solo a elementos dentro del plugin
-        $('.wc-productos-template img, .productos-grid img').css({
+        // Corregir imágenes transparentes
+        $('img').css({
             'opacity': '1',
             'visibility': 'visible'
+        });
+        
+        // Corregir elementos de header y footer
+        $('header, footer, #masthead, #colophon, .site-header, .site-footer').css({
+            'opacity': '1',
+            'visibility': 'visible',
+            'background-color': ''
+        });
+        
+        // Corregir logos de empresas
+        $('.logo, .brand-logo, .company-logo, .partner-logo').css({
+            'opacity': '1',
+            'visibility': 'visible',
+            'filter': 'none'
         });
     });
     ");
 }
 
-// SOLUCIÓN: Cambiar prioridad a un valor más razonable
-add_action('wp_enqueue_scripts', 'wc_productos_transparency_fix', 100);
+// Agregar la función al hook wp_enqueue_scripts con prioridad muy alta
+add_action('wp_enqueue_scripts', 'wc_productos_transparency_fix', 99999);
 
 /**
  * Función para corregir estilos en el admin
