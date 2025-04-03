@@ -1,16 +1,11 @@
-
 /**
- * COMBINED FIX FOR PRODUCTOS HEADER PLACEMENT
- * This file contains both CSS and JavaScript to fix the H1 and search bar position
+ * CORRECT FIX FOR PRODUCTOS HEADER PLACEMENT
+ * This file contains CSS to properly position the products header
  */
 
-/* CSS FIX - Apply this to search-bar-fix.css */
-/* ========================================== */
-
-/* 1. Force productos-header outside of the grid */
+/* 1. Ensure productos-header is correctly positioned */
 .productos-header {
     grid-column: 1 / -1 !important; /* Span all grid columns */
-    grid-row: 1 !important; /* Force to first row */
     width: 100% !important;
     margin-bottom: 30px !important;
     border-bottom: 1px solid #e2e2e2 !important;
@@ -25,21 +20,21 @@
     clear: both !important;
 }
 
-/* 2. Ensure productos-header is NOT inside the products grid */
+/* 2. Remove absolute positioning that causes the header to float above */
 ul.products .productos-header,
 .productos-grid .productos-header {
-    position: absolute !important;
-    top: -80px !important; /* Move it above the grid */
-    left: 0 !important;
-    right: 0 !important;
+    position: relative !important; /* Changed from absolute to relative */
+    top: auto !important; /* Remove negative top value */
+    left: auto !important;
+    right: auto !important;
     background: #fff !important;
 }
 
-/* 3. Make sure productos container has proper spacing for the header */
+/* 3. Fix container spacing */
 .productos-container,
 .wc-productos-template {
     position: relative !important;
-    padding-top: 80px !important; /* Add space for the absolute positioned header */
+    padding-top: 0 !important; /* Remove extra padding that was compensating for absolute positioning */
     margin-top: 20px !important;
 }
 
