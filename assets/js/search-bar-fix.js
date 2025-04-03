@@ -53,8 +53,9 @@ jQuery(document).ready(function($) {
                 '<div class="productos-header search-fix-header">' +
                 '<h1>' + ($('.woocommerce-products-header__title').text() || 'Productos') + '</h1>' +
                 '<div class="productos-search search-fix-bar">' +
-                '<form role="search" method="get" class="productos-search-form search-fix-form" action="javascript:void(0);">' +
-                '<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+                '<form role="search" method="get" class="productos-search-form search-fix-form" action="' + home_url + '">' +
+'<input type="text" id="productos-search-input" name="s" class="search-fix-input" placeholder="Buscar por nombre, referencia o características..." value="" />' +
+'<input type="hidden" name="post_type" value="product" />' +
                 '<button type="submit" class="productos-search-button search-fix-button" aria-label="Buscar">' +
                 '<i class="fas fa-search" aria-hidden="true"></i>' +
                 '</button>' +
