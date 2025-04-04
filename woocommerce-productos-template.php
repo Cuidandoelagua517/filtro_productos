@@ -455,7 +455,7 @@ private function is_product_page() {
         }
 
 /**
- * AJAX handler para filtrar productos - VERSIÓN MEJORADA PARA BÚSQUEDA
+ * AJAX handler para filtrar productos - Versión simple corregida
  */
 public function ajax_filter_products() {
     // Verificar nonce
@@ -463,9 +463,6 @@ public function ajax_filter_products() {
         wp_send_json_error(array('message' => 'Nonce inválido'));
         exit;
     }
-    
-    // Log para depuración
-    error_log('Recibida solicitud AJAX para filtrar productos');
     
     // Obtener página actual
     $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
@@ -478,122 +475,71 @@ public function ajax_filter_products() {
         'post_status'    => 'publish',
     );
     
-    // Inicializar arrays para taxonomías y meta
+    // Inicializar arrays para taxonomías
     $tax_query = array('relation' => 'AND');
-    $meta_query = array();
     
-    // Filtrar por categoría (ahora con soporte para jerarquía)
+    // Filtrar por categoría
     if (isset($_POST['category']) && !empty($_POST['category'])) {
         $categories = explode(',', sanitize_text_field($_POST['category']));
         if (!empty($categories)) {
-            // Creamos un array para agrupar las categorías
             $category_terms = array();
             
             foreach ($categories as $cat_slug) {
                 $term = get_term_by('slug', $cat_slug, 'product_cat');
                 if ($term) {
                     $category_terms[] = $term->term_id;
-                    
-                    // Si es una categoría padre, también obtener sus hijos si no están explícitamente incluidos
-                    $child_terms = get_terms(array(
-                        'taxonomy' => 'product_cat',
-                        'hide_empty' => true,
-                        'parent' => $term->term_id
-                    ));
-                    
-                    if (!empty($child_terms) && !is_wp_error($child_terms)) {
-                        foreach ($child_terms as $child) {
-                            // Verificar si la categoría hija ya está en la lista
-                            if (!in_array($child->slug, $categories)) {
-                                $category_terms[] = $child->term_id;
-                            }
-                        }
-                    }
                 }
             }
             
-            // Usar 'IN' para permitir cualquiera de las categorías seleccionadas
             if (!empty($category_terms)) {
                 $tax_query[] = array(
                     'taxonomy' => 'product_cat',
                     'field'    => 'term_id',
                     'terms'    => $category_terms,
                     'operator' => 'IN',
-                    'include_children' => true
                 );
             }
         }
     }
     
-    // MEJORA: Búsqueda ampliada - ahora busca en más campos
+    // Filtrar por grado si está definido
+    if (isset($_POST['grade']) && !empty($_POST['grade'])) {
+        $grades = explode(',', sanitize_text_field($_POST['grade']));
+        if (!empty($grades)) {
+            $tax_query[] = array(
+                'taxonomy' => 'pa_grado',
+                'field'    => 'slug',
+                'terms'    => $grades,
+                'operator' => 'IN',
+            );
+        }
+    }
+    
+    // Mejorar la búsqueda - incluir búsqueda en SKU
     if (isset($_POST['search']) && !empty($_POST['search'])) {
         $search_term = sanitize_text_field($_POST['search']);
         
-        // Log del término de búsqueda para depuración
-        error_log('Término de búsqueda: ' . $search_term);
-        
-        // MEJORA 1: Búsqueda en múltiples metadatos
-        $meta_query['relation'] = 'OR';
-        
-        // Búsqueda en SKU
-        $meta_query[] = array(
-            'key'     => '_sku',
-            'value'   => $search_term,
-            'compare' => 'LIKE'
+        // Definir meta_query para buscar en SKU y otros campos meta
+        $meta_query = array(
+            'relation' => 'OR',
+            // Búsqueda en SKU
+            array(
+                'key'     => '_sku',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            ),
+            // Buscar en volumen (si aplica)
+            array(
+                'key'     => '_volumen_ml',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            )
         );
         
-        // Búsqueda en volumen
-        $meta_query[] = array(
-            'key'     => '_volumen_ml',
-            'value'   => $search_term,
-            'compare' => 'LIKE'
-        );
-        
-        // MEJORA 2: Búsqueda en atributos
-        $product_attributes = array('pa_volumen', 'pa_grado');
-        foreach ($product_attributes as $attribute) {
-            // Buscar términos de atributo que coincidan
-            $matching_terms = get_terms(array(
-                'taxonomy'   => $attribute,
-                'name__like' => $search_term,
-                'hide_empty' => false
-            ));
-            
-            if (!empty($matching_terms) && !is_wp_error($matching_terms)) {
-                $term_ids = wp_list_pluck($matching_terms, 'term_id');
-                $tax_query[] = array(
-                    'relation' => 'OR',
-                    array(
-                        'taxonomy' => $attribute,
-                        'field'    => 'term_id',
-                        'terms'    => $term_ids,
-                        'operator' => 'IN'
-                    )
-                );
-            }
-        }
-        
-        // MEJORA 3: Modificar la búsqueda principal para mayor relevancia
-        $args['s'] = $search_term;
-        
-        // Búsqueda por título específicamente con mayor relevancia
-        add_filter('posts_search', function($search, $wp_query) use ($search_term) {
-            global $wpdb;
-            
-            if (!empty($search) && !empty($wp_query->query_vars['search_terms'])) {
-                $title_like = '%' . $wpdb->esc_like($search_term) . '%';
-                $search = str_replace(
-                    'AND (', 
-                    "AND ( ($wpdb->posts.post_title LIKE '$title_like') OR ", 
-                    $search
-                );
-            }
-            
-            return $search;
-        }, 10, 2);
-        
-        // Asignar la consulta de metadatos
         $args['meta_query'] = $meta_query;
+        
+        // También buscar en el título y contenido del producto
+        $args['s'] = $search_term;
     }
     
     // Añadir las consultas de taxonomía solo si hay filtros activos
@@ -601,22 +547,8 @@ public function ajax_filter_products() {
         $args['tax_query'] = $tax_query;
     }
     
-    // MEJORA: Ordenar por relevancia de búsqueda cuando hay un término de búsqueda
-    if (isset($_POST['search']) && !empty($_POST['search'])) {
-        $args['orderby'] = 'relevance';
-    }
-    
-    // Aplicar filtros de WooCommerce
-    $args = apply_filters('woocommerce_product_query_args', $args);
-    
-    // Log de la consulta final
-    error_log('Argumentos de consulta final: ' . print_r($args, true));
-    
     // Ejecutar la consulta
     $products_query = new WP_Query($args);
-    
-    // Log para depuración
-    error_log('Consulta WP_Query ejecutada, encontrados: ' . $products_query->found_posts . ' productos');
     
     // Configurar las propiedades del bucle de WooCommerce
     wc_set_loop_prop('current_page', $page);
@@ -669,55 +601,19 @@ public function ajax_filter_products() {
     $this->render_breadcrumb($page);
     $breadcrumb = ob_get_clean();
     
-    // Incluir scripts de inicialización en la respuesta con mejoras para la búsqueda
-    $init_script = '<script type="text/javascript">
-    jQuery(document).ready(function($) {
-        // Forzar cuadrícula después de la carga AJAX
-        $(".wc-productos-template ul.products, .productos-grid").addClass("force-grid three-column-grid");
-        
-        // Vincular eventos de paginación
-        $(".productos-pagination .page-number").on("click", function(e) {
-            e.preventDefault();
-            var page = $(this).data("page");
-            if (typeof window.filterProducts === "function" && page) {
-                window.filterProducts(page);
-            }
-            return false;
-        });
-        
-        // MEJORA: Restaurar el término de búsqueda en el campo
-        if (typeof window.currentFilters !== "undefined" && window.currentFilters.search) {
-            $(".wc-productos-template .productos-search input").val(window.currentFilters.search);
-        }
-        
-        // MEJORA: Resaltar la búsqueda en los resultados
-        if (typeof window.currentFilters !== "undefined" && window.currentFilters.search) {
-            var searchTerm = window.currentFilters.search;
-            $(".wc-productos-template .producto-titulo a").each(function() {
-                var text = $(this).text();
-                var regex = new RegExp("(" + searchTerm + ")", "gi");
-                if (text.match(regex)) {
-                    $(this).html(text.replace(regex, "<mark>$1</mark>"));
-                }
-            });
-        }
-    });
-    </script>';
-    
     // Enviar respuesta completa
     wp_send_json_success(array(
         'products'     => $products_html,
         'pagination'   => $pagination,
         'breadcrumb'   => $breadcrumb,
-        'init_script'  => $init_script,
         'total'        => $products_query->found_posts,
         'current_page' => $page,
-        'max_pages'    => $products_query->max_num_pages,
-        'search_term'  => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''
+        'max_pages'    => $products_query->max_num_pages
     ));
     
     exit;
 }
+
 /**
  * Renderiza el breadcrumb con soporte para paginación - VERSIÓN CORREGIDA
  */
