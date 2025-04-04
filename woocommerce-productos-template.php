@@ -71,6 +71,8 @@ if (!class_exists('WC_Productos_Template')) {
                 
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
+                add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
+ * add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
                 
                 // Cargar clases adicionales si existen
                 $this->load_classes();
@@ -303,6 +305,182 @@ public function register_scripts() {
         $classes[] = 'wc-productos-template-page';
         return $classes;
     });
+}
+/**
+ * Manejador AJAX simplificado y enfocado en la búsqueda
+ */
+public function ajax_search_products() {
+    // Verificar nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
+        wp_send_json_error(array('message' => 'Error de seguridad, por favor recargue la página'));
+        exit;
+    }
+    
+    // Log para depuración
+    error_log('Recibida solicitud AJAX para buscar productos');
+    
+    // Obtener parámetros
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    $search_term = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+    
+    // Verificar que hay un término de búsqueda
+    if (empty($search_term)) {
+        wp_send_json_error(array('message' => 'El término de búsqueda no puede estar vacío'));
+        exit;
+    }
+    
+    error_log('Término de búsqueda: ' . $search_term);
+    
+    // Configurar argumentos de la consulta
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => get_option('posts_per_page'),
+        'paged'          => $page,
+        'post_status'    => 'publish',
+    );
+    
+    // Crear meta_query para buscar en múltiples campos
+    $meta_query = array('relation' => 'OR');
+    
+    // Buscar en SKU
+    $meta_query[] = array(
+        'key'     => '_sku',
+        'value'   => $search_term,
+        'compare' => 'LIKE'
+    );
+    
+    // Buscar en campos de atributos comunes
+    $attributes = array('pa_volumen', 'pa_grado', 'pa_caracteristicas', '_volumen_ml', '_grado');
+    foreach ($attributes as $attr) {
+        $meta_query[] = array(
+            'key'     => $attr,
+            'value'   => $search_term,
+            'compare' => 'LIKE'
+        );
+    }
+    
+    // Añadir búsqueda estándar (título, contenido, extracto)
+    $args['s'] = $search_term;
+    
+    // Añadir meta_query
+    $args['meta_query'] = $meta_query;
+    
+    // Ejecutar la consulta
+    $products_query = new WP_Query($args);
+    
+    error_log('Productos encontrados: ' . $products_query->found_posts);
+    
+    // Capturar la salida del contenido de productos
+    ob_start();
+    
+    if ($products_query->have_posts()) {
+        woocommerce_product_loop_start();
+        
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            global $product;
+            
+            // Asegurarse de que $product esté configurado correctamente
+            if (!is_a($product, 'WC_Product')) {
+                $product = wc_get_product(get_the_ID());
+            }
+            
+            // Usar template part para producto
+            wc_get_template_part('content', 'product');
+        }
+        
+        woocommerce_product_loop_end();
+    } else {
+        echo '<div class="woocommerce-info">' . 
+            sprintf(esc_html__('No se encontraron productos que coincidan con "%s"', 'wc-productos-template'), 
+                esc_html($search_term)) . 
+            '</div>';
+    }
+    
+    $products_html = ob_get_clean();
+    
+    // Restablecer postdata
+    wp_reset_postdata();
+    
+    // Generar paginación
+    ob_start();
+    
+    if ($products_query->max_num_pages > 1) {
+        echo '<div class="productos-pagination">';
+        
+        echo '<div class="pagination-info">';
+        $start = (($page - 1) * get_option('posts_per_page')) + 1;
+        $end = min($products_query->found_posts, $page * get_option('posts_per_page'));
+        
+        printf(
+            esc_html__('Mostrando %1$d-%2$d de %3$d resultados para "%4$s"', 'wc-productos-template'),
+            $start,
+            $end,
+            $products_query->found_posts,
+            esc_html($search_term)
+        );
+        
+        echo '</div>';
+        
+        echo '<div class="pagination-links">';
+        
+        // Botón "Anterior"
+        if ($page > 1) {
+            echo '<a href="javascript:void(0);" class="page-number page-prev" data-page="' . ($page - 1) . '">←</a>';
+        }
+        
+        // Números de página
+        $start_page = max(1, $page - 2);
+        $end_page = min($products_query->max_num_pages, $page + 2);
+        
+        if ($start_page > 1) {
+            echo '<a href="javascript:void(0);" class="page-number" data-page="1">1</a>';
+            
+            if ($start_page > 2) {
+                echo '<span class="page-dots">...</span>';
+            }
+        }
+        
+        for ($i = $start_page; $i <= $end_page; $i++) {
+            $active_class = ($i === $page) ? ' active' : '';
+            echo '<a href="javascript:void(0);" class="page-number' . $active_class . '" data-page="' . $i . '">' . $i . '</a>';
+        }
+        
+        if ($end_page < $products_query->max_num_pages) {
+            if ($end_page < $products_query->max_num_pages - 1) {
+                echo '<span class="page-dots">...</span>';
+            }
+            
+            echo '<a href="javascript:void(0);" class="page-number" data-page="' . $products_query->max_num_pages . '">' . $products_query->max_num_pages . '</a>';
+        }
+        
+        // Botón "Siguiente"
+        if ($page < $products_query->max_num_pages) {
+            echo '<a href="javascript:void(0);" class="page-number page-next" data-page="' . ($page + 1) . '">→</a>';
+        }
+        
+        echo '</div>';
+        echo '</div>';
+    }
+    
+    $pagination = ob_get_clean();
+    
+    // Preparar y enviar respuesta
+    wp_send_json_success(array(
+        'products'     => $products_html,
+        'pagination'   => $pagination,
+        'total'        => $products_query->found_posts,
+        'current_page' => $page,
+        'max_pages'    => $products_query->max_num_pages,
+        'search_term'  => $search_term,
+        'message'      => sprintf(
+            __('Se encontraron %d productos para "%s"', 'wc-productos-template'),
+            $products_query->found_posts,
+            $search_term
+        )
+    ));
+    
+    exit;
 }
 
         
