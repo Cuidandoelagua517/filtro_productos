@@ -72,13 +72,179 @@ if (!class_exists('WC_Productos_Template')) {
                 // Agregar shortcodes
                 add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
                 add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
- * add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+  add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+  add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
+ add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+ // En el constructor:
+$this->integrate_with_woocommerce_search();
                 
                 // Cargar clases adicionales si existen
                 $this->load_classes();
             }
         }
+        /**
+ * Función para registrar y cargar el script de búsqueda directa
+ * Añadir al método register_scripts() en la clase WC_Productos_Template
+ */
+public function register_search_script() {
+    // Verificar si estamos en una página donde se necesita el script
+    if (!$this->is_product_page()) {
+        return;
+    }
+    
+    // Ruta al script de búsqueda directa
+    $search_script_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/producto-search-direct.js';
+    
+    // Si el archivo no existe, crear uno nuevo con el contenido de la solución
+    if (!file_exists($search_script_file)) {
+        $this->create_search_script_file($search_script_file);
+    }
+    
+    // Registrar y encolar el script
+    wp_enqueue_script(
+        'wc-productos-search-direct',
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/producto-search-direct.js',
+        array('jquery', 'wc-productos-template-script'),
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
+        true
+    );
+    
+    // Localizar el script con parámetros necesarios
+    wp_localize_script('wc-productos-search-direct', 'WCProductosSearch', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('productos_filter_nonce'),
+        'action' => 'productos_filter', // O 'productos_search' si se usa el nuevo endpoint
+        'loading_text' => __('Buscando productos...', 'wc-productos-template'),
+        'error_text' => __('Error al buscar productos. Intente nuevamente.', 'wc-productos-template'),
+        'no_results_text' => __('No se encontraron productos que coincidan con su búsqueda.', 'wc-productos-template'),
+        'current_search' => get_search_query()
+    ));
+    
+    // Añadir script inline para inicializar inmediatamente la búsqueda
+    wp_add_inline_script('wc-productos-search-direct', '
+        jQuery(document).ready(function($) {
+            // Inicializar inmediatamente para conectar la búsqueda
+            if (typeof window.connectProductSearch === "function") {
+                window.connectProductSearch();
+                console.log("Búsqueda directa inicializada");
+            }
+        });
+    ');
+}
+
+/**
+ * Función para crear el archivo de script de búsqueda directa
+ */
+private function create_search_script_file($file_path) {
+    // Contenido del script (usar el contenido del primer artefacto)
+    $js_content = <<<'EOT'
+/**
+ * SOLUCIÓN DIRECTA: Conectar barra de búsqueda con AJAX
+ */
+
+jQuery(document).ready(function($) {
+    console.log('Inicializando conexión directa de búsqueda con AJAX');
+    
+    // Función para realizar la búsqueda AJAX
+    function executeSearch(searchTerm) {
+        console.log('Ejecutando búsqueda AJAX para:', searchTerm);
         
+        // Mostrar mensaje de carga
+        var $mainContent = $('.wc-productos-template .productos-main');
+        if (!$mainContent.find('.loading').length) {
+            $mainContent.append('<div class="loading">' + 
+                (typeof WCProductosSearch !== 'undefined' ? 
+                WCProductosSearch.loading_text : 'Buscando productos...') + 
+                '</div>');
+        }
+        
+        // Realizar petición AJAX
+        $.ajax({
+            url: typeof WCProductosSearch !== 'undefined' ? WCProductosSearch.ajaxurl : ajaxurl,
+            type: 'POST',
+            data: {
+                action: typeof WCProductosSearch !== 'undefined' ? WCProductosSearch.action : 'productos_filter',
+                nonce: typeof WCProductosSearch !== 'undefined' ? WCProductosSearch.nonce : '',
+                page: 1, // Siempre empezar en página 1 para búsquedas
+                search: searchTerm
+            },
+            success: function(response) {
+                console.log('Respuesta de búsqueda recibida:', response);
+                
+                // Eliminar mensaje de carga
+                $mainContent.find('.loading').remove();
+                
+                if (response.success) {
+                    // Actualizar productos
+                    var $productsWrapper = $('.wc-productos-template .productos-wrapper');
+                    
+                    if ($productsWrapper.length) {
+                        // Eliminar cuadrícula anterior y mensaje de no productos
+                        $productsWrapper.find('ul.products, .productos-grid, .woocommerce-info, .no-products-found').remove();
+                        
+                        // Insertar nuevo HTML
+                        $productsWrapper.prepend(response.data.products);
+                        
+                        // Actualizar paginación si existe
+                        if (response.data.pagination) {
+                            var $pagination = $('.wc-productos-template .productos-pagination');
+                            if ($pagination.length) {
+                                $pagination.replaceWith(response.data.pagination);
+                            } else {
+                                $productsWrapper.append(response.data.pagination);
+                            }
+                        }
+                        
+                        // Actualizar URL con el término de búsqueda
+                        if (window.history && window.history.replaceState) {
+                            var url = new URL(window.location.href);
+                            url.searchParams.set('s', searchTerm);
+                            window.history.replaceState({}, '', url.toString());
+                        }
+                        
+                        // Forzar cuadrícula y enlazar eventos
+                        setTimeout(function() {
+                            if (typeof forceGridLayout === 'function') {
+                                forceGridLayout();
+                            }
+                            bindSearchPaginationEvents();
+                        }, 100);
+                    } else {
+                        console.error('No se encontró el contenedor de productos (.productos-wrapper)');
+                    }
+                } else {
+                    console.error('Error en la respuesta AJAX:', response);
+                    $mainContent.append('<div class="woocommerce-info">' + 
+                        (typeof WCProductosSearch !== 'undefined' ? 
+                        WCProductosSearch.error_text : 'Error al buscar productos. Intente nuevamente.') + 
+                        '</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', status, error);
+                $mainContent.find('.loading').remove();
+                $mainContent.append('<div class="woocommerce-info">' + 
+                    (typeof WCProductosSearch !== 'undefined' ? 
+                    WCProductosSearch.error_text : 'Error al buscar productos. Intente nuevamente.') + 
+                    '</div>');
+            }
+        });
+    }
+    
+    // Resto del código del primer artefacto...
+    // [...]
+    
+    // Exponer funciones para uso global
+    window.connectProductSearch = connectSearchBar;
+    window.executeProductSearch = executeSearch;
+});
+EOT;
+
+    // Guardar el archivo
+    file_put_contents($file_path, $js_content);
+    
+    return true;
+}
         /**
          * Declarar compatibilidad con HPOS (High-Performance Order Storage)
          */
@@ -1068,8 +1234,7 @@ public function inject_search_variables() {
 /**
  * Agregar este código al constructor de la clase WC_Productos_Template:
  */
-// En el constructor:
-$this->integrate_with_woocommerce_search();
+
 /**
  * Renderiza el breadcrumb con soporte para paginación - VERSIÓN CORREGIDA
  */
