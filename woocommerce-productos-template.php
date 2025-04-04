@@ -79,6 +79,7 @@ public function __construct() {
         add_action('wp_ajax_dpc_get_login_form', array($this, 'ajax_get_login_form'));
         add_action('wp_ajax_nopriv_dpc_get_login_form', array($this, 'ajax_get_login_form'));
         add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
+        add_action('wp_ajax_nopriv_mam_ajax_register', array($this, 'ajax_process_register'));
         
         // En el constructor:
         $this->integrate_with_woocommerce_search();
@@ -1714,7 +1715,167 @@ public function render_pagination($max_pages, $current_page = 1) {
     // Activación del plugin
     register_activation_hook(__FILE__, 'wc_productos_template_activate');
 }
+/**
+ * Endpoint AJAX para procesar el registro de usuarios
+ * Añadir a la clase WC_Productos_Template
+ */
+public function ajax_process_register() {
+    // Verificar nonce de seguridad
+    check_ajax_referer('mam-nonce', 'security');
+    
+    // Si el usuario ya está logueado, devolver mensaje
+    if (is_user_logged_in()) {
+        wp_send_json_error(array(
+            'message' => __('Ya has iniciado sesión', 'wc-productos-template')
+        ));
+        return;
+    }
+    
+    // Validar campos requeridos
+    $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+    if (empty($email)) {
+        wp_send_json_error(array(
+            'message' => __('El correo electrónico es obligatorio', 'wc-productos-template')
+        ));
+        return;
+    }
+    
+    // Extraer los datos del formulario
+    $username = '';
+    if (isset($_POST['username']) && 'no' === get_option('woocommerce_registration_generate_username')) {
+        $username = sanitize_user($_POST['username']);
+    }
+    
+    $password = '';
+    if (isset($_POST['password']) && 'no' === get_option('woocommerce_registration_generate_password')) {
+        $password = $_POST['password'];
+    }
 
+    // Datos de empresa y CUIT
+    $company_name = isset($_POST['company_name']) ? sanitize_text_field($_POST['company_name']) : '';
+    $cuit = isset($_POST['cuit']) ? sanitize_text_field($_POST['cuit']) : '';
+    
+    // Datos personales
+    $first_name = isset($_POST['first_name']) ? sanitize_text_field($_POST['first_name']) : '';
+    $last_name = isset($_POST['last_name']) ? sanitize_text_field($_POST['last_name']) : '';
+    $phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+    
+    // Verificar política de privacidad
+    if (!isset($_POST['privacy_policy']) || empty($_POST['privacy_policy'])) {
+        wp_send_json_error(array(
+            'message' => __('Debes aceptar la política de privacidad', 'wc-productos-template')
+        ));
+        return;
+    }
+    
+    // Verificar que el correo no esté ya registrado
+    if (email_exists($email)) {
+        wp_send_json_error(array(
+            'message' => __('Este correo electrónico ya está registrado. Por favor, inicia sesión.', 'wc-productos-template')
+        ));
+        return;
+    }
+    
+    // Si necesitamos generar nombre de usuario
+    if (empty($username)) {
+        $username = wc_create_new_customer_username($email);
+    }
+    
+    // Si necesitamos generar contraseña
+    $password_generated = false;
+    if (empty($password)) {
+        $password = wp_generate_password();
+        $password_generated = true;
+    }
+    
+    // Crear el nuevo usuario
+    $new_customer_data = array(
+        'user_login' => $username,
+        'user_pass'  => $password,
+        'user_email' => $email,
+        'role'       => 'customer',
+    );
+    
+    // Añadir nombre completo si está presente
+    if (!empty($first_name)) {
+        $new_customer_data['first_name'] = $first_name;
+    }
+    if (!empty($last_name)) {
+        $new_customer_data['last_name'] = $last_name;
+    }
+    
+    // Crear el usuario
+    $user_id = wp_insert_user($new_customer_data);
+    
+    // Verificar si hubo un error
+    if (is_wp_error($user_id)) {
+        wp_send_json_error(array(
+            'message' => $user_id->get_error_message()
+        ));
+        return;
+    }
+    
+    // Guardar campos personalizados (metadatos)
+    if (!empty($company_name)) {
+        update_user_meta($user_id, 'billing_company', $company_name);
+        update_user_meta($user_id, 'company_name', $company_name);
+    }
+    if (!empty($cuit)) {
+        update_user_meta($user_id, 'billing_cuit', $cuit);
+        update_user_meta($user_id, 'cuit', $cuit);
+    }
+    if (!empty($phone)) {
+        update_user_meta($user_id, 'billing_phone', $phone);
+        update_user_meta($user_id, 'phone', $phone);
+    }
+    
+    // Registrar fecha de aceptación de política de privacidad
+    if (isset($_POST['privacy_policy']) && !empty($_POST['privacy_policy'])) {
+        update_user_meta($user_id, 'privacy_policy_consent', 'yes');
+        update_user_meta($user_id, 'privacy_policy_consent_date', current_time('mysql'));
+    }
+    
+    // IMPORTANTE: Enviar email de WooCommerce para la nueva cuenta
+    if (class_exists('WC_Emails') && function_exists('WC')) {
+        // Asegurarnos de que los emails estén cargados
+        WC()->mailer();
+        
+        // Disparar el email de nueva cuenta
+        do_action('woocommerce_created_customer', $user_id, $new_customer_data, $password_generated);
+        
+        // Forma alternativa como respaldo:
+        if (WC()->mailer()->emails['WC_Email_Customer_New_Account']) {
+            WC()->mailer()->emails['WC_Email_Customer_New_Account']->trigger($user_id, $password_generated, $password);
+        }
+    }
+    
+    // Iniciar sesión automáticamente si no se generó contraseña
+    if (!$password_generated) {
+        wc_set_customer_auth_cookie($user_id);
+    }
+    
+    // Notificar al administrador (opcional)
+    wp_new_user_notification($user_id, null, 'admin');
+    
+    // Determinar URL de redirección
+    if (!empty($_SERVER['HTTP_REFERER'])) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    } else {
+        $redirect_url = home_url();
+    }
+    
+    // Añadir parámetro para forzar recarga
+    $redirect_url = add_query_arg('dpc_refresh', time(), $redirect_url);
+    
+    // Respuesta exitosa
+    wp_send_json_success(array(
+        'message' => $password_generated ? 
+            __('Registro exitoso. Se ha enviado un correo con la información de acceso.', 'wc-productos-template') : 
+            __('Registro exitoso. Iniciando sesión...', 'wc-productos-template'),
+        'redirect_url' => $redirect_url,
+        'user_id' => $user_id
+    ));
+}
 /**
  * Función para activar el plugin
  */
