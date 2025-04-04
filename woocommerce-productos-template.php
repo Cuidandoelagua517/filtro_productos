@@ -42,57 +42,66 @@ define('WC_PRODUCTOS_TEMPLATE_ASSETS_DIR', WC_PRODUCTOS_TEMPLATE_DIR . 'assets/'
 if (!class_exists('WC_Productos_Template')) {
 
     class WC_Productos_Template {
-
-        /**
-         * Constructor
-         */
-        public function __construct() {
-            // Verificar si WooCommerce está activo
-            if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-                // Declarar compatibilidad con HPOS
-                add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
-                
-                // Inicializar el plugin
-                add_action('init', array($this, 'init'));
-                
-                // Registrar scripts y estilos
-                add_action('wp_enqueue_scripts', array($this, 'register_scripts'), 999);
-                
-                // Sobreescribir templates de WooCommerce
-                add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 999, 3);
-                add_filter('wc_get_template_part', array($this, 'override_template_parts'), 999, 3);
+/**
+ * Constructor
+ */
+public function __construct() {
+    // Verificar si WooCommerce está activo
+    if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+        // Declarar compatibilidad con HPOS
+        add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
+        
+        // Inicializar el plugin
+        add_action('init', array($this, 'init'));
+        
+        // Registrar scripts y estilos
+        add_action('wp_enqueue_scripts', array($this, 'register_scripts'), 999);
+        
+        // Sobreescribir templates de WooCommerce
+        add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 999, 3);
+        add_filter('wc_get_template_part', array($this, 'override_template_parts'), 999, 3);
  
-                // Agregar AJAX handlers
-                add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
-                add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
-                
-                // Método alternativo para cargar templates personalizados
-                add_filter('template_include', array($this, 'template_loader'));
-                
-                // Agregar shortcodes
-                add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
-                add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
-  add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
-  add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
- add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
-                 // Endpoints para el popup de login
-    add_action('wp_ajax_dpc_get_login_form', array($this, 'ajax_get_login_form'));
-    add_action('wp_ajax_nopriv_dpc_get_login_form', array($this, 'ajax_get_login_form'));
-    add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
-                // Reemplazar precios para usuarios no logueados
-if (!is_user_logged_in()) {
-    add_filter('woocommerce_get_price_html', array($this, 'replace_price_with_login_button'), 10, 2);
-    add_filter('woocommerce_loop_add_to_cart_link', array($this, 'replace_add_to_cart_button'), 10, 2);
+        // Agregar AJAX handlers
+        add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
+        add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
+        
+        // Método alternativo para cargar templates personalizados
+        add_filter('template_include', array($this, 'template_loader'));
+        
+        // Agregar shortcodes
+        add_shortcode('productos_personalizados', array($this, 'productos_shortcode'));
+        add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
+        add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+        add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
+        add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+        
+        // Endpoints para el popup de login
+        add_action('wp_ajax_dpc_get_login_form', array($this, 'ajax_get_login_form'));
+        add_action('wp_ajax_nopriv_dpc_get_login_form', array($this, 'ajax_get_login_form'));
+        add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
+        
+        // En el constructor:
+        $this->integrate_with_woocommerce_search();
+        
+        // Cargar clases adicionales si existen
+        $this->load_classes();
+        
+        // Agregar hook para configurar filtros cuando WordPress esté listo
+        add_action('wp_loaded', array($this, 'setup_user_filters'));
+    }
 }
 
+/**
+ * Configura los filtros para usuarios no logueados
+ * Este método se ejecuta después de que WordPress está completamente cargado
+ */
+public function setup_user_filters() {
+    // Ahora podemos usar funciones de WordPress con seguridad
+    if (!is_user_logged_in()) {
+        add_filter('woocommerce_get_price_html', array($this, 'replace_price_with_login_button'), 10, 2);
+        add_filter('woocommerce_loop_add_to_cart_link', array($this, 'replace_add_to_cart_button'), 10, 2);
+    }
 }
- // En el constructor:
-$this->integrate_with_woocommerce_search();
-                
-                // Cargar clases adicionales si existen
-                $this->load_classes();
-            }
-        }
     /**
  * Reemplazar el botón "Añadir al carrito" con un botón "Ver Precio" para usuarios no logueados
  */
