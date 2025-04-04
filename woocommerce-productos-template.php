@@ -499,7 +499,7 @@ public function register_scripts() {
     });
 }
 
-        /**
+    /**
  * Endpoint AJAX para obtener el formulario de login/registro
  */
 public function ajax_get_login_form() {
@@ -539,7 +539,8 @@ public function ajax_get_login_form() {
     ));
 }
 
-        /**
+
+/**
  * Endpoint AJAX para procesar el login
  */
 public function ajax_process_login() {
@@ -587,6 +588,7 @@ public function ajax_process_login() {
         'user_id' => $user->ID
     ));
 }
+
 /**
  * Manejador AJAX simplificado y enfocado en la búsqueda
  */
