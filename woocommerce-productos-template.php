@@ -811,10 +811,15 @@ public function ajax_filter_products() {
     // Log para depuración
     error_log('Recibida solicitud AJAX para filtrar productos');
     
-    // Obtener página actual
+    // Obtener parámetros de la solicitud
     $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    $search_term = isset($_POST['search']) ? trim(sanitize_text_field($_POST['search'])) : '';
+    $category = isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '';
     
-    // Configurar argumentos base de la consulta
+    // Log de parámetros para depuración
+    error_log('Parámetros: page=' . $page . ', search=' . $search_term . ', category=' . $category);
+    
+    // Configurar argumentos básicos de la consulta
     $args = array(
         'post_type'      => 'product',
         'posts_per_page' => get_option('posts_per_page'),
@@ -822,123 +827,65 @@ public function ajax_filter_products() {
         'post_status'    => 'publish',
     );
     
-    // Inicializar arrays para taxonomías y meta queries
-    $tax_query = array('relation' => 'AND');
-    $meta_query = array('relation' => 'AND');
-    
-    // Filtrar por categoría (ahora con soporte para jerarquía)
-    if (isset($_POST['category']) && !empty($_POST['category'])) {
-        $categories = explode(',', sanitize_text_field($_POST['category']));
-        if (!empty($categories)) {
-            // Creamos un array para agrupar las categorías
-            $category_terms = array();
-            
-            foreach ($categories as $cat_slug) {
-                $term = get_term_by('slug', $cat_slug, 'product_cat');
-                if ($term) {
-                    $category_terms[] = $term->term_id;
-                    
-                    // Si es una categoría padre, también obtener sus hijos si no están explícitamente incluidos
-                    $child_terms = get_terms(array(
-                        'taxonomy' => 'product_cat',
-                        'hide_empty' => true,
-                        'parent' => $term->term_id
-                    ));
-                    
-                    if (!empty($child_terms) && !is_wp_error($child_terms)) {
-                        foreach ($child_terms as $child) {
-                            // Verificar si la categoría hija ya está en la lista
-                            if (!in_array($child->slug, $categories)) {
-                                $category_terms[] = $child->term_id;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Usar 'IN' para permitir cualquiera de las categorías seleccionadas
-            if (!empty($category_terms)) {
-                $tax_query[] = array(
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => $category_terms,
-                    'operator' => 'IN',
-                    'include_children' => true
-                );
-            }
-        }
-    }
-    
-    // MODIFICADO: Mejorar la funcionalidad de búsqueda para incluir más campos
-    if (isset($_POST['search']) && !empty($_POST['search'])) {
-        $search_term = sanitize_text_field($_POST['search']);
-        
-        // Crear meta_query para buscar en múltiples campos de meta
-        $search_meta_query = array('relation' => 'OR');
-        
-        // Buscar en SKU (alta prioridad para referencias)
-        $search_meta_query[] = array(
-            'key'     => '_sku',
-            'value'   => $search_term,
-            'compare' => 'LIKE'
-        );
-        
-        // Buscar en campos personalizados comunes
-        $custom_fields = array(
-            '_volumen_ml',          // Campo personalizado para volumen
-            '_grado',               // Campo personalizado para grado
-            '_caracteristicas',     // Campo potencial para características
-            '_referencia_interna',  // Campo potencial para referencia interna
-            '_ref',                 // Otra posible referencia
-            'pa_volumen',           // Atributo de volumen
-            'pa_grado',             // Atributo de grado
-            'pa_caracteristicas'    // Atributo de características
-        );
-        
-        foreach ($custom_fields as $field) {
-            $search_meta_query[] = array(
-                'key'     => $field,
-                'value'   => $search_term,
-                'compare' => 'LIKE'
-            );
-        }
-        
-        // Añadir búsqueda en título y contenido (estándar de WordPress)
+    // Añadir búsqueda si hay un término
+    if (!empty($search_term)) {
+        // SOLUCIÓN: Usar una consulta simplificada para búsqueda
+        // No combinar 's' con meta_query compleja para evitar restricciones excesivas
         $args['s'] = $search_term;
         
-        // Añadir meta_query para buscar en campos específicos
-        $meta_query[] = $search_meta_query;
-        
-        // IMPORTANTE: Registrar filtro para mejorar la relevancia de resultados
-        add_filter('posts_search', array($this, 'enhance_product_search'), 10, 2);
-        
-        // Log para depuración
-        error_log('Buscando término: ' . $search_term);
+        // Agregar parámetro para post_title (alta prioridad)
+        add_filter('posts_search', function($search, $wp_query) use ($search_term) {
+            global $wpdb;
+            
+            if (empty($search) || !is_search() || !isset($wp_query->query_vars['s'])) {
+                return $search;
+            }
+            
+            $like = '%' . $wpdb->esc_like($search_term) . '%';
+            
+            // Buscar en título, contenido o SKU (como meta)
+            $search = " AND (
+                ($wpdb->posts.post_title LIKE '$like') OR 
+                ($wpdb->posts.post_content LIKE '$like') OR 
+                ($wpdb->posts.post_excerpt LIKE '$like') OR
+                EXISTS (
+                    SELECT * FROM $wpdb->postmeta 
+                    WHERE $wpdb->postmeta.post_id = $wpdb->posts.ID 
+                    AND (
+                        ($wpdb->postmeta.meta_key = '_sku' AND $wpdb->postmeta.meta_value LIKE '$like') OR
+                        ($wpdb->postmeta.meta_key LIKE 'pa_%' AND $wpdb->postmeta.meta_value LIKE '$like')
+                    )
+                )
+            )";
+            
+            return $search;
+        }, 999, 2);
     }
     
-    // Añadir las consultas de taxonomía solo si hay filtros activos
-    if (count($tax_query) > 1) {
-        $args['tax_query'] = $tax_query;
+    // Filtrar por categoría si está especificada
+    if (!empty($category)) {
+        $categories = explode(',', $category);
+        if (!empty($categories)) {
+            $args['tax_query'] = array(
+                array(
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'slug',
+                    'terms'    => $categories,
+                    'operator' => 'IN',
+                    'include_children' => true
+                )
+            );
+        }
     }
     
-    // Añadir las consultas de meta solo si hay filtros activos
-    if (count($meta_query) > 1) {
-        $args['meta_query'] = $meta_query;
-    }
-    
-    // Aplicar filtros de WooCommerce
-    $args = apply_filters('woocommerce_product_query_args', $args);
+    // Log de la consulta final
+    error_log('Argumentos de consulta: ' . json_encode($args));
     
     // Ejecutar la consulta
     $products_query = new WP_Query($args);
     
-    // Limpiar filtro de búsqueda después de la consulta
-    if (isset($_POST['search']) && !empty($_POST['search'])) {
-        remove_filter('posts_search', array($this, 'enhance_product_search'), 10);
-    }
-    
-    // Log para depuración
-    error_log('Consulta WP_Query ejecutada, encontrados: ' . $products_query->found_posts . ' productos');
+    // Log del resultado
+    error_log('Productos encontrados: ' . $products_query->found_posts);
     
     // Configurar las propiedades del bucle de WooCommerce
     wc_set_loop_prop('current_page', $page);
@@ -981,14 +928,124 @@ public function ajax_filter_products() {
     // Restablecer datos del post después de la consulta
     wp_reset_postdata();
     
+    // Eliminar el filtro de búsqueda personalizado
+    if (!empty($search_term)) {
+        remove_all_filters('posts_search', 999);
+    }
+    
     // Generar paginación
     ob_start();
-    $this->render_pagination($products_query->max_num_pages, $page);
+    
+    if ($products_query->max_num_pages > 1) {
+        echo '<div class="productos-pagination">';
+        
+        echo '<div class="pagination-info">';
+        $start = (($page - 1) * get_option('posts_per_page')) + 1;
+        $end = min($products_query->found_posts, $page * get_option('posts_per_page'));
+        
+        printf(
+            esc_html__('Mostrando %1$d-%2$d de %3$d resultados', 'wc-productos-template'),
+            $start,
+            $end,
+            $products_query->found_posts
+        );
+        
+        echo '</div>';
+        
+        echo '<div class="pagination-links">';
+        
+        // Botón "Anterior"
+        if ($page > 1) {
+            echo '<a href="javascript:void(0);" class="page-number page-prev" data-page="' . ($page - 1) . '">←</a>';
+        }
+        
+        // Números de página
+        $start_page = max(1, $page - 2);
+        $end_page = min($products_query->max_num_pages, $page + 2);
+        
+        if ($start_page > 1) {
+            echo '<a href="javascript:void(0);" class="page-number" data-page="1">1</a>';
+            
+            if ($start_page > 2) {
+                echo '<span class="page-dots">...</span>';
+            }
+        }
+        
+        for ($i = $start_page; $i <= $end_page; $i++) {
+            $active_class = ($i === $page) ? ' active' : '';
+            echo '<a href="javascript:void(0);" class="page-number' . $active_class . '" data-page="' . $i . '">' . $i . '</a>';
+        }
+        
+        if ($end_page < $products_query->max_num_pages) {
+            if ($end_page < $products_query->max_num_pages - 1) {
+                echo '<span class="page-dots">...</span>';
+            }
+            
+            echo '<a href="javascript:void(0);" class="page-number" data-page="' . $products_query->max_num_pages . '">' . $products_query->max_num_pages . '</a>';
+        }
+        
+        // Botón "Siguiente"
+        if ($page < $products_query->max_num_pages) {
+            echo '<a href="javascript:void(0);" class="page-number page-next" data-page="' . ($page + 1) . '">→</a>';
+        }
+        
+        echo '</div>';
+        echo '</div>';
+    }
+    
     $pagination = ob_get_clean();
     
     // Generar breadcrumb actualizado
     ob_start();
-    $this->render_breadcrumb($page);
+    
+    if (function_exists('woocommerce_breadcrumb')) {
+        if ($page > 1 || !empty($search_term)) {
+            // Breadcrumb personalizado para búsqueda/paginación
+            $breadcrumb_args = apply_filters('woocommerce_breadcrumb_defaults', array(
+                'delimiter'   => '&nbsp;&#47;&nbsp;',
+                'wrap_before' => '<nav class="woocommerce-breadcrumb">',
+                'wrap_after'  => '</nav>',
+                'before'      => '',
+                'after'       => '',
+                'home'        => _x('Inicio', 'breadcrumb', 'woocommerce'),
+            ));
+            
+            echo $breadcrumb_args['wrap_before'];
+            
+            // Inicio
+            echo $breadcrumb_args['before'];
+            echo '<a href="' . esc_url(home_url()) . '">' . esc_html($breadcrumb_args['home']) . '</a>';
+            echo $breadcrumb_args['after'] . $breadcrumb_args['delimiter'];
+            
+            // Tienda (si existe)
+            $shop_page_id = wc_get_page_id('shop');
+            if ($shop_page_id > 0 && $shop_page_id !== get_option('page_on_front')) {
+                echo $breadcrumb_args['before'];
+                echo '<a href="' . esc_url(get_permalink($shop_page_id)) . '">' . esc_html(get_the_title($shop_page_id)) . '</a>';
+                echo $breadcrumb_args['after'];
+                
+                if (!empty($search_term)) {
+                    echo $breadcrumb_args['delimiter'];
+                    echo $breadcrumb_args['before'];
+                    echo esc_html__('Búsqueda', 'wc-productos-template');
+                    echo $breadcrumb_args['after'];
+                }
+                
+                if ($page > 1) {
+                    echo $breadcrumb_args['delimiter'];
+                    echo $breadcrumb_args['before'];
+                    echo sprintf(esc_html__('Página %d', 'wc-productos-template'), $page);
+                    echo $breadcrumb_args['after'];
+                }
+            }
+            
+            echo $breadcrumb_args['wrap_after'];
+        } else {
+            // Breadcrumb estándar
+            woocommerce_breadcrumb();
+        }
+    }
+    
     $breadcrumb = ob_get_clean();
     
     // Incluir scripts de inicialización en la respuesta
@@ -1024,7 +1081,8 @@ public function ajax_filter_products() {
         'total'        => $products_query->found_posts,
         'current_page' => $page,
         'max_pages'    => $products_query->max_num_pages,
-        'search_term'  => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''
+        'search_term'  => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '',
+        'query_vars'   => $args // Para depuración
     ));
     
     exit;
