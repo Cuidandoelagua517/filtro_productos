@@ -79,6 +79,12 @@ if (!class_exists('WC_Productos_Template')) {
     add_action('wp_ajax_dpc_get_login_form', array($this, 'ajax_get_login_form'));
     add_action('wp_ajax_nopriv_dpc_get_login_form', array($this, 'ajax_get_login_form'));
     add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
+                // Reemplazar precios para usuarios no logueados
+if (!is_user_logged_in()) {
+    add_filter('woocommerce_get_price_html', array($this, 'replace_price_with_login_button'), 10, 2);
+    add_filter('woocommerce_loop_add_to_cart_link', array($this, 'replace_add_to_cart_button'), 10, 2);
+}
+
 }
  // En el constructor:
 $this->integrate_with_woocommerce_search();
@@ -87,6 +93,14 @@ $this->integrate_with_woocommerce_search();
                 $this->load_classes();
             }
         }
+    /**
+ * Reemplazar el botón "Añadir al carrito" con un botón "Ver Precio" para usuarios no logueados
+ */
+public function replace_add_to_cart_button($html, $product) {
+    $product_id = $product->get_id();
+    return '<a href="#" class="dpc-login-to-view button" data-product-id="' . esc_attr($product_id) . '">' . 
+        __('Ver Precio', 'wc-productos-template') . '</a>';
+}
         /**
  * Función para registrar y cargar el script de búsqueda directa
  * Añadir al método register_scripts() en la clase WC_Productos_Template
@@ -271,7 +285,11 @@ EOT;
                 WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-metabox.php',
                 WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-productos-orders.php'
             );
-            
+            // Crear el archivo de template de login si no existe
+$login_template_path = WC_PRODUCTOS_TEMPLATE_TEMPLATES_DIR . 'login-form.php';
+if (!file_exists($login_template_path) && file_exists(WC_PRODUCTOS_TEMPLATE_DIR . 'templates/login-form.php')) {
+    copy(WC_PRODUCTOS_TEMPLATE_DIR . 'templates/login-form.php', $login_template_path);
+}
             // Incluir archivos de clase si existen
             foreach ($class_files as $class_file) {
                 if (file_exists($class_file)) {
@@ -369,13 +387,13 @@ public function register_scripts() {
     if (!file_exists($productos_css_file)) {
         $this->create_default_css_file($productos_css_file);
     }
-     // Registrar CSS para el popup de login/registro
-    wp_register_style(
-        'dpc-carousel-popup',
-        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/carousel-popup.css',
-        array('wc-productos-template-styles'),
-        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
-    );
+// Modificar la línea donde se registra el CSS del popup
+wp_register_style(
+    'dpc-carousel-popup',
+    WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/carousel-popup.css',
+    array(), // Quitar la dependencia para asegurar que se cargue
+    WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
+);
     
     // Registrar JS para el popup de login/registro
     wp_register_script(
@@ -385,7 +403,17 @@ public function register_scripts() {
         WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
         true
     );
-    
+    // Localizar el script para el popup de login
+wp_localize_script('dpc-carousel-popup', 'dpcConfig', array(
+    'ajaxUrl' => admin_url('admin-ajax.php'),
+    'loginFormNonce' => wp_create_nonce('dpc_login_form_nonce'),
+    'i18n' => array(
+        'loginRequired' => __('Necesitas iniciar sesión para ver esta información', 'wc-productos-template'),
+        'loginError' => __('Error al iniciar sesión', 'wc-productos-template'),
+        'connectionError' => __('Error de conexión', 'wc-productos-template')
+    ),
+    'isLoggedIn' => is_user_logged_in()
+));
     // Si el usuario no está logueado, cargar estos scripts automáticamente
     if (!is_user_logged_in()) {
         wp_enqueue_style('dpc-carousel-popup');
@@ -928,7 +956,7 @@ public function ajax_filter_products() {
     $is_logged_in = is_user_logged_in();
     
     // Pasamos esta información a las propiedades del loop para acceder en los templates
-    wc_set_loop_prop('is_user_logged_in', $is_logged_in)
+   wc_set_loop_prop('is_user_logged_in', $is_logged_in);
     // Log para depuración
     error_log('Recibida solicitud AJAX para filtrar productos');
     
