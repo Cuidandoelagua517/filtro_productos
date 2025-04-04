@@ -733,6 +733,165 @@ public function add_search_body_class($classes) {
     }
     return $classes;
 }
+        /**
+ * Código para añadir al archivo woocommerce-productos-template.php
+ * Este código debe ir dentro de la clase WC_Productos_Template
+ */
+
+/**
+ * Integración con la búsqueda estándar de WooCommerce
+ * Esta función se llama desde el constructor
+ */
+public function integrate_with_woocommerce_search() {
+    // Mejorar la búsqueda nativa de WooCommerce para incluir metadatos
+    add_filter('woocommerce_product_data_store_cpt_get_products_query', array($this, 'handle_custom_product_query_var'), 10, 2);
+    
+    // Incluir metadatos en los resultados de búsqueda
+    add_filter('posts_search', array($this, 'enhance_product_search'), 10, 2);
+    
+    // Filtrar consultas pre_get_posts para búsqueda
+    add_action('pre_get_posts', array($this, 'modify_product_search_query'));
+    
+    // Agregar clases CSS al body para páginas de búsqueda
+    add_filter('body_class', array($this, 'add_search_body_class'));
+    
+    // Asegurarse de que el valor de búsqueda esté disponible para el JS
+    add_action('wp_footer', array($this, 'inject_search_variables'));
+}
+
+/**
+ * Modificar consultas para búsqueda de productos
+ */
+public function modify_product_search_query($query) {
+    // No modificar en el admin o si no es la consulta principal
+    if (is_admin() || !$query->is_main_query()) {
+        return;
+    }
+    
+    // Si es una búsqueda o hay parámetro 's' en la URL
+    if ($query->is_search() || (isset($_GET['s']) && !empty($_GET['s']))) {
+        // Asegurarse de que incluya productos
+        if (!isset($query->query_vars['post_type']) || $query->query_vars['post_type'] !== 'product') {
+            if (isset($_GET['post_type']) && $_GET['post_type'] === 'product') {
+                $query->set('post_type', 'product');
+            }
+        }
+        
+        // Establecer productos por página
+        $posts_per_page = get_option('posts_per_page');
+        $query->set('posts_per_page', $posts_per_page);
+        
+        // Optimizar meta_query para búsqueda avanzada
+        $search_term = get_search_query();
+        if (!empty($search_term)) {
+            // Preparar meta query para buscar en SKU y otros campos
+            $meta_query = array('relation' => 'OR');
+            
+            // Buscar en SKU
+            $meta_query[] = array(
+                'key'     => '_sku',
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            );
+            
+            // Buscar en atributos comunes
+            $attributes = array('pa_volumen', 'pa_grado', 'pa_caracteristicas');
+            foreach ($attributes as $attribute) {
+                $meta_query[] = array(
+                    'key'     => $attribute,
+                    'value'   => $search_term,
+                    'compare' => 'LIKE'
+                );
+            }
+            
+            // Combinar con meta_query existente
+            $existing_meta_query = $query->get('meta_query');
+            if (!empty($existing_meta_query)) {
+                $meta_query = array(
+                    'relation' => 'AND',
+                    $existing_meta_query,
+                    array(
+                        'relation' => 'OR',
+                        $meta_query
+                    )
+                );
+            }
+            
+            $query->set('meta_query', $meta_query);
+        }
+    }
+}
+
+/**
+ * Manejar variables de consulta personalizadas para productos
+ */
+public function handle_custom_product_query_var($query, $query_vars) {
+    if (!empty($query_vars['sku_search']) && !is_array($query_vars['sku_search'])) {
+        $query['meta_query'][] = array(
+            'key'     => '_sku',
+            'value'   => esc_attr($query_vars['sku_search']),
+            'compare' => 'LIKE'
+        );
+    }
+    
+    if (!empty($query_vars['attribute_search']) && !is_array($query_vars['attribute_search'])) {
+        $search_term = esc_attr($query_vars['attribute_search']);
+        $attributes_meta_query = array('relation' => 'OR');
+        
+        // Buscar en atributos comunes
+        $attributes = array('pa_volumen', 'pa_grado', 'pa_caracteristicas');
+        foreach ($attributes as $attribute) {
+            $attributes_meta_query[] = array(
+                'key'     => $attribute,
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            );
+        }
+        
+        $query['meta_query'][] = $attributes_meta_query;
+    }
+    
+    return $query;
+}
+
+/**
+ * Inyectar variables de búsqueda para JavaScript
+ */
+public function inject_search_variables() {
+    // Verificar si estamos en una página de productos
+    if (!$this->is_product_page()) {
+        return;
+    }
+    
+    // Obtener término de búsqueda actual
+    $search_term = get_search_query();
+    if (empty($search_term) && isset($_GET['s'])) {
+        $search_term = sanitize_text_field($_GET['s']);
+    }
+    
+    // Inyectar variable para JavaScript
+    if (!empty($search_term)) {
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Establecer término de búsqueda en todos los campos de búsqueda
+            $('.wc-productos-template .productos-search input, #productos-search-input').val(<?php echo json_encode($search_term); ?>);
+            
+            // Si tenemos un objeto currentFilters global, actualizar la propiedad search
+            if (typeof window.currentFilters !== 'undefined') {
+                window.currentFilters.search = <?php echo json_encode($search_term); ?>;
+            }
+        });
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Agregar este código al constructor de la clase WC_Productos_Template:
+ */
+// En el constructor:
+$this->integrate_with_woocommerce_search();
 /**
  * Renderiza el breadcrumb con soporte para paginación - VERSIÓN CORREGIDA
  */
