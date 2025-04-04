@@ -9,6 +9,7 @@
 
 // Ensure $product is defined and is a valid WooCommerce product
 global $product;
+$is_logged_in = is_user_logged_in();
 if (!$product || !is_a($product, 'WC_Product')) {
     return; // No renderizar nada si no hay producto válido
 }
@@ -101,26 +102,42 @@ if (!$product || !is_a($product, 'WC_Product')) {
         // Contenedor de precio y acción
         echo '<div class="producto-footer" style="padding-top: 15px; margin-top: 15px; border-top: 1px solid #f0f0f0;">';
         
-        // Precio
-        if ($price_html = $product->get_price_html()) {
-            echo '<div class="producto-precio price" style="margin-bottom: 10px;">' . $price_html . '</div>';
-        }
+    // Precio
+if ($price_html = $product->get_price_html()) {
+    if ($is_logged_in) {
+        echo '<div class="producto-precio price" style="margin-bottom: 10px;">' . $price_html . '</div>';
+    } else {
+        echo '<div class="producto-precio price dpc-product-price" style="margin-bottom: 10px;">
+              <a href="#" class="dpc-login-to-view" data-product-id="' . esc_attr($product->get_id()) . '">
+                  ' . esc_html__('Ver Precio', 'wc-productos-template') . '
+              </a>
+              </div>';
+    }
+}
         
-        // Botón de añadir al carrito
-        echo '<div class="producto-accion">';
-        
-        echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
-               class="producto-boton button add_to_cart_button ' . ($product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '') . '"
-               data-product_id="' . esc_attr($product->get_id()) . '"
-               data-product_sku="' . esc_attr($product->get_sku()) . '"
-               aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '"
-               style="padding: 10px 18px; width: 100%; text-align: center;">';
-        echo esc_html($product->is_purchasable() && $product->is_in_stock() ? 
-              __('Añadir al carrito', 'wc-productos-template') : 
-              __('Leer más', 'wc-productos-template'));
-        echo '</a>';
-        
-        echo '</div>'; // Fin acciones
+       // Botón de añadir al carrito (alrededor de la línea 100)
+echo '<div class="producto-accion">';
+
+if ($is_logged_in) {
+    echo '<a href="' . esc_url($product->add_to_cart_url()) . '" 
+           class="producto-boton button add_to_cart_button ' . ($product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '') . '"
+           data-product_id="' . esc_attr($product->get_id()) . '"
+           data-product_sku="' . esc_attr($product->get_sku()) . '"
+           aria-label="' . esc_attr__('Añadir al carrito', 'wc-productos-template') . '"
+           style="padding: 10px 18px; width: 100%; text-align: center;">';
+    echo esc_html($product->is_purchasable() && $product->is_in_stock() ? 
+          __('Añadir al carrito', 'wc-productos-template') : 
+          __('Leer más', 'wc-productos-template'));
+    echo '</a>';
+} else {
+    echo '<a href="#" class="producto-boton dpc-login-to-view" 
+          data-product_id="' . esc_attr($product->get_id()) . '"
+          style="padding: 10px 18px; width: 100%; text-align: center;">';
+    echo esc_html__('Ver detalles', 'wc-productos-template');
+    echo '</a>';
+}
+
+echo '</div>'; // Fin acciones
         
         echo '</div>'; // Fin footer
         
