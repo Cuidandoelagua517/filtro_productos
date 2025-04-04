@@ -733,7 +733,76 @@ jQuery(document).ready(function($) {
             filterProducts(1);
         });
     }
+    /**
+ * Agregar este código al final de productos-template.js
+ * antes del cierre de la función jQuery(document).ready
+ */
+
+// Función para conectar los eventos de búsqueda con AJAX
+function connectSearchEvents() {
+    console.log('Conectando eventos de búsqueda con AJAX');
     
+    // Desconectar eventos previos para evitar duplicados
+    $('.wc-productos-template .productos-search form').off('submit');
+    $('.wc-productos-template .productos-search-button').off('click');
+    $('.wc-productos-template .productos-search input').off('keypress');
+    
+    // Evento submit del formulario
+    $('.wc-productos-template .productos-search form').on('submit', function(e) {
+        e.preventDefault();
+        var searchTerm = $(this).find('input').val().trim();
+        console.log('Búsqueda AJAX iniciada:', searchTerm);
+        
+        // Actualizar el término de búsqueda en currentFilters
+        currentFilters.search = searchTerm;
+        
+        // Llamar a la función filterProducts con página 1
+        filterProducts(1);
+        return false;
+    });
+    
+    // Evento click en botón de búsqueda
+    $('.wc-productos-template .productos-search-button').on('click', function(e) {
+        e.preventDefault();
+        var searchTerm = $(this).closest('form').find('input').val().trim();
+        console.log('Botón de búsqueda AJAX clickeado:', searchTerm);
+        
+        // Actualizar el término de búsqueda en currentFilters
+        currentFilters.search = searchTerm;
+        
+        // Llamar a la función filterProducts con página 1
+        filterProducts(1);
+        return false;
+    });
+    
+    // Evento keypress para Enter en el campo de búsqueda
+    $('.wc-productos-template .productos-search input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            var searchTerm = $(this).val().trim();
+            console.log('Enter presionado en búsqueda AJAX:', searchTerm);
+            
+            // Actualizar el término de búsqueda en currentFilters
+            currentFilters.search = searchTerm;
+            
+            // Llamar a la función filterProducts con página 1
+            filterProducts(1);
+            return false;
+        }
+    });
+}
+
+// Llamar a la función después de inicializar todo
+connectSearchEvents();
+
+// Volver a conectar eventos después de AJAX
+$(document).ajaxComplete(function(event, xhr, settings) {
+    if (settings.url && settings.url.includes('productos_filter')) {
+        setTimeout(function() {
+            connectSearchEvents();
+        }, 200);
+    }
+});
     /**
      * Enlazar eventos de paginación - versión CORREGIDA
      */
