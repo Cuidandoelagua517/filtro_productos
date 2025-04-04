@@ -478,3 +478,10 @@
     window.DPCLoginPopup = DPCLoginPopup;
     
 })(jQuery);
+// Inicializar explícitamente al final del archivo
+jQuery(document).ready(function($) {
+    if (typeof DPCLoginPopup !== 'undefined') {
+        DPCLoginPopup.init();
+        console.log('DPC Login: Inicializado explícitamente');
+    }
+});
