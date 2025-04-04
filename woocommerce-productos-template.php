@@ -478,8 +478,9 @@ public function ajax_filter_products() {
         'post_status'    => 'publish',
     );
     
-    // Inicializar arrays para taxonomías
+    // Inicializar arrays para taxonomías y meta queries
     $tax_query = array('relation' => 'AND');
+    $meta_query = array('relation' => 'AND');
     
     // Filtrar por categoría (ahora con soporte para jerarquía)
     if (isset($_POST['category']) && !empty($_POST['category'])) {
@@ -524,23 +525,51 @@ public function ajax_filter_products() {
         }
     }
     
-    // Búsqueda
+    // MODIFICADO: Mejorar la funcionalidad de búsqueda para incluir más campos
     if (isset($_POST['search']) && !empty($_POST['search'])) {
         $search_term = sanitize_text_field($_POST['search']);
         
-        // Incluir búsqueda en metadatos (SKU)
-        $meta_query = array(
-            'relation' => 'OR',
-            array(
-                'key'     => '_sku',
-                'value'   => $search_term,
-                'compare' => 'LIKE'
-            )
+        // Crear meta_query para buscar en múltiples campos de meta
+        $search_meta_query = array('relation' => 'OR');
+        
+        // Buscar en SKU (alta prioridad para referencias)
+        $search_meta_query[] = array(
+            'key'     => '_sku',
+            'value'   => $search_term,
+            'compare' => 'LIKE'
         );
         
-        // También buscar en el título y contenido del producto
+        // Buscar en campos personalizados comunes
+        $custom_fields = array(
+            '_volumen_ml',          // Campo personalizado para volumen
+            '_grado',               // Campo personalizado para grado
+            '_caracteristicas',     // Campo potencial para características
+            '_referencia_interna',  // Campo potencial para referencia interna
+            '_ref',                 // Otra posible referencia
+            'pa_volumen',           // Atributo de volumen
+            'pa_grado',             // Atributo de grado
+            'pa_caracteristicas'    // Atributo de características
+        );
+        
+        foreach ($custom_fields as $field) {
+            $search_meta_query[] = array(
+                'key'     => $field,
+                'value'   => $search_term,
+                'compare' => 'LIKE'
+            );
+        }
+        
+        // Añadir búsqueda en título y contenido (estándar de WordPress)
         $args['s'] = $search_term;
-        $args['meta_query'] = $meta_query;
+        
+        // Añadir meta_query para buscar en campos específicos
+        $meta_query[] = $search_meta_query;
+        
+        // IMPORTANTE: Registrar filtro para mejorar la relevancia de resultados
+        add_filter('posts_search', array($this, 'enhance_product_search'), 10, 2);
+        
+        // Log para depuración
+        error_log('Buscando término: ' . $search_term);
     }
     
     // Añadir las consultas de taxonomía solo si hay filtros activos
@@ -548,11 +577,21 @@ public function ajax_filter_products() {
         $args['tax_query'] = $tax_query;
     }
     
+    // Añadir las consultas de meta solo si hay filtros activos
+    if (count($meta_query) > 1) {
+        $args['meta_query'] = $meta_query;
+    }
+    
     // Aplicar filtros de WooCommerce
     $args = apply_filters('woocommerce_product_query_args', $args);
     
     // Ejecutar la consulta
     $products_query = new WP_Query($args);
+    
+    // Limpiar filtro de búsqueda después de la consulta
+    if (isset($_POST['search']) && !empty($_POST['search'])) {
+        remove_filter('posts_search', array($this, 'enhance_product_search'), 10);
+    }
     
     // Log para depuración
     error_log('Consulta WP_Query ejecutada, encontrados: ' . $products_query->found_posts . ' productos');
@@ -623,6 +662,12 @@ public function ajax_filter_products() {
             }
             return false;
         });
+        
+        // Restaurar término de búsqueda si existe
+        var searchTerm = ' . (isset($_POST['search']) ? json_encode(sanitize_text_field($_POST['search'])) : '""') . ';
+        if (searchTerm) {
+            $("#productos-search-input, .productos-search input[name=\'s\']").val(searchTerm);
+        }
     });
     </script>';
     
@@ -634,10 +679,59 @@ public function ajax_filter_products() {
         'init_script'  => $init_script,
         'total'        => $products_query->found_posts,
         'current_page' => $page,
-        'max_pages'    => $products_query->max_num_pages
+        'max_pages'    => $products_query->max_num_pages,
+        'search_term'  => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : ''
     ));
     
     exit;
+}
+        public function enhance_product_search($search, $wp_query) {
+    global $wpdb;
+    
+    // Verificar que sea nuestra búsqueda
+    if (empty($search) || !$wp_query->is_search || !$wp_query->is_main_query() || $wp_query->get('post_type') !== 'product') {
+        return $search;
+    }
+    
+    $search_term = $wp_query->get('s');
+    if (empty($search_term)) {
+        return $search;
+    }
+    
+    // Limpiar y preparar el término de búsqueda
+    $like = '%' . $wpdb->esc_like($search_term) . '%';
+    
+    // Nuestro reemplazo para búsqueda en título, contenido y extracto
+    $search = " AND (
+        ($wpdb->posts.post_title LIKE '$like') OR 
+        ($wpdb->posts.post_content LIKE '$like') OR 
+        ($wpdb->posts.post_excerpt LIKE '$like')
+    )";
+    
+    // Si es numérico, podría ser un SKU o ID
+    if (is_numeric($search_term)) {
+        $search_term_int = intval($search_term);
+        $search = " AND (
+            ($wpdb->posts.post_title LIKE '$like') OR 
+            ($wpdb->posts.post_content LIKE '$like') OR 
+            ($wpdb->posts.post_excerpt LIKE '$like') OR
+            ($wpdb->posts.ID = $search_term_int)
+        )";
+    }
+    
+    return $search;
+}
+
+/**
+ * FUNCIÓN PARA AÑADIR AL PLUGIN: Filtrar las clases CSS del body para la página de búsqueda
+ */
+public function add_search_body_class($classes) {
+    // Verificar si estamos en una búsqueda o hay un parámetro 's' en la URL
+    if (is_search() || (isset($_GET['s']) && !empty($_GET['s']))) {
+        $classes[] = 'search-results';
+        $classes[] = 'wc-search-active';
+    }
+    return $classes;
 }
 /**
  * Renderiza el breadcrumb con soporte para paginación - VERSIÓN CORREGIDA
