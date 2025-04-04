@@ -1,179 +1,268 @@
 /**
- * FORCE-GRID.CSS (VERSIÓN OPTIMIZADA)
- * Estilos forzados para cuadrícula de productos WooCommerce
- * Compatible con la mayoría de temas y optimizado para evitar conflictos
+ * SEARCH-BAR-FIX.CSS (VERSIÓN MEJORADA)
+ * Estilos específicos para corregir problemas con la barra de búsqueda
+ * y garantizar su correcta visualización y funcionamiento
  *
  * @package WC_Productos_Template
  */
 
-/* ===== 1. CONFIGURACIÓN BÁSICA DEL GRID ===== */
-body ul.products,
-body.woocommerce ul.products,
-body.woocommerce-page ul.products,
-body .woocommerce ul.products,
-html body .productos-grid,
-#main ul.products,
-#content ul.products,
-.woocommerce .products,
-.wc-productos-template ul.products,
-.productos-grid {
-    /* Configuración principal del grid */
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
-    gap: 20px !important;
-    
-    /* Resetear estilos que puedan interferir */
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 30px 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    float: none !important;
-    clear: both !important;
-    box-sizing: border-box !important;
-}
-
-/* Eliminar flotadores y clearfix que pueden romper la cuadrícula */
-body ul.products::before,
-body ul.products::after,
-body.woocommerce ul.products::before,
-body.woocommerce ul.products::after,
-.woocommerce .products::before,
-.woocommerce .products::after,
-.productos-grid::before,
-.productos-grid::after {
-    display: none !important;
-    content: none !important;
-    clear: none !important;
-}
-
-/* Estilo base para cada producto */
-body ul.products li.product,
-body.woocommerce ul.products li.product,
-body.woocommerce-page ul.products li.product,
-body .woocommerce ul.products li.product,
-html body .productos-grid li.product,
-#main ul.products li.product,
-#content ul.products li.product,
-.woocommerce .products li.product,
-.wc-productos-template ul.products li.product,
-.productos-grid li.product {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 20px 0 !important;
-    padding: 0 !important;
-    float: none !important;
-    clear: none !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    opacity: 1 !important;
+/* ===== 1. ESTILOS BASE PARA LA BARRA DE BÚSQUEDA ===== */
+.wc-productos-template .productos-search {
     position: relative !important;
+    width: 300px !important;
+    display: block !important;
     visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    z-index: 11 !important; /* Mayor z-index para estar por encima de otros elementos */
+    transition: all 0.3s ease !important;
 }
 
-/* Restablecer marginnes en contenido interior */
-.producto-interior {
-    width: 100% !important;
-    height: 100% !important;
+.wc-productos-template .productos-search form,
+.wc-productos-template .productos-search-form {
     display: flex !important;
-    flex-direction: column !important;
-}
-
-/* ===== 2. MEDIA QUERIES PARA RESPONSIVE ===== */
-/* Pantallas grandes (4 columnas) */
-@media (min-width: 992px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    body.woocommerce-page ul.products,
-    body .woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-    }
-}
-
-/* Pantallas medianas (3 columnas) */
-@media (max-width: 991px) and (min-width: 769px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    body.woocommerce-page ul.products,
-    body .woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
-}
-
-/* Pantallas pequeñas (2 columnas) */
-@media (max-width: 768px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    body.woocommerce-page ul.products,
-    body .woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 15px !important;
-    }
-}
-
-/* Dispositivos muy pequeños (2 columnas más ajustadas) */
-@media (max-width: 480px) {
-    body ul.products,
-    body.woocommerce ul.products,
-    body.woocommerce-page ul.products,
-    body .woocommerce ul.products,
-    .wc-productos-template ul.products,
-    .productos-grid {
-        grid-template-columns: repeat(2, 1fr) !important; 
-        gap: 10px !important;
-    }
-}
-
-/* ===== 3. CORRECCIONES ESPECÍFICAS PARA TEMAS COMUNES ===== */
-/* Corrige el estilo de los productos del tema Storefront */
-.theme-storefront ul.products li.product .button,
-.theme-storefront ul.products li.product .wc-block-grid__product-add-to-cart.wp-block-button .wp-block-button__link {
-    width: auto !important;
-    margin-bottom: 0 !important;
-}
-
-/* Corrige el estilo de los productos del tema Astra */
-.theme-astra ul.products li.product .button,
-.theme-astra .astra-shop-summary-wrap {
-    width: auto !important;
-}
-
-/* Corrige el estilo de los productos del tema OceanWP */
-.theme-oceanwp ul.products li.product .button {
-    width: auto !important;
-}
-
-/* ===== 4. CORRECTIVOS PARA LA ESTRUCTURA DE PRODUCTOS ===== */
-/* Estilos para elementos huérfanos */
-.wc-productos-template *:empty,
-.productos-grid *:empty,
-ul.products *:empty {
-    display: none !important;
-    height: 0 !important;
-    width: 0 !important;
-}
-
-/* Corrección de posición del header de productos */
-.productos-header {
-    grid-column: 1 / -1 !important;
     width: 100% !important;
-    margin-bottom: 30px !important;
     position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.wc-productos-template .productos-search input[type="text"],
+.wc-productos-template #productos-search-input,
+.wc-productos-template .search-fix-input {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    padding: 10px 40px 10px 15px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    color: #333 !important;
+    background-color: #fff !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.wc-productos-template .productos-search input[type="text"]:focus,
+.wc-productos-template #productos-search-input:focus,
+.wc-productos-template .search-fix-input:focus {
+    border-color: #0056b3 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2) !important;
+}
+
+.wc-productos-template .productos-search button,
+.wc-productos-template .productos-search-button,
+.wc-productos-template .search-fix-button {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    width: 40px !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 4px 4px 0 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.wc-productos-template .productos-search button:hover,
+.wc-productos-template .productos-search-button:hover,
+.wc-productos-template .search-fix-button:hover {
+    background-color: #004494 !important;
+}
+
+.wc-productos-template .productos-search button i,
+.wc-productos-template .productos-search-button i,
+.wc-productos-template .search-fix-button i {
+    display: inline-block !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ===== 2. ESTILOS PARA EL HEADER QUE CONTIENE LA BARRA DE BÚSQUEDA ===== */
+.wc-productos-template .productos-header,
+.wc-productos-template .search-fix-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid #e2e2e2 !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     z-index: 10 !important;
 }
 
-/* Estilos para mantener visible el botón de añadir al carrito */
-.productos-boton.add_to_cart_button,
-.product_type_simple.add_to_cart_button {
+.wc-productos-template .productos-header h1 {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #333 !important;
+    max-width: 60% !important; /* Dejar espacio para la barra de búsqueda */
+}
+
+/* ===== 3. CORRECCIONES ESPECÍFICAS PARA TEMAS POPULARES ===== */
+/* Evitar superposición con elementos del tema Storefront */
+.theme-storefront .wc-productos-template .productos-search {
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+}
+
+/* Evitar duplicación con la búsqueda predeterminada de OceanWP */
+.theme-oceanwp .wc-productos-template .woocommerce-product-search {
+    display: none !important;
+}
+
+/* ===== 4. BOTÓN DE LIMPIEZA DE BÚSQUEDA ===== */
+.wc-productos-template .search-clear-button {
+    position: absolute !important;
+    right: 45px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    color: #999 !important;
+    cursor: pointer !important;
+    z-index: 12 !important;
+    padding: 5px !important;
+    transition: color 0.3s ease !important;
+    display: none; /* Oculto por defecto, se muestra con JS cuando hay texto */
+}
+
+.wc-productos-template .search-clear-button:hover {
+    color: #666 !important;
+}
+
+/* ===== 5. ESTADOS DE CARGA Y TÉRMINO DE BÚSQUEDA ===== */
+.wc-productos-template .productos-search.loading .search-fix-button {
+    pointer-events: none !important;
+    opacity: 0.7 !important;
+}
+
+.wc-productos-template .productos-search.loading::after {
+    content: "" !important;
+    position: absolute !important;
+    right: 50px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 16px !important;
+    height: 16px !important;
+    border: 2px solid #ddd !important;
+    border-top-color: #0056b3 !important;
+    border-radius: 50% !important;
+    animation: spin 1s infinite linear !important;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* ===== 6. RESALTADO DE TÉRMINOS DE BÚSQUEDA EN RESULTADOS ===== */
+.wc-productos-template .producto-titulo a mark,
+.wc-productos-template .producto-sku mark,
+.wc-productos-template .producto-detalles mark {
+    background-color: rgba(0, 86, 179, 0.15) !important;
+    color: #0056b3 !important;
+    padding: 0 3px !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+}
+
+/* ===== 7. RESPONSIVE PARA LA BARRA DE BÚSQUEDA ===== */
+@media (max-width: 768px) {
+    .wc-productos-template .productos-header,
+    .wc-productos-template .search-fix-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .wc-productos-template .productos-header h1 {
+        margin-bottom: 15px !important;
+        max-width: 100% !important;
+    }
+    
+    .wc-productos-template .productos-search {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ===== 8. MENSAJES DE RESULTADOS DE BÚSQUEDA ===== */
+.wc-productos-template .search-results-info {
+    margin: 0 0 20px 0 !important;
+    padding: 10px 15px !important;
+    background-color: #f8f9fa !important;
+    border-radius: 4px !important;
+    border-left: 3px solid #0056b3 !important;
+    font-size: 14px !important;
+    color: #555 !important;
+}
+
+.wc-productos-template .search-results-info strong {
+    font-weight: 600 !important;
+    color: #0056b3 !important;
+}
+
+/* ===== 9. CORRECCIONES PARA CONFLICTOS DE Z-INDEX ===== */
+/* Asegurar que la barra de búsqueda esté por encima de otros elementos */
+.wc-productos-template {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ===== 10. ARREGLO PARA EVITAR QUE LA BÚSQUEDA DESAPAREZCA EN AJAX ===== */
+body.processing .wc-productos-template .productos-search,
+body.loading .wc-productos-template .productos-search,
+.wc-productos-template.processing .productos-search,
+.wc-productos-template.loading .productos-search {
     opacity: 1 !important;
     visibility: visible !important;
-    display: inline-block !important;
+    pointer-events: auto !important;
+}
+
+/* ===== 11. SOPORTE PARA RTL (RIGHT-TO-LEFT) ===== */
+.rtl .wc-productos-template .productos-search button,
+.rtl .wc-productos-template .productos-search-button,
+.rtl .wc-productos-template .search-fix-button {
+    right: auto !important;
+    left: 0 !important;
+    border-radius: 4px 0 0 4px !important;
+}
+
+.rtl .wc-productos-template .productos-search input[type="text"],
+.rtl .wc-productos-template #productos-search-input,
+.rtl .wc-productos-template .search-fix-input {
+    padding: 10px 15px 10px 40px !important;
+}
+
+.rtl .wc-productos-template .search-clear-button {
+    right: auto !important;
+    left: 45px !important;
+}
+
+/* ===== 12. INTERACCIÓN ESPECÍFICA Y ANIMACIONES DE RESULTADOS ===== */
+.wc-productos-template .productos-grid li.producto-resultado-busqueda {
+    animation: highlightResult 1s ease-out !important;
+}
+
+@keyframes highlightResult {
+    0% { background-color: rgba(0, 86, 179, 0.1); }
+    100% { background-color: transparent; }
 }
