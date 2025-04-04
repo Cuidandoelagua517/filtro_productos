@@ -75,6 +75,11 @@ if (!class_exists('WC_Productos_Template')) {
   add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
   add_action('wp_ajax_productos_search', array($this, 'ajax_search_products'));
  add_action('wp_ajax_nopriv_productos_search', array($this, 'ajax_search_products'));
+                 // Endpoints para el popup de login
+    add_action('wp_ajax_dpc_get_login_form', array($this, 'ajax_get_login_form'));
+    add_action('wp_ajax_nopriv_dpc_get_login_form', array($this, 'ajax_get_login_form'));
+    add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
+}
  // En el constructor:
 $this->integrate_with_woocommerce_search();
                 
@@ -364,7 +369,28 @@ public function register_scripts() {
     if (!file_exists($productos_css_file)) {
         $this->create_default_css_file($productos_css_file);
     }
+     // Registrar CSS para el popup de login/registro
+    wp_register_style(
+        'dpc-carousel-popup',
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/carousel-popup.css',
+        array('wc-productos-template-styles'),
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
+    );
     
+    // Registrar JS para el popup de login/registro
+    wp_register_script(
+        'dpc-carousel-popup',
+        WC_PRODUCTOS_TEMPLATE_URL . 'assets/js/carousel-popup.js',
+        array('jquery'),
+        WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time(),
+        true
+    );
+    
+    // Si el usuario no está logueado, cargar estos scripts automáticamente
+    if (!is_user_logged_in()) {
+        wp_enqueue_style('dpc-carousel-popup');
+        wp_enqueue_script('dpc-carousel-popup');
+    }
     // Verificar y crear JS principal si no existe
     $productos_js_file = WC_PRODUCTOS_TEMPLATE_ASSETS_DIR . 'js/productos-template.js';
     if (!file_exists($productos_js_file)) {
@@ -471,6 +497,95 @@ public function register_scripts() {
         $classes[] = 'wc-productos-template-page';
         return $classes;
     });
+}
+
+        /**
+ * Endpoint AJAX para obtener el formulario de login/registro
+ */
+public function ajax_get_login_form() {
+    // Verificar nonce de seguridad
+    check_ajax_referer('dpc_login_form_nonce', 'security');
+    
+    // Si el usuario ya está logueado, devolver mensaje
+    if (is_user_logged_in()) {
+        wp_send_json_success(array(
+            'html' => '<div class="dpc-already-logged-in">' . __('Ya has iniciado sesión', 'dynamic-product-carousel') . '</div>',
+            'redirect_url' => wp_get_referer() ? wp_get_referer() : home_url()
+        ));
+        return;
+    }
+    
+    // Buffer de salida para capturar el template
+    ob_start();
+    
+    // Comprobar si existe el template y luego incluirlo
+    $template_path = WC_PRODUCTOS_TEMPLATE_DIR . 'templates/login-form.php';
+    if (file_exists($template_path)) {
+        include($template_path);
+    } else {
+        wp_send_json_error(array(
+            'message' => __('Template del formulario de login no encontrado', 'dynamic-product-carousel')
+        ));
+        return;
+    }
+    
+    // Obtener HTML generado
+    $html = ob_get_clean();
+    
+    // Enviar respuesta exitosa con HTML
+    wp_send_json_success(array(
+        'html' => $html,
+        'redirect_url' => wp_get_referer() ? wp_get_referer() : home_url()
+    ));
+}
+
+        /**
+ * Endpoint AJAX para procesar el login
+ */
+public function ajax_process_login() {
+    // Verificar nonce de seguridad
+    check_ajax_referer('mam-nonce', 'security');
+    
+    // Obtener credenciales
+    $username = isset($_POST['username']) ? sanitize_user($_POST['username']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $remember = isset($_POST['rememberme']) ? (bool)$_POST['rememberme'] : false;
+    $redirect = isset($_POST['redirect']) ? esc_url_raw($_POST['redirect']) : '';
+    
+    // Intentar login
+    $user = wp_signon(array(
+        'user_login' => $username,
+        'user_password' => $password,
+        'remember' => $remember
+    ));
+    
+    if (is_wp_error($user)) {
+        wp_send_json_error(array(
+            'message' => $user->get_error_message()
+        ));
+        return;
+    }
+    
+    // Login exitoso
+    wp_set_current_user($user->ID);
+    
+    // Determinar URL de redirección
+    if (!empty($redirect)) {
+        $redirect_url = $redirect;
+    } elseif (!empty($_SERVER['HTTP_REFERER'])) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    } else {
+        $redirect_url = home_url();
+    }
+    
+    // Añadir parámetro para forzar recarga
+    $redirect_url = add_query_arg('dpc_refresh', time(), $redirect_url);
+    
+    wp_send_json_success(array(
+        'message' => __('Login exitoso, redirigiendo...', 'dynamic-product-carousel'),
+        'redirect_url' => $redirect_url,
+        'user_id' => $user->ID
+    ));
 }
 /**
  * Manejador AJAX simplificado y enfocado en la búsqueda
@@ -807,7 +922,11 @@ public function ajax_filter_products() {
         wp_send_json_error(array('message' => 'Nonce inválido'));
         exit;
     }
+    // Añadir esta línea para verificar si el usuario está logueado
+    $is_logged_in = is_user_logged_in();
     
+    // Pasamos esta información a las propiedades del loop para acceder en los templates
+    wc_set_loop_prop('is_user_logged_in', $is_logged_in)
     // Log para depuración
     error_log('Recibida solicitud AJAX para filtrar productos');
     
@@ -896,7 +1015,12 @@ public function ajax_filter_products() {
     wc_set_loop_prop('total_pages', $products_query->max_num_pages);
     wc_set_loop_prop('columns', 3);
     
-    // Capturar la salida de la cuadrícula de productos
+  // Antes de iniciar el buffer para capturar la salida, añadir un filtro si el usuario no está logueado
+    if (!$is_logged_in) {
+        add_filter('woocommerce_get_price_html', array($this, 'replace_price_with_login_button'), 10, 2);
+    }
+    
+    // Capturar la salida de la cuadrícula de productos como lo haces actualmente...
     ob_start();
     
     if ($products_query->have_posts()) {
@@ -924,6 +1048,17 @@ public function ajax_filter_products() {
     
     // Obtener el HTML de productos
     $products_html = ob_get_clean();
+
+// Remover el filtro después de obtener el HTML
+    if (!$is_logged_in) {
+        remove_filter('woocommerce_get_price_html', array($this, 'replace_price_with_login_button'), 10);
+    }
+    
+    // Añadir scripts y estilos necesarios si el usuario no está logueado
+    if (!$is_logged_in) {
+        wp_enqueue_style('dpc-carousel-popup');
+        wp_enqueue_script('dpc-carousel-popup');
+    }
     
     // Restablecer datos del post después de la consulta
     wp_reset_postdata();
@@ -1123,7 +1258,17 @@ public function ajax_filter_products() {
     
     return $search;
 }
-
+/**
+ * Reemplaza el precio con un botón de "Ver Precio" para usuarios no logueados
+ */
+public function replace_price_with_login_button($price_html, $product) {
+    $product_id = $product->get_id();
+    return '<div class="dpc-product-price dpc-price-hidden">
+            <a href="#" class="dpc-login-to-view" data-product-id="' . esc_attr($product_id) . '">
+                ' . __('Ver Precio', 'wc-productos-template') . '
+            </a>
+        </div>';
+}
 /**
  * FUNCIÓN PARA AÑADIR AL PLUGIN: Filtrar las clases CSS del body para la página de búsqueda
  */
