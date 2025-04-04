@@ -1,5 +1,264 @@
 /**
  * SOLUCIÓN: JavaScript mejorado para productos-template.js
+ * Mejoras específicas para la funcionalidad de búsqueda
+ */
+
+jQuery(document).ready(function($) {
+    console.log('Productos Template Script - Versión con búsqueda mejorada');
+    
+    // Verificar si estamos en una página con el template de productos
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+    
+    // Estado global para almacenar los filtros actuales
+    var currentFilters = {
+        page: 1,
+        category: [],
+        grade: [],
+        min_volume: 100,
+        max_volume: 5000,
+        search: ''
+    };
+    
+    /**
+     * Función principal para filtrar productos vía AJAX - MEJORADA PARA BÚSQUEDA
+     */
+    function filterProducts(page) {
+        // Asignar página actual
+        page = parseInt(page) || 1;
+        currentFilters.page = page;
+        
+        // Mostrar mensaje de carga
+        var $mainContent = $('.wc-productos-template .productos-main');
+        
+        // Añadir clase de carga a la barra de búsqueda para feedback visual
+        $('.wc-productos-template .productos-search').addClass('loading');
+        
+        // Verificar si ya existe un loader
+        if (!$mainContent.find('.loading').length) {
+            $mainContent.append('<div class="loading">' + 
+                (typeof WCProductosParams !== 'undefined' ? 
+                WCProductosParams.i18n.loading : 'Cargando productos...') + 
+                '</div>');
+        }
+        
+        // Recopilar valores de filtros actuales
+        updateCurrentFilters();
+        
+        // Debug para verificar qué estamos enviando
+        console.log('Enviando filtros:', currentFilters);
+        
+        // Realizar petición AJAX
+        $.ajax({
+            url: typeof WCProductosParams !== 'undefined' ? WCProductosParams.ajaxurl : ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'productos_filter',
+                nonce: typeof WCProductosParams !== 'undefined' ? WCProductosParams.nonce : '',
+                page: currentFilters.page,
+                category: currentFilters.category.join(','),
+                grade: currentFilters.grade.join(','),
+                min_volume: currentFilters.min_volume,
+                max_volume: currentFilters.max_volume,
+                search: currentFilters.search
+            },
+            success: function(response) {
+                // Quitar clase de carga
+                $('.wc-productos-template .productos-search').removeClass('loading');
+                
+                // Eliminar mensaje de carga
+                $mainContent.find('.loading').remove();
+                
+                console.log('Respuesta recibida:', response);
+                
+                if (response.success) {
+                    // Actualizar productos y paginación
+                    updateProductGrid(response.data.products);
+                    updatePagination(response.data.pagination);
+                    
+                    // Actualizar el breadcrumb si está disponible
+                    if (response.data.breadcrumb) {
+                        updateBreadcrumb(response.data.breadcrumb);
+                    } else {
+                        // Alternativa: actualizar manualmente con la página actual
+                        updateBreadcrumbForPagination(currentFilters.page);
+                    }
+                    
+                    // MEJORA: Mostrar un mensaje de búsqueda si hay un término activo
+                    if (currentFilters.search) {
+                        // Eliminar mensaje anterior si existe
+                        $('.wc-productos-template .search-results-info').remove();
+                        
+                        // Crear un nuevo mensaje con los resultados
+                        var resultsMessage = '<div class="search-results-info">';
+                        if (response.data.total > 0) {
+                            resultsMessage += 'Se encontraron <strong>' + response.data.total + '</strong> ';
+                            resultsMessage += 'resultado' + (response.data.total !== 1 ? 's' : '') + ' ';
+                            resultsMessage += 'para "<strong>' + escapeHtml(currentFilters.search) + '</strong>"';
+                        } else {
+                            resultsMessage += 'No se encontraron resultados para "<strong>' + escapeHtml(currentFilters.search) + '</strong>". ';
+                            resultsMessage += 'Intenta con otros términos.';
+                        }
+                        resultsMessage += '</div>';
+                        
+                        // Insertar mensaje antes de la cuadrícula
+                        $('.wc-productos-template .productos-breadcrumb').after(resultsMessage);
+                    } else {
+                        // Si no hay término de búsqueda, eliminar el mensaje
+                        $('.wc-productos-template .search-results-info').remove();
+                    }
+                    
+                    // Desplazarse al inicio de los productos con animación suave
+                    $('html, body').animate({
+                        scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+                    }, 500);
+                    
+                    // Actualizar estado de URL sin recargar página
+                    updateUrlState();
+                    
+                    // IMPORTANTE: Forzar la cuadrícula y volver a enlazar eventos
+                    setTimeout(function() {
+                        forceGridLayout();
+                        bindPaginationEvents();
+                        
+                        // NUEVO: Resaltar los términos de búsqueda en los resultados
+                        if (currentFilters.search) {
+                            highlightSearchTerms(currentFilters.search);
+                        }
+                        
+                        // NUEVO: Reconectar eventos de búsqueda después de AJAX
+                        if (typeof window.connectSearchEvents === 'function') {
+                            window.connectSearchEvents();
+                        }
+                    }, 100);
+                } else {
+                    // Mostrar mensaje de error
+                    showError(typeof WCProductosParams !== 'undefined' ? 
+                             WCProductosParams.i18n.error : 
+                             'Error al cargar productos. Intente nuevamente.');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Quitar clase de carga
+                $('.wc-productos-template .productos-search').removeClass('loading');
+                
+                // Eliminar mensaje de carga y mostrar error
+                $mainContent.find('.loading').remove();
+                console.error('Error AJAX:', status, error);
+                showError(typeof WCProductosParams !== 'undefined' ? 
+                         WCProductosParams.i18n.error : 
+                         'Error al cargar productos. Intente nuevamente.');
+            }
+        });
+    }
+    
+    /**
+     * NUEVA FUNCIÓN: Escapar HTML para prevenir XSS en mensajes
+     */
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+    
+    /**
+     * NUEVA FUNCIÓN: Resaltar términos de búsqueda en los resultados
+     */
+    function highlightSearchTerms(searchTerm) {
+        if (!searchTerm) return;
+        
+        // Crear un regex para buscar el término (case insensitive)
+        var regex = new RegExp('(' + escapeRegExp(searchTerm) + ')', 'gi');
+        
+        // Resaltar en títulos
+        $('.wc-productos-template .producto-titulo a').each(function() {
+            var text = $(this).text();
+            if (text.match(regex)) {
+                $(this).html(text.replace(regex, '<mark>$1</mark>'));
+            }
+        });
+        
+        // Resaltar en SKU
+        $('.wc-productos-template .producto-sku').each(function() {
+            var text = $(this).html();
+            if (text.match(regex)) {
+                $(this).html(text.replace(regex, '<mark>$1</mark>'));
+            }
+        });
+        
+        // Resaltar en detalles
+        $('.wc-productos-template .producto-volumen, .wc-productos-template .producto-grado').each(function() {
+            var text = $(this).html();
+            if (text.match(regex)) {
+                $(this).html(text.replace(regex, '<mark>$1</mark>'));
+            }
+        });
+    }
+    
+    /**
+     * NUEVA FUNCIÓN: Escapar caracteres especiales para usar en regex
+     */
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    /**
+     * Recopilar valores actuales de los filtros - MEJORADA PARA BÚSQUEDA
+     */
+    function updateCurrentFilters() {
+        // Categorías seleccionadas
+        currentFilters.category = [];
+        $('.wc-productos-template .filtro-category:checked').each(function() {
+            currentFilters.category.push($(this).val());
+        });
+        
+        // Grados seleccionados
+        currentFilters.grade = [];
+        $('.wc-productos-template .filtro-grade:checked').each(function() {
+            currentFilters.grade.push($(this).val());
+        });
+        
+        // Valores de volumen (asegurar que sean números)
+        currentFilters.min_volume = parseInt($('.wc-productos-template input[name="min_volume"]').val()) || 100;
+        currentFilters.max_volume = parseInt($('.wc-productos-template input[name="max_volume"]').val()) || 5000;
+        
+        // MEJORADO: Término de búsqueda (ahora busca en cualquiera de los campos de búsqueda posibles)
+        var searchValue = '';
+        
+        // Primero intentar obtener del input específico
+        var $searchInput = $('.wc-productos-template .productos-search input, .wc-productos-template #productos-search-input, .wc-productos-template .search-fix-input').first();
+        if ($searchInput.length) {
+            searchValue = $.trim($searchInput.val() || '');
+        } 
+        
+        // Si no hay valor, buscar en todos los campos de búsqueda en la página
+        if (!searchValue) {
+            $('input[name="s"]').each(function() {
+                var value = $.trim($(this).val() || '');
+                if (value) {
+                    searchValue = value;
+                    return false; // break the loop
+                }
+            });
+        }
+        
+        // Guardar el valor de búsqueda
+        currentFilters.search = searchValue;
+        
+        // NUEVO: Actualizar visualmente todos los campos de búsqueda con el valor actual
+        $('.wc-productos-template .productos-search input, .wc-productos-template #productos-search-input, .wc-productos-template .search-fix-input').val(currentFilters.search);
+        
+        // NUEVO: Actualizar el estado de los botones de limpieza
+        $('.wc-productos-template .search-clear-button').each(function() {
+            $(this).toggle(currentFilters.search.length > 0);
+        });
+    }
+/**
+ * SOLUCIÓN: JavaScript mejorado para productos-template.js
  * Este archivo corrige los problemas de paginación y filtrado
  */
 
@@ -383,13 +642,13 @@ jQuery(document).ready(function($) {
     /**
      * Enlazar eventos para filtros - CORREGIDA
      */
-    function bindFilterEvents() {
+ function bindFilterEvents() {
         // Eliminar eventos anteriores para evitar duplicados
         $('.wc-productos-template .filtro-category').off('change');
         $('.wc-productos-template .filtro-grade').off('change');
         $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').off('submit');
-        $('.wc-productos-template .productos-search input').off('keypress');
-        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').off('click');
+        $('.wc-productos-template .productos-search input, .wc-productos-template #productos-search-input, .wc-productos-template .search-fix-input').off('keypress');
+        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button, .wc-productos-template .search-fix-button').off('click');
         
         // Filtros de categoría
         $('.wc-productos-template .filtro-category').on('change', function() {
@@ -403,27 +662,75 @@ jQuery(document).ready(function($) {
             filterProducts(1); // Volver a página 1 al cambiar filtro
         });
         
-        // Búsqueda - formulario
-        $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').on('submit', function(e) {
+        // MEJORADO: Búsqueda - manejo de formularios
+        $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form, .wc-productos-template .search-fix-form').on('submit', function(e) {
             e.preventDefault();
-            console.log('Búsqueda enviada');
+            console.log('Formulario de búsqueda enviado');
+            
+            // Actualizar el valor de búsqueda antes de filtrar
+            var searchTerm = $.trim($(this).find('input').val() || '');
+            if (typeof currentFilters !== 'undefined') {
+                currentFilters.search = searchTerm;
+            }
+            
             filterProducts(1); // Volver a página 1 al buscar
+            return false;
         });
         
-        // Búsqueda - tecla Enter
-        $('.wc-productos-template .productos-search input').on('keypress', function(e) {
+        // MEJORADO: Búsqueda - tecla Enter
+        $('.wc-productos-template .productos-search input, .wc-productos-template #productos-search-input, .wc-productos-template .search-fix-input').on('keypress', function(e) {
             if (e.which === 13) {
                 e.preventDefault();
                 console.log('Búsqueda con Enter');
+                
+                // Actualizar el valor de búsqueda antes de filtrar
+                var searchTerm = $.trim($(this).val() || '');
+                if (typeof currentFilters !== 'undefined') {
+                    currentFilters.search = searchTerm;
+                }
+                
                 filterProducts(1); // Volver a página 1 al buscar
+                return false;
             }
         });
         
-        // Búsqueda - botón
-        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').on('click', function(e) {
+        // MEJORADO: Búsqueda - botón
+        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button, .wc-productos-template .search-fix-button').on('click', function(e) {
             e.preventDefault();
-            console.log('Búsqueda con botón');
-            filterProducts(1); // Volver a página 1 al buscar
+            console.log('Botón de búsqueda clickeado');
+            
+            // Buscar el input en el mismo formulario
+            var $form = $(this).closest('form');
+            var $input = $form.find('input');
+            
+            if ($input.length) {
+                // Actualizar el valor de búsqueda antes de filtrar
+                var searchTerm = $.trim($input.val() || '');
+                if (typeof currentFilters !== 'undefined') {
+                    currentFilters.search = searchTerm;
+                }
+                
+                filterProducts(1); // Volver a página 1 al buscar
+            } else {
+                console.error('No se encontró input de búsqueda');
+            }
+            
+            return false;
+        });
+        
+        // NUEVO: Limpiar búsqueda
+        $('.wc-productos-template .search-clear-button').on('click', function() {
+            // Limpiar el campo de entrada
+            var $input = $(this).closest('.productos-search').find('input');
+            $input.val('');
+            $(this).hide();
+            
+            // Actualizar filtros y buscar
+            if (typeof currentFilters !== 'undefined') {
+                currentFilters.search = '';
+            }
+            
+            filterProducts(1);
         });
     }
     
@@ -563,8 +870,11 @@ $(document).ready(function($) {
     }
 });
     // Inicializar todo - VERSIÓN CORREGIDA
-    function init() {
-        console.log('Inicializando productos template');
+     function init() {
+        console.log('Inicializando productos template con búsqueda mejorada');
+        
+        // Exportar currentFilters a nivel global para otros scripts
+        window.currentFilters = currentFilters;
         
         // Forzar cuadrícula desde el inicio
         forceGridLayout();
@@ -578,7 +888,7 @@ $(document).ready(function($) {
         bindPaginationEvents();
         
         // Extraer filtros de la URL al cargar
-        var urlParams = new URLSearchParams(window.location.search);
+    var urlParams = new URLSearchParams(window.location.search);
         
         // Procesar parámetros de la URL
         if (urlParams.has('category')) {
@@ -615,8 +925,12 @@ $(document).ready(function($) {
         
         if (urlParams.has('s')) {
             var searchTerm = urlParams.get('s');
-            $('.wc-productos-template .productos-search input').val(searchTerm);
+            // Actualizar todos los campos de búsqueda
+            $('.wc-productos-template .productos-search input, .wc-productos-template #productos-search-input, .wc-productos-template .search-fix-input').val(searchTerm);
             currentFilters.search = searchTerm;
+            
+            // Establecer visibilidad de botones de limpieza
+            $('.wc-productos-template .search-clear-button').toggle(searchTerm.length > 0);
         }
         
         if (urlParams.has('paged')) {
@@ -661,17 +975,14 @@ $(document).ready(function($) {
     }
     
     // Iniciar todo
-    init();
+     init();
     
     // Exponer la función a nivel global para otros scripts
     window.filterProducts = filterProducts;
+    window.updateCurrentFilters = updateCurrentFilters; // NUEVO: Exponer para uso externo
     
-    // Asegurar que el script search-bar-fix no interfiera con la paginación
-    if (window.forceGridLayout) {
-        var originalForceGrid = window.forceGridLayout;
-        window.forceGridLayout = function() {
-            originalForceGrid();
-            bindPaginationEvents(); // Volver a enlazar eventos después de forzar la cuadrícula
-        };
-    }
+    // NUEVO: Exponer función para verificar si hay actividad de búsqueda
+    window.hasActiveSearch = function() {
+        return (currentFilters.search && currentFilters.search.length > 0);
+    };
 });
