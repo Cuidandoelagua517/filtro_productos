@@ -17,15 +17,17 @@ do_action('woocommerce_before_main_content');
         
         <!-- Barra de búsqueda -->
        <div class="productos-search">
-    <form role="search" method="get" class="productos-search-form" action="javascript:void(0);">
+    <form role="search" method="get" class="productos-search-form direct-search-form" action="javascript:void(0);">
         <input type="text" 
                id="productos-search-input"
                name="s" 
+               class="direct-search-input"
                placeholder="<?php esc_attr_e('Buscar por nombre, referencia o características...', 'wc-productos-template'); ?>" 
                value="<?php echo esc_attr(get_search_query()); ?>" 
                autocomplete="off" />
         <input type="hidden" name="post_type" value="product" />
-        <button type="submit" class="productos-search-button" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
+        <input type="hidden" name="direct_search" value="1" />
+        <button type="submit" class="productos-search-button direct-search-button" aria-label="<?php esc_attr_e('Buscar', 'wc-productos-template'); ?>">
             <i class="fas fa-search" aria-hidden="true"></i>
         </button>
     </form>
