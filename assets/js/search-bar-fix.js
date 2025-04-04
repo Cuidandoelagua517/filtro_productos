@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
     /**
      * Verificar y reparar la barra de búsqueda si es necesario
      */
-    function fixSearchBar() {
+     function fixSearchBar() {
         // Verificar si estamos en una página con el template de productos
         if (!$('.wc-productos-template').length) {
             return;
@@ -63,20 +63,12 @@ jQuery(document).ready(function($) {
                 '</div>'
             );
             
-            // Asegurarse de que se enlacen los eventos de búsqueda
+            // MODIFICADO: No enlazar eventos aquí sino dejar que productos-template.js lo haga
+            // para evitar duplicaciones de eventos
             setTimeout(function() {
-                if (typeof window.filterProducts === 'function') {
-                    $('.productos-search-form').on('submit', function(e) {
-                        e.preventDefault();
-                        window.filterProducts(1);
-                    });
-                    
-                    $('.productos-search-button').on('click', function(e) {
-                        e.preventDefault();
-                        window.filterProducts(1);
-                    });
-                }
-            }, 500);
+                // Señalar que la barra se ha recreado para que otros scripts la puedan detectar
+                $(document).trigger('searchbar.fixed');
+            }, 100);
             
             return;
         }
@@ -98,27 +90,36 @@ jQuery(document).ready(function($) {
                 '</div>'
             );
             
-            // Asegurarse de que se enlacen los eventos de búsqueda
+            // MODIFICADO: No enlazar eventos aquí sino dejar que productos-template.js lo haga
+            // Señalar que la barra se ha recreado para que otros scripts la puedan detectar
             setTimeout(function() {
-                if (typeof window.filterProducts === 'function') {
-                    $('.productos-search-form').on('submit', function(e) {
-                        e.preventDefault();
-                        window.filterProducts(1);
-                    });
-                    
-                    $('.productos-search-button').on('click', function(e) {
-                        e.preventDefault();
-                        window.filterProducts(1);
-                    });
-                }
-            }, 500);
+                $(document).trigger('searchbar.fixed');
+            }, 100);
+        }
+        
+        // NUEVO: Restaurar término de búsqueda si existe en URL o en estado global
+        var restoreSearchTerm = '';
+        
+        // Intentar obtener de URL
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('s')) {
+            restoreSearchTerm = urlParams.get('s');
+        }
+        // O del estado global si está disponible
+        else if (window.currentFilters && window.currentFilters.search) {
+            restoreSearchTerm = window.currentFilters.search;
+        }
+        
+        // Restaurar valor en el campo de búsqueda
+        if (restoreSearchTerm) {
+            $('#productos-search-input, .productos-search input[name="s"]').val(restoreSearchTerm);
         }
     }
     
     /**
      * Forzar estructura de cuadrícula para productos sin interferir con la paginación
      */
-    function fixGridStructure() {
+   function fixGridStructure() {
         // Aplicar clases en lugar de manipular directamente
         $('.wc-productos-template .productos-grid, .wc-productos-template ul.products').addClass('three-column-grid');
         
@@ -131,6 +132,7 @@ jQuery(document).ready(function($) {
             $('body').addClass('screen-large').removeClass('screen-small screen-medium');
         }
     }
+
     
     /**
      * Corrección de elementos huérfanos sin eliminar elementos importantes
@@ -178,8 +180,20 @@ jQuery(document).ready(function($) {
         fixSearchBar();
         fixGridStructure();
         fixOrphanedElements();
-        
-        // IMPORTANTE: No enlazar eventos de paginación aquí
+    });
+    
+    // NUEVO: Escuchar evento de AJAX completado para volver a arreglar la barra de búsqueda
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        if (settings.url && settings.url.indexOf('productos_filter') > -1) {
+            setTimeout(function() {
+                fixSearchBar();
+                fixGridStructure();
+                fixOrphanedElements();
+                
+                // Señalar que la estructura ha sido actualizada
+                $(document).trigger('grid.fixed');
+            }, 300);
+        }
     });
     
     // Exponer función modificada para uso global que no interfiera con la paginación
