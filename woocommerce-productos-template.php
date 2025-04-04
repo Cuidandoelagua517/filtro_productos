@@ -1567,63 +1567,39 @@ function wc_productos_template_activate() {
  * MOVIDA FUERA DE LA CLASE
  */
 function wc_productos_transparency_fix() {
-    // Solo cargar si el archivo existe
-    $fix_css_file = plugin_dir_path(__FILE__) . 'assets/css/transparency-fix.css';
-    
-    if (file_exists($fix_css_file)) {
-        wp_enqueue_style(
-            'wc-transparency-fix',
-            plugin_dir_url(__FILE__) . 'assets/css/transparency-fix.css',
-            array(),
-            time(), // Usar timestamp para evitar caché
-            'all'
-        );
-        
-        // Asignar prioridad extremadamente alta
-        wp_style_add_data('wc-transparency-fix', 'priority', 99999);
-    } else {
-        // Si el archivo no existe, usar estilos inline
-        $css_fix = "
-        /* Fix de emergencia para problemas de transparencia */
-        body, img, header, footer, .site-header, .site-footer, #masthead, #colophon, .logo, .brand-logo {
-            opacity: 1 !important;
-            visibility: visible !important;
-            background-color: initial !important;
-            filter: none !important;
-        }
-        ";
-        wp_add_inline_style('wp-block-library', $css_fix);
+    // Solo cargar si estamos en una página relevante
+    if (!function_exists('is_product_page') || !is_product_page()) {
+        return;
     }
     
-    // Script para corregir transparencia con JavaScript
-    wp_add_inline_script('jquery', "
+    // Solo aplicar dentro de nuestro contenedor
+    $css_fix = "
+    .wc-productos-template img,
+    .wc-productos-template .site-header,
+    .wc-productos-template .site-footer,
+    .wc-productos-template .logo,
+    .wc-productos-template .brand-logo {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    ";
+    wp_add_inline_style('wc-productos-template-styles', $css_fix);
+    
+    // Aplicar script solo a nuestros elementos
+    wp_add_inline_script('wc-productos-template-script', "
     jQuery(document).ready(function($) {
-        // Corregir imágenes transparentes
-        $('img').css({
+        $('.wc-productos-template img').css({
             'opacity': '1',
             'visibility': 'visible'
         });
         
-        // Corregir elementos de header y footer
-        $('header, footer, #masthead, #colophon, .site-header, .site-footer').css({
+        $('.wc-productos-template .logo, .wc-productos-template .brand-logo').css({
             'opacity': '1',
-            'visibility': 'visible',
-            'background-color': ''
-        });
-        
-        // Corregir logos de empresas
-        $('.logo, .brand-logo, .company-logo, .partner-logo').css({
-            'opacity': '1',
-            'visibility': 'visible',
-            'filter': 'none'
+            'visibility': 'visible'
         });
     });
-    ");
+    ", 'after');
 }
-
-// Agregar la función al hook wp_enqueue_scripts con prioridad muy alta
-add_action('wp_enqueue_scripts', 'wc_productos_transparency_fix', 99999);
-
 /**
  * Función para corregir estilos en el admin
  * MOVIDA FUERA DE LA CLASE
