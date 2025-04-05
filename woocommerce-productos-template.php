@@ -707,7 +707,7 @@ public function ajax_process_register() {
             update_user_meta($user_id, 'privacy_policy_consent_date', current_time('mysql'));
         }
         
-// Send welcome email with password reset instructions
+        // Enviar email de bienvenida con instrucciones para establecer contraseña
 $email_sent = $this->send_new_user_welcome_email($user_id, $password_generated, $password);
 
 if (!$email_sent) {
@@ -718,11 +718,12 @@ if (!$email_sent) {
 // Even if email fails, we should still let the user know they registered successfully
 wp_send_json_success(array(
     'message' => $password_generated ? 
-        __('Registration successful! Check your email for login instructions.', 'wc-productos-template') : 
-        __('Registration successful! Logging you in...', 'wc-productos-template'),
+        __('Registro exitoso. Se ha enviado un correo con la información de acceso.', 'wc-productos-template') : 
+        __('Registro exitoso. Iniciando sesión...', 'wc-productos-template'),
     'redirect_url' => $redirect_url,
     'user_id' => $user_id
 ));
+
         
         // Iniciar sesión automáticamente si no se generó contraseña
         if (!$password_generated) {
@@ -739,14 +740,7 @@ wp_send_json_success(array(
         // Añadir parámetro para forzar recarga
         $redirect_url = add_query_arg('dpc_refresh', time(), $redirect_url);
         
-        // Respuesta exitosa
-        wp_send_json_success(array(
-            'message' => $password_generated ? 
-                __('Registro exitoso. Se ha enviado un correo con la información de acceso.', 'wc-productos-template') : 
-                __('Registro exitoso. Iniciando sesión...', 'wc-productos-template'),
-            'redirect_url' => $redirect_url,
-            'user_id' => $user_id
-        ));
+
         
     } catch (Exception $e) {
         wp_send_json_error(array(
@@ -754,7 +748,7 @@ wp_send_json_success(array(
         ));
     }
 }
-        /**
+/**
  * Improved function to send WooCommerce welcome emails
  * Add this to your WC_Productos_Template class
  */
