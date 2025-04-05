@@ -580,8 +580,7 @@ public function ajax_get_login_form() {
 }
 
 /**
- * Endpoint AJAX para procesar el registro de usuarios
- * Añadir a la clase WC_Productos_Template
+ * Endpoint AJAX para procesar el registro de usuarios - VERSIÓN CORREGIDA
  */
 public function ajax_process_register() {
     // Verificar nonce de seguridad
@@ -611,8 +610,12 @@ public function ajax_process_register() {
     }
     
     $password = '';
-    if (isset($_POST['password']) && 'no' === get_option('woocommerce_registration_generate_password')) {
+    $password_generated = false;
+    if (isset($_POST['password']) && !empty($_POST['password']) && 'no' === get_option('woocommerce_registration_generate_password')) {
         $password = $_POST['password'];
+    } else {
+        $password = wp_generate_password();
+        $password_generated = true;
     }
 
     // Datos de empresa y CUIT
@@ -645,179 +648,144 @@ public function ajax_process_register() {
         $username = wc_create_new_customer_username($email);
     }
     
-    // Si necesitamos generar contraseña
-    $password_generated = false;
-    if (empty($password)) {
-        $password = wp_generate_password();
-        $password_generated = true;
-    }
-    
-    // Crear el nuevo usuario
-    $new_customer_data = array(
-        'user_login' => $username,
-        'user_pass'  => $password,
-        'user_email' => $email,
-        'role'       => 'customer',
-    );
-    
-    // Añadir nombre completo si está presente
-    if (!empty($first_name)) {
-        $new_customer_data['first_name'] = $first_name;
-    }
-    if (!empty($last_name)) {
-        $new_customer_data['last_name'] = $last_name;
-    }
-    
-    // Crear el usuario
-    $user_id = wp_insert_user($new_customer_data);
-    
-    // Verificar si hubo un error
-    if (is_wp_error($user_id)) {
-        wp_send_json_error(array(
-            'message' => $user_id->get_error_message()
+    // Crear el nuevo usuario - IMPORTANTE: No insertamos directamente, usamos la función de WooCommerce
+    try {
+        $new_customer_data = array(
+            'user_login' => $username,
+            'user_pass'  => $password,
+            'user_email' => $email,
+            'role'       => 'customer',
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+        );
+        
+        // CORREGIDO: Usar la función de WooCommerce para crear clientes
+        // Esta función se encarga de enviar el email correctamente
+        $user_id = wc_create_new_customer(
+            $email,
+            $username, 
+            $password
+        );
+        
+        // Verificar si hubo error
+        if (is_wp_error($user_id)) {
+            wp_send_json_error(array(
+                'message' => $user_id->get_error_message()
+            ));
+            return;
+        }
+        
+        // Guardar campos personalizados (metadatos)
+        if (!empty($first_name)) {
+            update_user_meta($user_id, 'first_name', $first_name);
+            update_user_meta($user_id, 'billing_first_name', $first_name);
+        }
+        
+        if (!empty($last_name)) {
+            update_user_meta($user_id, 'last_name', $last_name);
+            update_user_meta($user_id, 'billing_last_name', $last_name);
+        }
+        
+        if (!empty($company_name)) {
+            update_user_meta($user_id, 'billing_company', $company_name);
+            update_user_meta($user_id, 'company_name', $company_name);
+        }
+        
+        if (!empty($cuit)) {
+            update_user_meta($user_id, 'billing_cuit', $cuit);
+            update_user_meta($user_id, 'cuit', $cuit);
+        }
+        
+        if (!empty($phone)) {
+            update_user_meta($user_id, 'billing_phone', $phone);
+            update_user_meta($user_id, 'phone', $phone);
+        }
+        
+        // Registrar fecha de aceptación de política de privacidad
+        if (isset($_POST['privacy_policy']) && !empty($_POST['privacy_policy'])) {
+            update_user_meta($user_id, 'privacy_policy_consent', 'yes');
+            update_user_meta($user_id, 'privacy_policy_consent_date', current_time('mysql'));
+        }
+        
+        // SOLUCIÓN AL PROBLEMA: Forzar el envío del correo si la contraseña fue generada
+        if ($password_generated) {
+            // MÉTODO 1: Usar la función nativa de WooCommerce para enviar el email de nueva cuenta
+            if (function_exists('WC')) {
+                // Asegurar que WooCommerce está cargado completamente
+                WC()->mailer();
+                
+                // Obtener el objeto de email directamente
+                $customer_email = WC()->mailer()->get_emails()['WC_Email_Customer_New_Account'];
+                
+                if ($customer_email) {
+                    // Importante: Establecer que la contraseña fue generada
+                    $customer_email->set_password_generated(true);
+                    
+                    // Trigger del email con los parámetros correctos
+                    $customer_email->trigger($user_id, $password, true);
+                    
+                    // Log para depuración
+                    error_log('Email de nueva cuenta enviado directamente via WC_Email_Customer_New_Account');
+                }
+            }
+            
+            // MÉTODO 2: Como respaldo, generar un enlace de restablecimiento de contraseña
+            $user = get_user_by('id', $user_id);
+            $reset_key = get_password_reset_key($user);
+            
+            if (!is_wp_error($reset_key)) {
+                $reset_link = network_site_url("wp-login.php?action=rp&key={$reset_key}&login=" . rawurlencode($username), 'login');
+                
+                // Enviar email personalizado con el enlace de restablecimiento
+                $subject = sprintf(__('Configurar tu contraseña para %s', 'wc-productos-template'), get_bloginfo('name'));
+                
+                $message = '<p>' . sprintf(__('Hola %s,', 'wc-productos-template'), $first_name) . '</p>';
+                $message .= '<p>' . sprintf(__('Gracias por crear una cuenta en %s.', 'wc-productos-template'), get_bloginfo('name')) . '</p>';
+                $message .= '<p>' . __('Para completar la configuración de tu cuenta, por favor establece tu contraseña haciendo clic en el siguiente enlace:', 'wc-productos-template') . '</p>';
+                $message .= '<p><a href="' . esc_url($reset_link) . '">' . __('Establecer mi contraseña', 'wc-productos-template') . '</a></p>';
+                $message .= '<p>' . __('Si el enlace no funciona, copia y pega esta URL en tu navegador:', 'wc-productos-template') . '</p>';
+                $message .= '<p>' . esc_url($reset_link) . '</p>';
+                $message .= '<p>' . __('Saludos,', 'wc-productos-template') . '</p>';
+                $message .= '<p>' . get_bloginfo('name') . '</p>';
+                
+                $headers = array('Content-Type: text/html; charset=UTF-8');
+                
+                // Enviar el email de respaldo
+                wp_mail($email, $subject, $message, $headers);
+                
+                error_log('Email de respaldo para establecer contraseña enviado a ' . $email);
+            }
+        }
+        
+        // Iniciar sesión automáticamente si no se generó contraseña
+        if (!$password_generated) {
+            wc_set_customer_auth_cookie($user_id);
+        }
+        
+        // Determinar URL de redirección
+        if (!empty($_SERVER['HTTP_REFERER'])) {
+            $redirect_url = $_SERVER['HTTP_REFERER'];
+        } else {
+            $redirect_url = home_url();
+        }
+        
+        // Añadir parámetro para forzar recarga
+        $redirect_url = add_query_arg('dpc_refresh', time(), $redirect_url);
+        
+        // Respuesta exitosa
+        wp_send_json_success(array(
+            'message' => $password_generated ? 
+                __('Registro exitoso. Se ha enviado un correo con la información de acceso.', 'wc-productos-template') : 
+                __('Registro exitoso. Iniciando sesión...', 'wc-productos-template'),
+            'redirect_url' => $redirect_url,
+            'user_id' => $user_id
         ));
-        return;
-    }
-    
-    // Guardar campos personalizados (metadatos)
-    if (!empty($company_name)) {
-        update_user_meta($user_id, 'billing_company', $company_name);
-        update_user_meta($user_id, 'company_name', $company_name);
-    }
-    if (!empty($cuit)) {
-        update_user_meta($user_id, 'billing_cuit', $cuit);
-        update_user_meta($user_id, 'cuit', $cuit);
-    }
-    if (!empty($phone)) {
-        update_user_meta($user_id, 'billing_phone', $phone);
-        update_user_meta($user_id, 'phone', $phone);
-    }
-    
-    // Registrar fecha de aceptación de política de privacidad
-    if (isset($_POST['privacy_policy']) && !empty($_POST['privacy_policy'])) {
-        update_user_meta($user_id, 'privacy_policy_consent', 'yes');
-        update_user_meta($user_id, 'privacy_policy_consent_date', current_time('mysql'));
-    }
-    
-    // SOLUCIÓN MEJORADA: Priorizar sistema de correos de WooCommerce para compatibilidad con plugins
-    
-    // 1. PRIMERA OPCIÓN: Intentar usar el sistema de correos de WooCommerce
-    // Esto activará cualquier plugin de personalización que esté integrado con WooCommerce
-    if (class_exists('WC_Emails') && function_exists('WC')) {
-        // Asegurarse de que WooCommerce está completamente inicializado
-        if (!did_action('woocommerce_init')) {
-            do_action('woocommerce_init');
-        }
         
-        // Cargar WooCommerce mailer si aún no está cargado
-        if (!did_action('woocommerce_email')) {
-            WC()->mailer();
-        }
-        
-        // Gatillar el correo de nueva cuenta usando el hook estándar de WooCommerce
-        // Este hook es interceptado por la mayoría de plugins de personalización de correos
-        do_action('woocommerce_created_customer', $user_id, $new_customer_data, $password_generated);
-        
-        // Forzar el disparo directo del email de nueva cuenta si está disponible
-        // Esto es importante porque algunos temas/plugins pueden desactivar el hook anterior
-        if (isset(WC()->mailer()->emails['WC_Email_Customer_New_Account'])) {
-            $wc_email = WC()->mailer()->emails['WC_Email_Customer_New_Account'];
-            $wc_email->trigger($user_id, $password, $password_generated);
-            error_log('Email de nueva cuenta enviado directamente a través de WC_Email_Customer_New_Account');
-        }
+    } catch (Exception $e) {
+        wp_send_json_error(array(
+            'message' => $e->getMessage()
+        ));
     }
-    
-    // 2. SEGUNDA OPCIÓN: Si no tenemos WooCommerce o queremos asegurar el envío,
-    // creamos un correo compatible con plugins de personalización usando wp_mail()
-    
-    // Aplicar filtros para que los plugins de personalización puedan modificar el correo
-    $user_data = get_userdata($user_id);
-    $user_login = $user_data->user_login;
-    $user_email = $user_data->user_email;
-    $user_display = $user_data ? ($user_data->display_name ?: $user_login) : $user_login;
-    
-    // Generar un enlace para restablecer contraseña si fue generada automáticamente
-    $password_reset_key = '';
-    $password_reset_link = '';
-    
-    if ($password_generated) {
-        // Generamos una clave de restablecimiento
-        $password_reset_key = get_password_reset_key($user_data);
-        if (!is_wp_error($password_reset_key)) {
-            $password_reset_link = network_site_url("wp-login.php?action=rp&key=$password_reset_key&login=" . rawurlencode($user_login), 'login');
-        }
-    }
-    
-    // Permitir personalización del asunto vía filtros
-    $site_name = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
-    $default_subject = sprintf(__('Bienvenido a %s', 'wc-productos-template'), $site_name);
-    $subject = apply_filters('woocommerce_email_subject_customer_new_account', $default_subject, $user_data);
-    
-    // Permitir personalización del mensaje vía filtros
-    $default_message = '';
-    $default_message .= sprintf(__('¡Gracias por crear una cuenta en %s!', 'wc-productos-template'), $site_name) . "\r\n\r\n";
-    $default_message .= sprintf(__('Tu nombre de usuario: %s', 'wc-productos-template'), $user_login) . "\r\n";
-    
-    if ($password_generated) {
-        $default_message .= __('Para establecer tu contraseña, visita el siguiente enlace:', 'wc-productos-template') . "\r\n";
-        $default_message .= $password_reset_link . "\r\n\r\n";
-    } else {
-        $default_message .= __('Puedes acceder a tu cuenta con la contraseña que elegiste durante el registro.', 'wc-productos-template') . "\r\n\r\n";
-    }
-    
-    $default_message .= __('Puedes acceder a tu cuenta desde:', 'wc-productos-template') . "\r\n";
-    $default_message .= wc_get_page_permalink('myaccount') . "\r\n\r\n";
-    $default_message .= sprintf(__('Saludos del equipo de %s', 'wc-productos-template'), $site_name);
-    
-    // Aplicar filtros de WooCommerce para que los plugins puedan modificar el mensaje
-    $message = apply_filters('woocommerce_email_content_customer_new_account', $default_message, $user_data, $password_generated, $password_reset_link);
-    
-    // Aplicar filtros a las cabeceras del correo
-    $default_headers = array(
-        'Content-Type: text/html; charset=UTF-8',
-        'From: ' . $site_name . ' <' . get_option('admin_email') . '>',
-        'Reply-To: ' . get_option('admin_email'),
-    );
-    $headers = apply_filters('woocommerce_email_headers', $default_headers, 'customer_new_account', $user_data);
-    
-    // Permitir adjuntos personalizados vía filtros
-    $attachments = apply_filters('woocommerce_email_attachments', array(), 'customer_new_account', $user_data);
-    
-    // Enviar el correo a través de wp_mail, que respetará cualquier plugin de correo instalado
-    $mail_sent = wp_mail($user_email, $subject, $message, $headers, $attachments);
-    
-    // Registrar resultado para depuración
-    error_log('Correo de registro enviado a usuario ' . $user_id . ' (' . $user_email . '): ' . ($mail_sent ? 'Éxito' : 'Fallo'));
-    
-    // 3. Enviar notificación al administrador
-    wp_new_user_notification($user_id, null, 'admin');
-    
-    // Iniciar sesión automáticamente si no se generó contraseña
-    if (!$password_generated) {
-        wc_set_customer_auth_cookie($user_id);
-    }
-    
-    // Notificar al administrador (opcional)
-    wp_new_user_notification($user_id, null, 'admin');
-    
-    // Determinar URL de redirección
-    if (!empty($_SERVER['HTTP_REFERER'])) {
-        $redirect_url = $_SERVER['HTTP_REFERER'];
-    } else {
-        $redirect_url = home_url();
-    }
-    
-    // Añadir parámetro para forzar recarga
-    $redirect_url = add_query_arg('dpc_refresh', time(), $redirect_url);
-    
-    // Respuesta exitosa
-    wp_send_json_success(array(
-        'message' => $password_generated ? 
-            __('Registro exitoso. Se ha enviado un correo con la información de acceso.', 'wc-productos-template') : 
-            __('Registro exitoso. Iniciando sesión...', 'wc-productos-template'),
-        'redirect_url' => $redirect_url,
-        'user_id' => $user_id
-    ));
 }
 /**
  * Endpoint AJAX para procesar el login
