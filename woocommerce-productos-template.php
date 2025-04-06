@@ -749,135 +749,70 @@ wp_send_json_success(array(
     }
 }
 /**
- * Improved function to send WooCommerce welcome emails
- * Add this to your WC_Productos_Template class
+ * Función mejorada para enviar emails de WooCommerce para nuevos usuarios
+ * Reemplaza la función existente en la clase WC_Productos_Template
  */
 private function send_new_user_welcome_email($user_id, $password_generated, $password = '') {
-    // Validate user exists
+    // Validar que el usuario existe
     $user = get_userdata($user_id);
     if (!$user) {
-        error_log('Error: Cannot send welcome email - invalid user ID: ' . $user_id);
+        error_log('Error: No se puede enviar email de bienvenida - ID de usuario inválido: ' . $user_id);
         return false;
     }
     
-    $email_sent = false;
-    
-    // APPROACH 1: Direct method - Most reliable in AJAX context
-    if (class_exists('WC_Emails') && function_exists('WC')) {
-        try {
-            // Make sure WooCommerce is fully initialized
-            if (!did_action('woocommerce_init')) {
-                WC()->init();
-            }
-            
-            // Ensure mailer is loaded
-            if (!WC()->mailer()) {
-                WC()->mailer();
-            }
-            
-            // Direct access to Customer_New_Account email
-            if (isset(WC()->mailer()->emails['WC_Email_Customer_New_Account'])) {
-                $customer_email = WC()->mailer()->emails['WC_Email_Customer_New_Account'];
-                
-                // Ensure the email is enabled
-                $customer_email->enabled = 'yes';
-                
-                // Some email templates expect these to be set
-                $customer_email->object = $user;
-                $customer_email->user_login = $user->user_login;
-                $customer_email->user_email = $user->user_email;
-                $customer_email->user_pass = $password;
-                $customer_email->password_generated = $password_generated;
-                
-                // Use newer trigger method with user_pass
-                if (method_exists($customer_email, 'trigger') && is_callable([$customer_email, 'trigger'])) {
-                    $customer_email->trigger($user_id, $password, $password_generated);
-                    error_log('Direct email trigger successful for user: ' . $user_id);
-                    $email_sent = true;
-                }
-            } else {
-                error_log('WC_Email_Customer_New_Account not found in mailer');
-            }
-        } catch (Exception $e) {
-            error_log('Exception in direct email trigger: ' . $e->getMessage());
+    try {
+        // Asegurarse de que WooCommerce está inicializado
+        if (!did_action('woocommerce_init') && function_exists('WC')) {
+            WC()->init();
         }
-    }
-    
-    // APPROACH 2: Standard WooCommerce hooks
-    if (!$email_sent) {
-        try {
-            // Standard WooCommerce hook for new customers
-            do_action('woocommerce_created_customer', $user_id, [
+        
+        // Asegurarse de que el mailer está cargado
+        if (function_exists('WC') && !WC()->mailer()) {
+            WC()->mailer();
+        }
+        
+        // Verificar que el email WC_Email_Customer_New_Account existe
+        if (function_exists('WC') && isset(WC()->mailer()->emails['WC_Email_Customer_New_Account'])) {
+            // Obtener la instancia del email
+            $customer_email = WC()->mailer()->emails['WC_Email_Customer_New_Account'];
+            
+            // Asegurarse de que el email está habilitado
+            $customer_email->enabled = 'yes';
+            
+            // Establecer datos del usuario
+            $customer_email->object = $user;
+            $customer_email->user_login = $user->user_login;
+            $customer_email->user_email = $user->user_email;
+            $customer_email->user_pass = $password;
+            $customer_email->password_generated = $password_generated;
+            
+            // Llamar a la función trigger con los parámetros adecuados
+            if (method_exists($customer_email, 'trigger')) {
+                $customer_email->trigger($user_id, $password, $password_generated);
+                error_log('Email de nueva cuenta enviado correctamente para el usuario: ' . $user_id);
+                return true;
+            } else {
+                error_log('Error: Método trigger no encontrado en el objeto WC_Email_Customer_New_Account');
+            }
+        } else {
+            error_log('Error: WC_Email_Customer_New_Account no encontrado en el mailer de WooCommerce');
+            
+            // Intentar usar hooks de WooCommerce como alternativa
+            do_action('woocommerce_created_customer', $user_id, array(
                 'user_login' => $user->user_login,
                 'user_pass'  => $password,
                 'user_email' => $user->user_email
-            ], $password_generated);
+            ), $password_generated);
             
-            // Additional WooCommerce hooks that might trigger emails
             do_action('woocommerce_new_customer', $user_id);
-            
-            error_log('Standard WooCommerce hooks fired for customer creation: ' . $user_id);
-            $email_sent = true;
-        } catch (Exception $e) {
-            error_log('Exception in standard WooCommerce hooks: ' . $e->getMessage());
+            error_log('Intentando enviar email mediante hooks woocommerce_created_customer y woocommerce_new_customer');
+            return true;
         }
+    } catch (Exception $e) {
+        error_log('Excepción al enviar email de nueva cuenta: ' . $e->getMessage());
     }
     
-    // APPROACH 3: Force email generation and sending via wp_mail as fallback
-    if (!$email_sent) {
-        try {
-            // Generate a password reset key
-            $reset_key = get_password_reset_key($user);
-            
-            if (!is_wp_error($reset_key)) {
-                // Build reset URL
-                $reset_link = add_query_arg([
-                    'key'  => $reset_key,
-                    'id'   => urlencode($user->ID),
-                ], wc_get_endpoint_url('lost-password', '', wc_get_page_permalink('myaccount')));
-                
-                // Prepare email content
-                $site_name = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
-                $subject = sprintf(__('Welcome to %s', 'woocommerce'), $site_name);
-                
-                // Email body
-                $message = sprintf(__('Thank you for creating an account on %s.', 'woocommerce'), $site_name) . "\r\n\r\n";
-                $message .= sprintf(__('Your username: %s', 'woocommerce'), $user->user_login) . "\r\n\r\n";
-                
-                if ($password_generated) {
-                    $message .= __('To set your password, visit the following link:', 'woocommerce') . "\r\n\r\n";
-                    $message .= $reset_link . "\r\n\r\n";
-                } else {
-                    $message .= __('You can login with the password you set during registration.', 'woocommerce') . "\r\n\r\n";
-                }
-                
-                $message .= sprintf(__('If you have any questions, contact us at %s.', 'woocommerce'), get_option('admin_email')) . "\r\n";
-                
-                // Headers and filters
-                $headers = [
-                    'Content-Type: text/html; charset=UTF-8',
-                    'From: ' . $site_name . ' <' . get_option('admin_email') . '>',
-                    'Reply-To: ' . get_option('admin_email'),
-                ];
-                
-                // Apply WooCommerce filters to make it compatible with email template plugins
-                $message = apply_filters('woocommerce_email_content_customer_new_account', $message, $user, $password_generated, $reset_link);
-                $subject = apply_filters('woocommerce_email_subject_customer_new_account', $subject, $user);
-                $headers = apply_filters('woocommerce_email_headers', $headers, 'customer_new_account', $user);
-                
-                // Send the email
-                $mail_sent = wp_mail($user->user_email, $subject, $message, $headers);
-                error_log('Manual fallback email sent: ' . ($mail_sent ? 'Success' : 'Failed') . ' to ' . $user->user_email);
-                $email_sent = $mail_sent;
-            } else {
-                error_log('Error generating password reset key: ' . $reset_key->get_error_message());
-            }
-        } catch (Exception $e) {
-            error_log('Exception in fallback email sending: ' . $e->getMessage());
-        }
-    }
-    
-    return $email_sent;
+    return false;
 }
 /**
  * Endpoint AJAX para procesar el login
