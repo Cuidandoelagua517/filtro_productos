@@ -48,7 +48,7 @@
 /* Barra de búsqueda */
 .wc-productos-template .productos-search {
     position: relative;
-    width: 300px;
+    width: 450px;
 }
 
 .wc-productos-template .productos-search form,
@@ -744,4 +744,61 @@
 /* Estilo para categorías activas */
 .wc-productos-template .filtro-category:checked + label {
     color: #0056b3;
+}
+
+/* Ocultar el dropdown por defecto */
+body .wp-block-navigation__container .wp-block-navigation-item.has-child .wp-block-navigation-submenu__container,
+body .wp-block-navigation .wp-block-navigation-submenu__container,
+body .wp-block-navigation .wp-block-navigation__submenu-container,
+body .wp-block-navigation__responsive-container .wp-block-navigation__submenu-container,
+body .wp-block-navigation-item__content + .wp-block-navigation-submenu__container {
+    z-index: 999999 !important;
+    position: absolute !important;
+    display: none !important; /* Oculto por defecto */
+    visibility: hidden !important; /* Oculto por defecto */
+    opacity: 0 !important; /* Oculto por defecto */
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
+    background-color: white !important;
+    border: 1px solid #eee !important;
+    min-width: 200px !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+/* Forzar contenedor padre */
+body .wp-block-navigation-item.has-child {
+    position: relative !important;
+}
+
+/* Mostrar dropdown solo en hover */
+body .wp-block-navigation-item.has-child:hover .wp-block-navigation-submenu__container,
+body .wp-block-navigation-item.has-child:hover .wp-block-navigation__submenu-container,
+body .wp-block-navigation-item.has-child:focus-within .wp-block-navigation-submenu__container,
+body .wp-block-navigation-item.has-child:focus-within .wp-block-navigation__submenu-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Reducir el z-index de la barra de búsqueda y sus contenedores */
+.search-form,
+.search-field,
+.wp-block-search,
+.wp-block-search__input,
+.wp-block-search__button,
+.productos-search,
+.productos-header,
+.search-fix-bar,
+.wc-productos-template .productos-search,
+.wc-productos-template .search-fix-bar,
+.wc-productos-template .productos-header,
+.wc-productos-template .search-fix-header,
+form[role="search"],
+.search-container,
+#search-container,
+.search-wrapper,
+#searchform,
+#searchbox {
+    z-index: 9000 !important;
+    position: relative !important;
 }
