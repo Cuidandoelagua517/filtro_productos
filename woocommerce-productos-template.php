@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Plugin Name: WooCommerce Productos Template Personalizado
@@ -728,7 +729,9 @@ wp_send_json_success(array(
     'user_id' => $user_id
 ));
 
-        
+        // Pone a los usuarios como suscriptos
+$this->set_default_mailchimp_subscription($user_id);
+
         // Iniciar sesión automáticamente si no se generó contraseña
         if (!$password_generated) {
             wc_set_customer_auth_cookie($user_id);
@@ -830,57 +833,7 @@ private function send_new_user_welcome_email($user_id, $password_generated, $pas
     
     return false;
 }
-        /**
- * Implementación de la solución para enviar correctamente emails a nuevos usuarios
- * registrados a través del popup de login-form
- */
-function fix_new_user_popup_registration_email($handled, $user_id, $password, $password_generated) {
-    // Verificar que WooCommerce esté inicializado correctamente
-    if (!function_exists('WC') || !WC() || !method_exists(WC(), 'mailer')) {
-        return $handled;
-    }
-    
-    try {
-        // Obtener el usuario
-        $user = get_userdata($user_id);
-        if (!$user) {
-            return $handled;
-        }
-        
-        // Forzar la carga del mailer si no está inicializado
-        if (!WC()->mailer()) {
-            WC()->mailer();
-        }
-        
-        // Obtener la instancia del email de nueva cuenta
-        if (isset(WC()->mailer()->emails['WC_Email_Customer_New_Account'])) {
-            $email = WC()->mailer()->emails['WC_Email_Customer_New_Account'];
-            
-            // Asegurarse de que el email está habilitado
-            $email->enabled = 'yes';
-            
-            // Establecer los datos necesarios
-            $email->user_login = $user->user_login;
-            $email->user_email = $user->user_email;
-            $email->user_pass = $password;
-            $email->password_generated = $password_generated;
-            
-            // Llamar a trigger directamente con todos los parámetros requeridos
-            $email->trigger($user_id, $password, $password_generated);
-            
-            // Marcar como manejado
-            return true;
-        }
-    } catch (Exception $e) {
-        // Loguear el error pero permitir que continúe con otros métodos
-        error_log('Error en fix_new_user_popup_registration_email: ' . $e->getMessage());
-    }
-    
-    // Devolver el valor original si no podemos manejar el email
-    return $handled;
-}
-add_filter('wc_productos_template_new_user_email', 'fix_new_user_popup_registration_email', 10, 4);
-    apply_filters('wc_productos_template_new_user_email', $handled, $user_id, $password, $password_generated)
+
 /**
  * Endpoint AJAX para procesar el login
  */
