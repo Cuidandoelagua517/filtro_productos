@@ -81,6 +81,7 @@ public function __construct() {
         add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
     // Añade esta línea al constructor de la clase WC_Productos_Template, junto a los otros endpoints AJAX
 add_action('wp_ajax_nopriv_mam_ajax_register', array($this, 'ajax_process_register'));
+        add_action('woocommerce_created_customer', array($this, 'set_default_mailchimp_subscription'), 10, 1);
 
         
         // En el constructor:
@@ -321,7 +322,10 @@ if (!file_exists($login_template_path) && file_exists(WC_PRODUCTOS_TEMPLATE_DIR 
                 }
             }
         }
-
+public function set_default_mailchimp_subscription($user_id) {
+    update_user_meta($user_id, 'mailchimp_woocommerce_is_subscribed', 'yes');
+    error_log('Usuario ID ' . $user_id . ' suscrito a Mailchimp por defecto');
+}
         /**
          * Inicializar el plugin
          */
