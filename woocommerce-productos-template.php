@@ -82,7 +82,7 @@ public function __construct() {
         add_action('wp_ajax_nopriv_mam_ajax_login', array($this, 'ajax_process_login'));
     // Añade esta línea al constructor de la clase WC_Productos_Template, junto a los otros endpoints AJAX
 add_action('wp_ajax_nopriv_mam_ajax_register', array($this, 'ajax_process_register'));
-        add_action('woocommerce_created_customer', array($this, 'set_default_mailchimp_subscription'), 10, 1);
+
 
         
         // En el constructor:
@@ -323,10 +323,7 @@ if (!file_exists($login_template_path) && file_exists(WC_PRODUCTOS_TEMPLATE_DIR 
                 }
             }
         }
-public function set_default_mailchimp_subscription($user_id) {
-    update_user_meta($user_id, 'mailchimp_woocommerce_is_subscribed', 'yes');
-    error_log('Usuario ID ' . $user_id . ' suscrito a Mailchimp por defecto');
-}
+
         /**
          * Inicializar el plugin
          */
@@ -712,14 +709,7 @@ public function ajax_process_register() {
             update_user_meta($user_id, 'privacy_policy_consent_date', current_time('mysql'));
         }
         
-        // Enviar email de bienvenida con instrucciones para establecer contraseña
-$email_sent = $this->send_new_user_welcome_email($user_id, $password_generated, $password);
-
-if (!$email_sent) {
-    // Log the failure but don't expose this to the user
-    error_log('Failed to send welcome email to new user ID: ' . $user_id . ', Email: ' . $email);
-}
-
+  
 // Even if email fails, we should still let the user know they registered successfully
 wp_send_json_success(array(
     'message' => $password_generated ? 
@@ -729,8 +719,7 @@ wp_send_json_success(array(
     'user_id' => $user_id
 ));
 
-        // Pone a los usuarios como suscriptos
-$this->set_default_mailchimp_subscription($user_id);
+
 
         // Iniciar sesión automáticamente si no se generó contraseña
         if (!$password_generated) {
@@ -755,84 +744,7 @@ $this->set_default_mailchimp_subscription($user_id);
         ));
     }
 }
-/**
- * Función mejorada para enviar emails de WooCommerce para nuevos usuarios
- * con hook personalizado para permitir personalización
- */
-private function send_new_user_welcome_email($user_id, $password_generated, $password = '') {
-    // Validar que el usuario existe
-    $user = get_userdata($user_id);
-    if (!$user) {
-        error_log('Error: No se puede enviar email de bienvenida - ID de usuario inválido: ' . $user_id);
-        return false;
-    }
     
-    // HOOK PERSONALIZADO: Permite a los desarrolladores personalizar o reemplazar completamente
-    // el proceso de envío de emails para nuevos usuarios registrados vía popup
-    $custom_email_sent = apply_filters('wc_productos_template_new_user_email', false, $user_id, $password, $password_generated);
-    
-    // Si un plugin o tema ha manejado el envío del email a través del hook, terminamos aquí
-    if ($custom_email_sent === true) {
-        error_log('Email de nueva cuenta enviado mediante hook personalizado wc_productos_template_new_user_email');
-        return true;
-    }
-    
-    // Si no hay un manejador personalizado, intentamos el método estándar
-    try {
-        // Asegurarse de que WooCommerce está inicializado
-        if (!did_action('woocommerce_init') && function_exists('WC')) {
-            WC()->init();
-        }
-        
-        // Asegurarse de que el mailer está cargado
-        if (function_exists('WC') && WC() && method_exists(WC(), 'mailer') && WC()->mailer()) {
-            // Verificar que el email WC_Email_Customer_New_Account existe
-            if (isset(WC()->mailer()->emails['WC_Email_Customer_New_Account'])) {
-                // Obtener la instancia del email
-                $customer_email = WC()->mailer()->emails['WC_Email_Customer_New_Account'];
-                
-                // Asegurarse de que el email está habilitado
-                $customer_email->enabled = 'yes';
-                
-                // HOOK PERSONALIZADO: Permite personalizar la configuración del email antes de enviarlo
-                do_action('wc_productos_template_before_new_user_email', $customer_email, $user_id, $password, $password_generated);
-                
-                // Llamar a la función trigger con los parámetros adecuados
-                if (method_exists($customer_email, 'trigger')) {
-                    $customer_email->trigger($user_id, $password, $password_generated);
-                    error_log('Email de nueva cuenta enviado correctamente para el usuario: ' . $user_id);
-                    
-                    // HOOK PERSONALIZADO: Se ejecuta después de enviar el email correctamente
-                    do_action('wc_productos_template_after_new_user_email', $user_id, $password_generated);
-                    
-                    return true;
-                }
-            } else {
-                error_log('Error: WC_Email_Customer_New_Account no encontrado en el mailer de WooCommerce');
-            }
-        }
-        
-        // Intento secundario usando los hooks estándar de WooCommerce
-        do_action('woocommerce_created_customer', $user_id, array(
-            'user_login' => $user->user_login,
-            'user_pass'  => $password,
-            'user_email' => $user->user_email
-        ), $password_generated);
-        
-        do_action('woocommerce_new_customer', $user_id);
-        error_log('Intentando enviar email mediante hooks woocommerce_created_customer y woocommerce_new_customer');
-        
-        return true;
-    } catch (Exception $e) {
-        error_log('Excepción al enviar email de nueva cuenta: ' . $e->getMessage());
-        
-        // HOOK PERSONALIZADO: Se ejecuta en caso de error, permitiendo un manejo alternativo
-        $error_handled = apply_filters('wc_productos_template_new_user_email_error', false, $e, $user_id);
-        return $error_handled;
-    }
-    
-    return false;
-}
 
 /**
  * Endpoint AJAX para procesar el login
