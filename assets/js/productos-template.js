@@ -24,7 +24,7 @@ jQuery(document).ready(function($) {
    /**
  * MODIFICACIÓN: Mejorar función filterProducts para manejar mejor la búsqueda
  */
-function filterProducts(page) {
+var filterProducts = function(page) {
     // Asignar página actual
     page = parseInt(page) || 1;
     currentFilters.page = page;
@@ -115,7 +115,7 @@ function filterProducts(page) {
 /**
  * MODIFICACIÓN: Unificar eventos de búsqueda para evitar duplicación
  */
-function bindSearchEvents() {
+var updateCurrentFilters = function() {
     // Eliminar eventos anteriores para evitar duplicados
     $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').off('submit');
     $('.wc-productos-template .productos-search input').off('keypress');
@@ -184,7 +184,7 @@ function updateCurrentFilters() {
     /**
      * Actualizar la cuadrícula de productos con el nuevo HTML - CORREGIDA
      */
-    function updateProductGrid(productsHtml) {
+    var updateProductGrid = function(productsHtml) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
         
         if ($productsWrapper.length) {
@@ -216,7 +216,7 @@ function updateCurrentFilters() {
     /**
      * Actualizar el breadcrumb - CORREGIDA
      */
-    function updateBreadcrumb(breadcrumbHtml) {
+    var updateBreadcrumb = function(breadcrumbHtml) {
         var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
         if ($breadcrumb.length) {
             $breadcrumb.html(breadcrumbHtml);
@@ -226,7 +226,7 @@ function updateCurrentFilters() {
     /**
      * Función para actualizar el breadcrumb según la página actual - CORREGIDA
      */
-    function updateBreadcrumbForPagination(currentPage) {
+    var updateBreadcrumbForPagination = function(currentPage) {
         // Obtener el breadcrumb actual
         var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
         if (!$breadcrumb.length) return;
@@ -266,7 +266,7 @@ function updateCurrentFilters() {
     /**
      * Actualizar la paginación - CORREGIDA
      */
-    function updatePagination(paginationHtml) {
+    var updatePagination = function(paginationHtml) {
         var $pagination = $('.wc-productos-template .productos-pagination');
         if ($pagination.length) {
             $pagination.replaceWith(paginationHtml);
@@ -278,7 +278,7 @@ function updateCurrentFilters() {
     /**
      * Mostrar mensaje de error - CORREGIDA
      */
-    function showError(message) {
+    var showError = function(message) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
         // Asegurarse de que el wrapper exista
         if (!$productsWrapper.length) {
@@ -296,7 +296,7 @@ function updateCurrentFilters() {
     /**
      * Forzar disposición en cuadrícula con JavaScript - CORREGIDA
      */
-    function forceGridLayout() {
+    var forceGridLayout = function() {
         // Asegurarse de que la clase principal esté presente
         $('.wc-productos-template ul.products, .wc-productos-template .productos-grid').addClass('force-grid three-column-grid');
         
@@ -343,7 +343,7 @@ function updateCurrentFilters() {
   /**
  * MODIFICACIÓN: Mejorar función updateUrlState para incluir correctamente el término de búsqueda
  */
-function updateUrlState() {
+var updateUrlState = function() {
     if (!window.history || !window.history.pushState) {
         return; // No soporta History API
     }
@@ -389,7 +389,7 @@ function updateUrlState() {
 /**
  * MODIFICACIÓN: Extraer términos de búsqueda de la URL
  */
-function extractSearchFromUrl() {
+var extractSearchFromUrl = function() {
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('s')) {
         var searchTerm = urlParams.get('s');
@@ -403,7 +403,8 @@ function extractSearchFromUrl() {
     /**
      * Inicializar el slider de volumen - CORREGIDA
      */
-    function initVolumeSlider() {
+    var initVolumeSlider = function() {
+
         if ($.fn.slider && $('.volumen-range').length) {
             // Obtener valores iniciales
             var initialMin = parseInt($('input[name="min_volume"]').val() || 100);
@@ -444,7 +445,7 @@ function extractSearchFromUrl() {
     /**
  * MODIFICACIÓN: Actualizar la función bindFilterEvents para usar bindSearchEvents
  */
-function bindFilterEvents() {
+var bindSearchEvents = function() {
     // Eliminar eventos anteriores para evitar duplicados
     $('.wc-productos-template .filtro-category').off('change');
     $('.wc-productos-template .filtro-grade').off('change');
@@ -469,7 +470,7 @@ function bindFilterEvents() {
     /**
      * Enlazar eventos de paginación - versión CORREGIDA
      */
-    function bindPaginationEvents() {
+    var bindPaginationEvents = function() {
         // En lugar de usar delegación general, vamos a ser específicos
         $('.wc-productos-template .productos-pagination .page-number').each(function() {
             var $this = $(this);
@@ -504,7 +505,7 @@ function bindFilterEvents() {
     /**
      * Forzar cuadrícula de tres columnas - CORREGIDA
      */
-    function forceThreeColumnGrid() {
+    var forceThreeColumnGrid = function() {
         // Eliminar clases que puedan interferir
         $('.wc-productos-template ul.products, .productos-grid').removeClass('columns-1 columns-2 columns-4 columns-5 columns-6');
         
@@ -520,7 +521,7 @@ function bindFilterEvents() {
  */
 
 // Función para inicializar comportamiento de categorías jerárquicas
-function initCategoryFilters() {
+var initCategoryFilters = function() {
     console.log('Inicializando filtros de categorías jerárquicas');
     
     // Manejar clic en el icono de expansión
@@ -602,7 +603,7 @@ $(document).ready(function($) {
     }
 });
     // Inicializar todo - VERSIÓN CORREGIDA
-   function init() {
+   var init = function() {
     console.log('Inicializando productos template con búsqueda mejorada');
     
     // Forzar cuadrícula desde el inicio
