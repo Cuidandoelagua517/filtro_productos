@@ -226,44 +226,26 @@ jQuery(document).ready(function($) {
    };
    
    /**
-    * Función para actualizar el breadcrumb según la página actual - CORREGIDA
-    */
-   var updateBreadcrumbForPagination = function(currentPage) {
-       // Obtener el breadcrumb actual
-       var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
-       if (!$breadcrumb.length) return;
-       
-       // Si estamos en la primera página, no es necesario modificar el breadcrumb
-       if (currentPage <= 1) {
-           // Eliminar página si existe en el breadcrumb
-           var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
-           if ($breadcrumbNav.length) {
-               var breadcrumbText = $breadcrumbNav.html();
-               if (breadcrumbText && breadcrumbText.includes('Página')) {
-                   breadcrumbText = breadcrumbText.replace(/\s*\/\s*Página\s+\d+/g, '');
-                   $breadcrumbNav.html(breadcrumbText);
-               }
-           }
-           return;
-       }
-       
-       // Obtener el contenido actual del breadcrumb
-       var $breadcrumbNav = $breadcrumb.find('.woocommerce-breadcrumb');
-       if (!$breadcrumbNav.length) return;
-       
-       // Verificar si ya existe un elemento de página en el breadcrumb
-       var breadcrumbText = $breadcrumbNav.html();
-       
-       // Si ya existe una referencia a la página, actualizarla
-       if (breadcrumbText && breadcrumbText.includes('Página')) {
-           breadcrumbText = breadcrumbText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
-           $breadcrumbNav.html(breadcrumbText);
-       } else {
-           // Si no existe, añadir la página al final
-           breadcrumbText = breadcrumbText + ' / Página ' + currentPage;
-           $breadcrumbNav.html(breadcrumbText);
-       }
-   };
+ * Función para actualizar el breadcrumb según la página actual - CORREGIDA
+ */
+var updateBreadcrumbOnPageLoad = function() {
+    // Obtener el contenido actual del breadcrumb
+    var $navElement = $breadcrumb.find('.woocommerce-breadcrumb');
+    if (!$navElement.length) return;
+    
+    // Verificar si ya existe un elemento de página en el breadcrumb
+    var currentText = $navElement.html();
+    
+    // Si ya existe una referencia a la página, actualizarla
+    if (currentText && currentText.includes('Página')) {
+        currentText = currentText.replace(/Página\s+\d+/g, 'Página ' + currentPage);
+        $navElement.html(currentText);
+    } else {
+        // Si no existe, añadir la página al final
+        currentText = currentText + ' / Página ' + currentPage;
+        $navElement.html(currentText);
+    }
+};
    
    /**
     * Actualizar la paginación - CORREGIDA
