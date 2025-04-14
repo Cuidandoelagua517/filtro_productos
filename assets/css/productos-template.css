@@ -682,6 +682,7 @@
     width: 100%;
     margin-bottom: 8px;
 }
+
 /* Cualquier contenedor con scroll en la lista de filtros */
 .productos-sidebar div[style*="overflow"], 
 .productos-sidebar div[style*="height"],
@@ -699,7 +700,12 @@
     align-items: center;
     margin-bottom: 8px;
 }
-
+.wc-productos-template .filtro-parent-option,
+.wc-productos-template .filtro-category-parent {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
 .wc-productos-template .filtro-option input[type="checkbox"],
 .wc-productos-template .filtro-category,
 .wc-productos-template .filtro-grade {
@@ -716,6 +722,21 @@
     line-height: 1.4;
     margin: 0;
     cursor: pointer;
+}
+.wc-productos-template .filtro-parent-option label,
+.wc-productos-template .filtro-option label,
+.wc-productos-template label[for^="cat-"] {
+    position: relative;
+    top: -2px; /* Esto sube el label para alinearlo con el checkbox */
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+.wc-productos-template .filtro-parent-option br,
+.wc-productos-template .filtro-option br {
+    display: none;
 }
 .wc-productos-template .filtro-parent-option {
     justify-content: flex-start;
@@ -750,6 +771,11 @@
 .wc-productos-template input[type="checkbox"] {
     margin: 0 8px 0 0;
     flex-shrink: 0;
+}
+.wc-productos-template input[type="checkbox"].filtro-category {
+    margin: 0 8px 0 0;
+    position: relative;
+    top: 0;
 }
 .wc-productos-template .filtro-children-list.expanded {
     display: block; /* Visible cuando se expande */
