@@ -499,59 +499,69 @@ var updateBreadcrumbOnPageLoad = function() {
        $('.wc-productos-template ul.products, .productos-grid').css('grid-template-columns', 'repeat(3, 1fr)');
    };
 
-   /**
-    * JavaScript para manejar la expansión/contracción de categorías jerárquicas
-    */
- /**
+/**
  * JavaScript para manejar la expansión/contracción de categorías jerárquicas
- * VERSIÓN CORREGIDA para evitar selección automática de todas las categorías
+ * VERSIÓN CORREGIDA para acordeones bloqueados
  */
 var initCategoryFilters = function() {
-    console.log('Inicializando filtros de categorías jerárquicas - versión corregida');
+    console.log('Inicializando filtros de categorías jerárquicas - versión para acordeones');
     
-    // Manejar clic en el icono de expansión
-    $('.wc-productos-template .category-toggle').on('click', function(e) {
+    // SOLUCIÓN: Remover handlers antiguos primero para evitar duplicaciones
+    $('.wc-productos-template .category-toggle').off('click');
+    $('.wc-productos-template .filtro-parent-option .filtro-category').off('change');
+    $('.wc-productos-template .filtro-category').off('click');
+    
+    // Debug para verificar los elementos encontrados
+    console.log('Elementos toggle encontrados:', $('.wc-productos-template .category-toggle').length);
+    
+    // CORREGIDO: Manejador de clic mejorado para los acordeones
+    $(document).on('click', '.wc-productos-template .category-toggle', function(e) {
         e.preventDefault();
         e.stopPropagation(); // Evitar que se propague al checkbox
         
         var categorySlug = $(this).data('category');
         var childrenList = $('#children-' + categorySlug);
         
+        console.log('Toggle clicked for:', categorySlug);
+        
         // Alternar expansión
         $(this).toggleClass('expanded');
         childrenList.toggleClass('expanded');
         
-        // Rotar icono
-        if ($(this).hasClass('expanded')) {
+        // Mostrar/ocultar la lista manualmente con jQuery
+        if (childrenList.hasClass('expanded')) {
+            childrenList.show();
             $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
         } else {
+            childrenList.hide();
             $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
         }
+        
+        return false; // Asegurar que no hay navegación
     });
     
-    // MODIFICACIÓN: Cambio en el comportamiento de marcar/desmarcar hijos
-    // Para evitar que se marquen TODAS las categorías al iniciar
-    $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
+    // MODIFICACIÓN: Comportamiento de marcar/desmarcar mejorado
+    $(document).on('change', '.wc-productos-template .filtro-parent-option .filtro-category', function() {
         var isChecked = $(this).prop('checked');
         var categorySlug = $(this).val();
-        var childrenContainer = $('#children-' + categorySlug);
+        var childrenList = $('#children-' + categorySlug);
         
         // Si el padre está seleccionado, expandir automáticamente
         if (isChecked) {
             var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
             toggle.addClass('expanded');
             toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            childrenContainer.addClass('expanded');
+            childrenList.addClass('expanded').show();
             
             // IMPORTANTE: Solo marcar hijos si el usuario lo hace manualmente
             // NO marcar automáticamente los hijos cuando se carga la página
             if (window.userInitiatedAction === true) {
-                childrenContainer.find('.filtro-child').prop('checked', isChecked);
+                childrenList.find('.filtro-child').prop('checked', isChecked);
             }
         } else {
             // Si desmarca el padre, permitir desmarcar los hijos
             if (window.userInitiatedAction === true) {
-                childrenContainer.find('.filtro-child').prop('checked', false);
+                childrenList.find('.filtro-child').prop('checked', false);
             }
         }
     });
@@ -560,7 +570,7 @@ var initCategoryFilters = function() {
     window.userInitiatedAction = false;
     
     // Marcar cambios futuros como iniciados por el usuario
-    $('.wc-productos-template .filtro-category').on('click', function() {
+    $(document).on('click', '.wc-productos-template .filtro-category', function() {
         window.userInitiatedAction = true;
         // Restaurar el valor después del evento
         setTimeout(function() {
@@ -568,8 +578,17 @@ var initCategoryFilters = function() {
         }, 100);
     });
     
-    // MODIFICADO: Al cargar, expandir solo las categorías realmente seleccionadas por URL
-    // (en lugar de todas las categorías automáticamente)
+    // INICIALIZACIÓN: Configurar estado inicial de los acordeones
+    $('.wc-productos-template .filtro-children-list').each(function() {
+        // Ocultar listas de hijos por defecto
+        if (!$(this).hasClass('expanded')) {
+            $(this).hide();
+        } else {
+            $(this).show();
+        }
+    });
+    
+    // Expandir categorías seleccionadas por URL
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('category')) {
         var selectedCategories = urlParams.get('category').split(',');
@@ -582,7 +601,8 @@ var initCategoryFilters = function() {
                 var toggle = $('.category-toggle[data-category="' + slug + '"]');
                 toggle.addClass('expanded');
                 toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                $('#children-' + slug).addClass('expanded');
+                var childList = $('#children-' + slug);
+                childList.addClass('expanded').show();
             } else {
                 // Es un hijo, buscar y expandir su padre
                 var childCheckbox = $('.filtro-child-option .filtro-category[value="' + slug + '"]');
@@ -595,14 +615,23 @@ var initCategoryFilters = function() {
                             var parentToggle = $('.category-toggle[data-category="' + parentSlug + '"]');
                             parentToggle.addClass('expanded');
                             parentToggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                            parentContainer.addClass('expanded');
+                            parentContainer.addClass('expanded').show();
                         }
                     }
                 }
             }
         });
     }
+
+    // Asegurar que los acordeones y sus estados son correctos
+    setTimeout(function() {
+        $('.wc-productos-template .category-toggle.expanded').each(function() {
+            var categorySlug = $(this).data('category');
+            $('#children-' + categorySlug).show();
+        });
+    }, 100);
 };
+
 
    /**
     * Inicializar todo - VERSIÓN CORREGIDA
