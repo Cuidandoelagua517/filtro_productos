@@ -502,87 +502,107 @@ var updateBreadcrumbOnPageLoad = function() {
    /**
     * JavaScript para manejar la expansión/contracción de categorías jerárquicas
     */
-   var initCategoryFilters = function() {
-       console.log('Inicializando filtros de categorías jerárquicas');
-       
-       // Manejar clic en el icono de expansión
-       $('.wc-productos-template .category-toggle').on('click', function(e) {
-           e.preventDefault();
-           e.stopPropagation(); // Evitar que se propague al checkbox
-           
-           var categorySlug = $(this).data('category');
-           var childrenList = $('#children-' + categorySlug);
-           
-           // Alternar expansión
-           $(this).toggleClass('expanded');
-           childrenList.toggleClass('expanded');
-           
-           // Rotar icono
-           if ($(this).hasClass('expanded')) {
-               $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-           } else {
-               $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-           }
-       });
-       
-       // Marcar/desmarcar automáticamente categorías hijas cuando se selecciona la categoría padre
-       $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
-           var isChecked = $(this).prop('checked');
-           var categorySlug = $(this).val();
-           var childrenContainer = $('#children-' + categorySlug);
-           
-           // Si el padre está seleccionado, expandir automáticamente
-           if (isChecked) {
-               var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
-               toggle.addClass('expanded');
-               toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-               childrenContainer.addClass('expanded');
-           }
-           
-           // Seleccionar o deseleccionar todas las categorías hijas
-           childrenContainer.find('.filtro-child').prop('checked', isChecked);
-       });
-       
-       // Al cargar, expandir automáticamente categorías que ya tienen selecciones
-       $('.wc-productos-template .filtro-parent-option .filtro-category:checked').each(function() {
-           var categorySlug = $(this).val();
-           var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
-           toggle.addClass('expanded');
-           toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-           $('#children-' + categorySlug).addClass('expanded');
-       });
-       
-       // También expandir si alguna categoría hija está seleccionada
-       $('.wc-productos-template .filtro-child-option .filtro-category:checked').each(function() {
-           var parentContainer = $(this).closest('.filtro-children-list');
-           var parentId = parentContainer.attr('id');
-           if (parentId && parentId.startsWith('children-')) {
-               var categorySlug = parentId.replace('children-', '');
-               var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
-               toggle.addClass('expanded');
-               toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-               parentContainer.addClass('expanded');
-           }
-       });
-   };
-   
-   // Inicializar eventos para categorías después de que el DOM esté listo
-   $(document).ready(function() {
-       // Verificar si estamos en una página con el template de productos
-       if ($('.wc-productos-template').length) {
-           // Inicializar filtros de categorías jerárquicas
-           initCategoryFilters();
-           
-           // Volver a inicializar después de AJAX
-           $(document).ajaxComplete(function(event, xhr, settings) {
-               if (settings.url && settings.url.includes('productos_filter')) {
-                   setTimeout(function() {
-                       initCategoryFilters();
-                   }, 200);
-               }
-           });
-       }
-   });
+ /**
+ * JavaScript para manejar la expansión/contracción de categorías jerárquicas
+ * VERSIÓN CORREGIDA para evitar selección automática de todas las categorías
+ */
+var initCategoryFilters = function() {
+    console.log('Inicializando filtros de categorías jerárquicas - versión corregida');
+    
+    // Manejar clic en el icono de expansión
+    $('.wc-productos-template .category-toggle').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Evitar que se propague al checkbox
+        
+        var categorySlug = $(this).data('category');
+        var childrenList = $('#children-' + categorySlug);
+        
+        // Alternar expansión
+        $(this).toggleClass('expanded');
+        childrenList.toggleClass('expanded');
+        
+        // Rotar icono
+        if ($(this).hasClass('expanded')) {
+            $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        } else {
+            $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        }
+    });
+    
+    // MODIFICACIÓN: Cambio en el comportamiento de marcar/desmarcar hijos
+    // Para evitar que se marquen TODAS las categorías al iniciar
+    $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
+        var isChecked = $(this).prop('checked');
+        var categorySlug = $(this).val();
+        var childrenContainer = $('#children-' + categorySlug);
+        
+        // Si el padre está seleccionado, expandir automáticamente
+        if (isChecked) {
+            var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+            toggle.addClass('expanded');
+            toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            childrenContainer.addClass('expanded');
+            
+            // IMPORTANTE: Solo marcar hijos si el usuario lo hace manualmente
+            // NO marcar automáticamente los hijos cuando se carga la página
+            if (window.userInitiatedAction === true) {
+                childrenContainer.find('.filtro-child').prop('checked', isChecked);
+            }
+        } else {
+            // Si desmarca el padre, permitir desmarcar los hijos
+            if (window.userInitiatedAction === true) {
+                childrenContainer.find('.filtro-child').prop('checked', false);
+            }
+        }
+    });
+    
+    // NUEVA VARIABLE para determinar si el cambio lo inició el usuario
+    window.userInitiatedAction = false;
+    
+    // Marcar cambios futuros como iniciados por el usuario
+    $('.wc-productos-template .filtro-category').on('click', function() {
+        window.userInitiatedAction = true;
+        // Restaurar el valor después del evento
+        setTimeout(function() {
+            window.userInitiatedAction = false;
+        }, 100);
+    });
+    
+    // MODIFICADO: Al cargar, expandir solo las categorías realmente seleccionadas por URL
+    // (en lugar de todas las categorías automáticamente)
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('category')) {
+        var selectedCategories = urlParams.get('category').split(',');
+        
+        selectedCategories.forEach(function(slug) {
+            var parentCheckbox = $('.filtro-parent-option .filtro-category[value="' + slug + '"]');
+            
+            if (parentCheckbox.length) {
+                // Es un padre, expandir sus hijos
+                var toggle = $('.category-toggle[data-category="' + slug + '"]');
+                toggle.addClass('expanded');
+                toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                $('#children-' + slug).addClass('expanded');
+            } else {
+                // Es un hijo, buscar y expandir su padre
+                var childCheckbox = $('.filtro-child-option .filtro-category[value="' + slug + '"]');
+                if (childCheckbox.length) {
+                    var parentContainer = childCheckbox.closest('.filtro-children-list');
+                    if (parentContainer.length) {
+                        var parentId = parentContainer.attr('id');
+                        if (parentId && parentId.startsWith('children-')) {
+                            var parentSlug = parentId.replace('children-', '');
+                            var parentToggle = $('.category-toggle[data-category="' + parentSlug + '"]');
+                            parentToggle.addClass('expanded');
+                            parentToggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                            parentContainer.addClass('expanded');
+                        }
+                    }
+                }
+            }
+        });
+    }
+};
 
    /**
     * Inicializar todo - VERSIÓN CORREGIDA
