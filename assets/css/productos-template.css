@@ -739,12 +739,15 @@
     display: none;
 }
 .wc-productos-template .filtro-parent-option {
-    justify-content: flex-start;
-    width: 100%;
-}}
+   width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
 
 .wc-productos-template .filtro-parent-option label {
     display: flex;
+      flex: 1;
     justify-content: space-between;
     width: 100%;
     cursor: pointer;
@@ -752,7 +755,8 @@
 
 /* Estilos para el icono de expansión */
 .wc-productos-template .category-toggle {
-    margin-left: 5px;
+    cursor: pointer;
+    margin-left: auto; /* Empuja el ícono al lado derecho */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -765,7 +769,8 @@
 
 /* Estilos para la lista de categorías hijas */
 .wc-productos-template .filtro-children-list {
-     margin-left: 20px;
+    display: none; /* Oculto por defecto */
+    margin-left: 20px;
     margin-top: 5px;
 }
 .wc-productos-template input[type="checkbox"] {
