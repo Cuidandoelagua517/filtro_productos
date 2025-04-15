@@ -796,3 +796,121 @@ jQuery(document).ready(function($) {
     // Exponer para uso global si es necesario
     window.initMobileFilterButton = initMobileFilterButton;
 });
+// Añade este código en línea al final del archivo productos-template.js
+// o como un script separado que se cargue al final
+
+// Función inmediatamente invocada para forzar vista lineal en móvil
+(function($) {
+    // Función para aplicar vista lineal forzada
+    function forceLinearView() {
+        if (window.innerWidth <= 768) {
+            console.log('Forzando vista lineal para móvil');
+            
+            // Remover clases grid y añadir clase de vista lineal
+            $('.wc-productos-template ul.products, .wc-productos-template .productos-grid')
+                .removeClass('columns-3 columns-4 force-grid three-column-grid')
+                .addClass('mobile-linear-view');
+            
+            // Asegurar que los li tengan la estructura correcta
+            $('.wc-productos-template ul.products li.product, .wc-productos-template .productos-grid li.product').each(function() {
+                var $product = $(this);
+                
+                // Si no tiene el contenedor interior, envolverlo
+                if ($product.find('.producto-interior').length === 0) {
+                    $product.wrapInner('<div class="producto-interior"></div>');
+                }
+                
+                // Asegurar que la imagen esté en el formato correcto
+                var $imagen = $product.find('.producto-imagen');
+                var $info = $product.find('.producto-info');
+                var $footer = $product.find('.producto-footer');
+                
+                // Si la estructura no es correcta, reorganizarla
+                if (!$product.hasClass('mobile-formatted')) {
+                    // Ajustar estructura
+                    $product.addClass('mobile-formatted');
+                    
+                    // Forzar estilos inline críticos
+                    $product.css({
+                        'display': 'flex',
+                        'flex-direction': 'row',
+                        'align-items': 'flex-start',
+                        'width': '100%'
+                    });
+                    
+                    // Ajustar contenedor interior
+                    $product.find('.producto-interior').css({
+                        'display': 'flex',
+                        'flex-direction': 'row',
+                        'flex-wrap': 'wrap',
+                        'width': '100%'
+                    });
+                    
+                    // Ajustar imagen
+                    $imagen.css({
+                        'width': '80px',
+                        'min-width': '80px',
+                        'height': '80px',
+                        'margin-right': '15px',
+                        'margin-bottom': '0'
+                    });
+                    
+                    // Ajustar info
+                    $info.css({
+                        'flex': '1',
+                        'min-width': '0'
+                    });
+                    
+                    // Ajustar footer
+                    $footer.css({
+                        'width': '100%',
+                        'margin-top': '8px',
+                        'padding-top': '8px'
+                    });
+                }
+            });
+            
+            // Forzar visualización
+            $('style.mobile-force-style').remove();
+            $('head').append('<style class="mobile-force-style">' +
+                '@media (max-width: 768px) {' +
+                '  .wc-productos-template ul.products, .wc-productos-template .productos-grid { ' +
+                '    display: flex !important;' +
+                '    flex-direction: column !important;' +
+                '    grid-template-columns: none !important;' +
+                '  }' +
+                '  .wc-productos-template ul.products li.product, .wc-productos-template .productos-grid li.product {' +
+                '    display: flex !important;' +
+                '    flex-direction: row !important;' +
+                '    width: 100% !important;' +
+                '    margin-bottom: 10px !important;' +
+                '  }' +
+                '}' +
+                '</style>');
+        } else {
+            // En desktop restaurar la vista grid
+            $('.wc-productos-template ul.products, .wc-productos-template .productos-grid')
+                .removeClass('mobile-linear-view')
+                .addClass('force-grid three-column-grid');
+            
+            // Eliminar estilos forzados en móvil
+            $('style.mobile-force-style').remove();
+        }
+    }
+    
+    // Ejecutar al cargar el documento
+    $(document).ready(function() {
+        forceLinearView();
+        
+        // Ejecutar cuando cambie el tamaño de la ventana
+        $(window).on('resize', forceLinearView);
+        
+        // Ejecutar después de AJAX
+        $(document).ajaxComplete(function() {
+            setTimeout(forceLinearView, 100);
+        });
+    });
+    
+    // Hacer disponible globalmente
+    window.forceLinearView = forceLinearView;
+})(jQuery);
