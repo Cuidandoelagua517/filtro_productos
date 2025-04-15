@@ -716,11 +716,14 @@ $(document).ready(function($) {
     }
 });
 /**
- * JavaScript para gestionar filtros responsivos
- * Este código implementa la funcionalidad para mostrar/ocultar filtros en versión móvil
+ * JavaScript mejorado para evitar congelamiento al aplicar filtros
+ * Soluciona el problema de pantalla gris bloqueada
  */
 
 jQuery(document).ready(function($) {
+    // Variables globales para controlar el estado
+    var isFilteringInProgress = false;
+    
     // Función para inicializar el botón de filtros móvil
     function initMobileFilterButton() {
         console.log('Inicializando botón de filtros móvil...');
@@ -747,6 +750,10 @@ jQuery(document).ready(function($) {
                     '<button class="close-filters" aria-label="Cerrar">&times;</button>' +
                     '</div>' +
                     '<div class="mobile-filters-content">' + sidebarContent + '</div>' +
+                    '<div class="mobile-filters-loader" style="display:none;">' +
+                    '<div class="loader-spinner"></div>' +
+                    '<div class="loader-text">Aplicando filtros...</div>' +
+                    '</div>' +
                     '</div>');
                 
                 // Añadir al body
@@ -755,22 +762,24 @@ jQuery(document).ready(function($) {
                 
                 // Manejar interacciones
                 $filterButton.on('click', function() {
+                    // No permitir abrir si hay filtrado en progreso
+                    if (isFilteringInProgress) return;
+                    
                     $filterContainer.toggleClass('active');
                     $('body').toggleClass('filters-open');
                 });
                 
                 $filterContainer.find('.close-filters').on('click', function() {
-                    $filterContainer.removeClass('active');
-                    $('body').removeClass('filters-open');
+                    closeFilterPanel();
                 });
                 
-                // Si se hace clic fuera del panel, cerrarlo
+                // Si se hace clic fuera del panel, cerrarlo (solo si no hay filtrado en progreso)
                 $(document).on('click', function(e) {
-                    if ($filterContainer.hasClass('active') && 
+                    if (!isFilteringInProgress && 
+                        $filterContainer.hasClass('active') && 
                         !$(e.target).closest('.mobile-filters-container').length && 
                         !$(e.target).closest('.mobile-filters-toggle').length) {
-                        $filterContainer.removeClass('active');
-                        $('body').removeClass('filters-open');
+                        closeFilterPanel();
                     }
                 });
                 
@@ -785,6 +794,31 @@ jQuery(document).ready(function($) {
         }
     }
     
+    // Función para cerrar el panel de filtros
+    function closeFilterPanel() {
+        $('.mobile-filters-container').removeClass('active');
+        $('body').removeClass('filters-open');
+    }
+    
+    // Función para mostrar el loader
+    function showFilterLoader() {
+        isFilteringInProgress = true;
+        $('.mobile-filters-content').css('opacity', '0.3');
+        $('.mobile-filters-loader').show();
+        $('.close-filters').prop('disabled', true).css('opacity', '0.5');
+    }
+    
+    // Función para ocultar el loader
+    function hideFilterLoader() {
+        isFilteringInProgress = false;
+        $('.mobile-filters-content').css('opacity', '1');
+        $('.mobile-filters-loader').hide();
+        $('.close-filters').prop('disabled', false).css('opacity', '1');
+        
+        // Cerrar el panel después de aplicar filtros
+        closeFilterPanel();
+    }
+    
     // Función para inicializar eventos de los filtros en la versión móvil
     function initMobileFilterEvents($container) {
         if (!$container || !$container.length) return;
@@ -793,6 +827,9 @@ jQuery(document).ready(function($) {
         $container.find('.category-toggle').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // No permitir cambios si hay filtrado en progreso
+            if (isFilteringInProgress) return;
             
             var categorySlug = $(this).data('category');
             var childrenList = $container.find('#children-' + categorySlug);
@@ -811,6 +848,13 @@ jQuery(document).ready(function($) {
         
         // Manejar cambios en checkboxes de filtros
         $container.find('.filtro-category, .filtro-grade').on('change', function() {
+            // No permitir cambios si hay filtrado en progreso
+            if (isFilteringInProgress) {
+                // Revertir cambio en el checkbox
+                $(this).prop('checked', !$(this).prop('checked'));
+                return;
+            }
+            
             var isParent = $(this).closest('.filtro-parent-option').length > 0;
             var categorySlug, childrenContainer;
             
@@ -832,18 +876,62 @@ jQuery(document).ready(function($) {
                 childrenContainer.find('.filtro-child').prop('checked', isChecked);
             }
             
-            // Ocultar panel móvil después de aplicar filtro y aplicar filtros
+            // Mostrar el loader antes de aplicar filtros
+            showFilterLoader();
+            
+            // Aplicar filtros con retraso para permitir que el loader se muestre
             setTimeout(function() {
-                // Cerrar panel después de seleccionar un filtro (opcional)
-                // $container.removeClass('active');
-                // $('body').removeClass('filters-open');
-                
                 // Llamar a la función de filtrado si está disponible
                 if (typeof window.filterProducts === 'function') {
-                    window.filterProducts(1); // Volver a página 1 al cambiar filtro
+                    try {
+                        window.filterProducts(1); // Volver a página 1 al cambiar filtro
+                        
+                        // Establecer un tiempo máximo para ocultar el loader
+                        setTimeout(function() {
+                            if (isFilteringInProgress) {
+                                hideFilterLoader();
+                                console.log('Forzando cierre del panel por timeout');
+                            }
+                        }, 5000); // 5 segundos máximo de espera
+                    } catch (error) {
+                        console.error('Error al filtrar productos:', error);
+                        hideFilterLoader();
+                        alert('Hubo un error al aplicar los filtros. Por favor, inténtalo de nuevo.');
+                    }
+                } else {
+                    console.error('Función filterProducts no disponible');
+                    hideFilterLoader();
                 }
-            }, 300);
+            }, 100);
         });
+    }
+    
+    // Sobrescribir la función de filtrado original para manejar el estado del loader
+    if (typeof window.originalFilterProducts === 'undefined' && typeof window.filterProducts === 'function') {
+        // Guardar referencia a la función original
+        window.originalFilterProducts = window.filterProducts;
+        
+        // Reemplazar con nuestra versión mejorada
+        window.filterProducts = function(page) {
+            var result = window.originalFilterProducts(page);
+            
+            // Después de 500ms, verificar si la respuesta AJAX ya llegó
+            setTimeout(function() {
+                if (isFilteringInProgress) {
+                    // Escuchar evento ajaxComplete para detectar cuando termina
+                    $(document).one('ajaxComplete', function(event, xhr, settings) {
+                        if (settings.url && (
+                            settings.url.includes('productos_filter') || 
+                            settings.url.includes('ajax_search')
+                        )) {
+                            hideFilterLoader();
+                        }
+                    });
+                }
+            }, 500);
+            
+            return result;
+        };
     }
     
     // Ejecutar la inicialización al cargar la página
@@ -858,21 +946,26 @@ jQuery(document).ready(function($) {
         }, 250); // Debounce para evitar múltiples llamadas
     });
     
-    // Volver a inicializar después de AJAX
+    // Manejar el ajaxComplete para reinicializar y actualizar estado
     $(document).ajaxComplete(function(event, xhr, settings) {
         if (settings.url && (
             settings.url.includes('productos_filter') || 
             settings.url.includes('ajax_search') || 
             settings.url.includes('admin-ajax.php')
         )) {
+            // Ocultar el loader si todavía está visible
+            hideFilterLoader();
+            
+            // Reinicializar después de un pequeño retraso
             setTimeout(function() {
                 initMobileFilterButton();
             }, 300);
         }
     });
     
-    // Exponer para uso global si es necesario
+    // Exponer para uso global
     window.initMobileFilterButton = initMobileFilterButton;
+    window.closeFilterPanel = closeFilterPanel;
 });
 // Añade este código en línea al final del archivo productos-template.js
 // o como un script separado que se cargue al final
