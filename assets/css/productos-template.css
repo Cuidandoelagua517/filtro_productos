@@ -984,24 +984,54 @@ form[role="search"],
 
 /* Panel de filtros móvil */
 .mobile-filters-container {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 998 !important;
-    background-color: #fff !important;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
-    padding: 20px !important;
-    transform: translateY(100%) !important;
-    transition: transform 0.3s ease !important;
-    max-height: 80vh !important;
-    overflow-y: auto !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 999998 !important;
+  background-color: #fff !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2) !important;
+  padding: 20px !important;
+  transform: translateY(100%) !important;
+  transition: transform 0.3s ease !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
 }
 
 .mobile-filters-container.active {
-    transform: translateY(0%) !important;
+  transform: translateY(0%) !important;
 }
-
+.mobile-filters-loader {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+}
+.loader-spinner {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 3px solid #f3f3f3 !important;
+  border-top: 3px solid #0056b3 !important;
+  animation: spin 1s linear infinite !important;
+  margin-bottom: 10px !important;
+}
+.loader-text {
+  font-size: 14px !important;
+  color: #333 !important;
+  font-weight: 500 !important;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 /* Estilo para el header del panel de filtros */
 .mobile-filters-header {
     display: flex !important;
@@ -1106,21 +1136,32 @@ form[role="search"],
 
 /* Reparación específica para el botón flotante de filtros */
 .mobile-filters-toggle {
-    position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    width: 50px !important;
-    height: 50px !important;
-    border-radius: 50% !important;
-    background-color: #0056b3 !important;
-    color: #fff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
-    z-index: 9999 !important;
-    border: none !important;
-    cursor: pointer !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  background-color: #0056b3 !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+  z-index: 999999 !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 20px !important;
+  transform: scale(1) !important;
+  transition: transform 0.2s ease !important;
+}
+.mobile-filters-toggle:hover,
+.mobile-filters-toggle:focus {
+  transform: scale(1.05) !important;
+  background-color: #004494 !important;
+}
+.mobile-filters-toggle:active {
+  transform: scale(0.95) !important;
 }
 
 /* Asegurar que el texto de cualquier botón sea visible */
@@ -1224,14 +1265,18 @@ form[role="search"],
   }
   
   /* Estilo para el header del panel de filtros */
-  .mobile-filters-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 15px !important;
-    padding-bottom: 10px !important;
-    border-bottom: 1px solid #eee !important;
-  }
+.mobile-filters-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 15px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid #eee !important;
+  position: sticky !important;
+  top: 0 !important;
+  background-color: #fff !important;
+  z-index: 10 !important;
+}
   
   .mobile-filters-header h2 {
     margin: 0 !important;
@@ -1239,12 +1284,35 @@ form[role="search"],
   }
   
   .close-filters {
-    background: none !important;
-    border: none !important;
-    font-size: 24px !important;
-    cursor: pointer !important;
-    color: #333 !important;
+  background: none !important;
+  border: none !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  color: #333 !important;
+  padding: 5px !important;
+  line-height: 1 !important;
+  transition: color 0.2s ease !important;
   }
+    .close-filters:hover {
+  color: #e74c3c !important;
+}
+    .mobile-filters-content .filtro-category,
+.mobile-filters-content .filtro-grade {
+  cursor: pointer !important;
+}
+
+/* Asegurar que no se pueda hacer clic en los filtros mientras se está cargando */
+.mobile-filters-content.loading .filtro-category,
+.mobile-filters-content.loading .filtro-grade,
+.mobile-filters-content.loading .category-toggle {
+  pointer-events: none !important;
+}
+
+/* Evitar que el contenido se desborde del panel */
+.mobile-filters-content {
+  overflow-y: auto !important;
+  max-height: calc(80vh - 60px) !important; /* Restar altura del header */
+}
 }
 
 /* 3. CORRECCIONES PARA INTERACCIÓN DEL PANEL MÓVIL */
@@ -1349,8 +1417,9 @@ body.filters-open::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   z-index: 999997 !important;
+  transition: opacity 0.3s ease;
 }
 
 /* Asegurar que cualquier elemento con posición fixed o absolute en las tarjetas no sobrepase los filtros */
