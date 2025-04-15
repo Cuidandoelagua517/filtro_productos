@@ -1152,6 +1152,28 @@ form[role="search"],
 /* Por defecto, el botón de filtros móvil está oculto en desktop */
 .mobile-filters-toggle {
     display: none !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 56px !important;
+    height: 56px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+}
+
+.mobile-filters-toggle:hover, 
+.mobile-filters-toggle:active {
+    background-color: #004494 !important;
+    transform: scale(1.05) !important;
+}
+
+.mobile-filters-toggle i {
+    font-size: inherit !important;
 }
 
 /* Contenedor de filtros móvil - oculto por defecto */
@@ -1163,12 +1185,13 @@ form[role="search"],
     right: 0 !important;
     z-index: 9999 !important;
     background-color: #fff !important;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.15) !important;
     padding: 20px !important;
     transform: translateY(100%) !important;
-    transition: transform 0.3s ease !important;
-    max-height: 80vh !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    max-height: 85vh !important;
     overflow-y: auto !important;
+    border-radius: 16px 16px 0 0 !important;
 }
 
 /* Estilo para el header del panel de filtros */
@@ -1193,6 +1216,47 @@ form[role="search"],
     cursor: pointer !important;
 }
 
+/* Estilos para el acordeón de categorías */
+.wc-productos-template .filtro-grupo h3,
+.wc-productos-template .filtro-category-parent {
+    position: relative !important;
+    cursor: pointer !important;
+}
+
+.wc-productos-template .filtro-grupo h3::after,
+.wc-productos-template .filtro-parent-option .category-toggle {
+    content: "" !important;
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 14px !important;
+    height: 14px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+    transition: transform 0.3s ease !important;
+}
+
+.wc-productos-template .filtro-grupo h3.active::after,
+.wc-productos-template .filtro-parent-option.active .category-toggle {
+    transform: translateY(-50%) rotate(180deg) !important;
+}
+
+.wc-productos-template .filtro-lista,
+.wc-productos-template .filtro-children-list {
+    display: none !important;
+    padding-left: 5px !important;
+    margin-top: 10px !important;
+    border-left: 1px solid #eee !important;
+}
+
+.wc-productos-template .filtro-lista.active,
+.wc-productos-template .filtro-children-list.active {
+    display: block !important;
+}
+
 /* Adaptaciones para dispositivos móviles */
 @media (max-width: 768px) {
     /* Ocultar sidebar de filtros en móvil */
@@ -1215,18 +1279,7 @@ form[role="search"],
         position: fixed !important;
         bottom: 20px !important;
         right: 20px !important;
-        width: 50px !important;
-        height: 50px !important;
-        border-radius: 50% !important;
-        background-color: #0056b3 !important;
-        color: white !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
         z-index: 10000 !important; /* Z-index extremadamente alto para estar por encima de todo */
-        border: none !important;
-        cursor: pointer !important;
-        font-size: 20px !important;
     }
     
     /* Mostrar contenedor de filtros móvil cuando está activo */
