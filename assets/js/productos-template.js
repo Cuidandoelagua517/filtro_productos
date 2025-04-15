@@ -715,18 +715,20 @@ $(document).ready(function($) {
         };
     }
 });
-// Añade este código al inicio del documento ready en productos-template.js
-// o como un archivo separado que se cargue después del JS principal
+/**
+ * JavaScript para gestionar filtros responsivos
+ * Este código implementa la funcionalidad para mostrar/ocultar filtros en versión móvil
+ */
 
 jQuery(document).ready(function($) {
-    // Función para inicializar el botón de filtros móvil de forma forzada
+    // Función para inicializar el botón de filtros móvil
     function initMobileFilterButton() {
         console.log('Inicializando botón de filtros móvil...');
         
-        // Eliminar botón existente para evitar duplicados
+        // Eliminar botón y contenedor existentes para evitar duplicados
         $('.mobile-filters-toggle, .mobile-filters-container').remove();
         
-        // Crear el botón siempre que estemos en móvil
+        // Verificar si estamos en móvil (ancho <= 768px)
         if (window.innerWidth <= 768) {
             // Capturar el contenido del sidebar
             var $sidebar = $('.wc-productos-template .productos-sidebar');
@@ -734,63 +736,139 @@ jQuery(document).ready(function($) {
             
             if ($sidebar.length) {
                 sidebarContent = $sidebar.html();
+                
+                // Crear el botón de filtro
+                var $filterButton = $('<button class="mobile-filters-toggle" aria-label="Filtros"><i class="fas fa-filter"></i></button>');
+                
+                // Crear el contenedor del panel
+                var $filterContainer = $('<div class="mobile-filters-container">' +
+                    '<div class="mobile-filters-header">' +
+                    '<h2>Filtros</h2>' +
+                    '<button class="close-filters" aria-label="Cerrar">&times;</button>' +
+                    '</div>' +
+                    '<div class="mobile-filters-content">' + sidebarContent + '</div>' +
+                    '</div>');
+                
+                // Añadir al body
+                $('body').append($filterButton);
+                $('body').append($filterContainer);
+                
+                // Manejar interacciones
+                $filterButton.on('click', function() {
+                    $filterContainer.toggleClass('active');
+                    $('body').toggleClass('filters-open');
+                });
+                
+                $filterContainer.find('.close-filters').on('click', function() {
+                    $filterContainer.removeClass('active');
+                    $('body').removeClass('filters-open');
+                });
+                
+                // Si se hace clic fuera del panel, cerrarlo
+                $(document).on('click', function(e) {
+                    if ($filterContainer.hasClass('active') && 
+                        !$(e.target).closest('.mobile-filters-container').length && 
+                        !$(e.target).closest('.mobile-filters-toggle').length) {
+                        $filterContainer.removeClass('active');
+                        $('body').removeClass('filters-open');
+                    }
+                });
+                
+                // Asegurar que los eventos de filtros funcionen en la versión móvil
+                initMobileFilterEvents($filterContainer);
+                
+                console.log('Botón de filtros móvil creado correctamente');
             } else {
                 console.log('No se encontró el sidebar de filtros');
                 return; // Salir si no hay sidebar
             }
-            
-            // Crear el botón de filtro
-            var $filterButton = $('<button class="mobile-filters-toggle" aria-label="Filtros"><i class="fas fa-filter"></i></button>');
-            
-            // Crear el contenedor del panel
-            var $filterContainer = $('<div class="mobile-filters-container">' +
-                '<div class="mobile-filters-header">' +
-                '<h2>Filtros</h2>' +
-                '<button class="close-filters" aria-label="Cerrar">&times;</button>' +
-                '</div>' +
-                '<div class="mobile-filters-content">' + sidebarContent + '</div>' +
-                '</div>');
-            
-            // Añadir al body
-            $('body').append($filterButton);
-            $('body').append($filterContainer);
-            
-            // Manejar interacciones
-            $filterButton.on('click', function() {
-                $filterContainer.toggleClass('active');
-                $('body').toggleClass('filters-open');
-            });
-            
-            $filterContainer.find('.close-filters').on('click', function() {
-                $filterContainer.removeClass('active');
-                $('body').removeClass('filters-open');
-            });
-            
-            // Si se hace clic fuera del panel, cerrarlo
-            $(document).on('click', function(e) {
-                if ($filterContainer.hasClass('active') && 
-                    !$(e.target).closest('.mobile-filters-container').length && 
-                    !$(e.target).closest('.mobile-filters-toggle').length) {
-                    $filterContainer.removeClass('active');
-                    $('body').removeClass('filters-open');
-                }
-            });
-            
-            console.log('Botón de filtros móvil creado correctamente');
         }
     }
     
-    // Ejecutar la inicialización inmediatamente
+    // Función para inicializar eventos de los filtros en la versión móvil
+    function initMobileFilterEvents($container) {
+        if (!$container || !$container.length) return;
+        
+        // Manejar la expansión/contracción de categorías jerárquicas
+        $container.find('.category-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var categorySlug = $(this).data('category');
+            var childrenList = $container.find('#children-' + categorySlug);
+            
+            // Alternar expansión
+            $(this).toggleClass('expanded');
+            childrenList.toggleClass('expanded');
+            
+            // Rotar icono
+            if ($(this).hasClass('expanded')) {
+                $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            } else {
+                $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            }
+        });
+        
+        // Manejar cambios en checkboxes de filtros
+        $container.find('.filtro-category, .filtro-grade').on('change', function() {
+            var isParent = $(this).closest('.filtro-parent-option').length > 0;
+            var categorySlug, childrenContainer;
+            
+            // Si es categoría padre, actualizar hijos
+            if (isParent) {
+                var isChecked = $(this).prop('checked');
+                categorySlug = $(this).val();
+                childrenContainer = $container.find('#children-' + categorySlug);
+                
+                // Si el padre está seleccionado, expandir automáticamente
+                if (isChecked) {
+                    var toggle = $container.find('.category-toggle[data-category="' + categorySlug + '"]');
+                    toggle.addClass('expanded');
+                    toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                    childrenContainer.addClass('expanded');
+                }
+                
+                // Seleccionar o deseleccionar todas las categorías hijas
+                childrenContainer.find('.filtro-child').prop('checked', isChecked);
+            }
+            
+            // Ocultar panel móvil después de aplicar filtro y aplicar filtros
+            setTimeout(function() {
+                // Cerrar panel después de seleccionar un filtro (opcional)
+                // $container.removeClass('active');
+                // $('body').removeClass('filters-open');
+                
+                // Llamar a la función de filtrado si está disponible
+                if (typeof window.filterProducts === 'function') {
+                    window.filterProducts(1); // Volver a página 1 al cambiar filtro
+                }
+            }, 300);
+        });
+    }
+    
+    // Ejecutar la inicialización al cargar la página
     initMobileFilterButton();
     
     // Volver a inicializar cuando cambie el tamaño de la ventana
+    var resizeTimer;
     $(window).on('resize', function() {
-        initMobileFilterButton();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            initMobileFilterButton();
+        }, 250); // Debounce para evitar múltiples llamadas
     });
     
     // Volver a inicializar después de AJAX
-    $(document).ajaxComplete(function() {
-        initMobileFilterButton();
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        if (settings.url && (
+            settings.url.includes('productos_filter') || 
+            settings.url.includes('ajax_search') || 
+            settings.url.includes('admin-ajax.php')
+        )) {
+            setTimeout(function() {
+                initMobileFilterButton();
+            }, 300);
+        }
     });
     
     // Exponer para uso global si es necesario
