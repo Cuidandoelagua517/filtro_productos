@@ -857,3 +857,122 @@ form[role="search"],
     z-index: 9000 !important;
     position: relative !important;
 }
+/**
+ * Modificación para mostrar productos en formato lista en la versión responsive
+ * Agregar al final del archivo assets/css/productos-template.css
+ */
+
+/* Cambio a formato lista en pantallas medianas y pequeñas */
+@media (max-width: 768px) {
+    /* Cambiar de grid a lista */
+    .wc-productos-template ul.products,
+    .wc-productos-template .productos-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+        gap: 15px !important;
+    }
+    
+    /* Rediseñar tarjeta de producto para lista */
+    .wc-productos-template ul.products li.product,
+    .wc-productos-template .productos-grid li.product {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        padding: 15px !important;
+        gap: 15px;
+    }
+    
+    /* Ajustar el contenedor de imagen */
+    .wc-productos-template .producto-imagen {
+        flex: 0 0 35% !important;
+        max-width: 35% !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Ajustar el contenedor de información */
+    .wc-productos-template .producto-info {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    /* Ajustar la posición de badges */
+    .wc-productos-template .producto-badges {
+        top: 10px;
+        left: 10px;
+    }
+    
+    /* Ajustar título del producto */
+    .wc-productos-template .producto-titulo {
+        font-size: 16px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Ajustar SKU */
+    .wc-productos-template .producto-sku {
+        font-size: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Ajustar detalles del producto */
+    .wc-productos-template .producto-detalles {
+        flex-direction: column !important;
+        gap: 5px !important;
+        align-items: flex-start !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Ajustar el footer del producto */
+    .wc-productos-template .producto-footer {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-top: 10px !important;
+        margin-top: 10px !important;
+        width: 100% !important;
+    }
+    
+    /* Ajustar precio */
+    .wc-productos-template .producto-precio {
+        font-size: 16px !important;
+    }
+    
+    /* Ajustar botón */
+    .wc-productos-template .producto-accion {
+        width: auto !important;
+    }
+    
+    .wc-productos-template .producto-boton {
+        width: auto !important;
+        white-space: nowrap !important;
+    }
+}
+
+/* Ajustes adicionales para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    /* Ajustes para pantallas muy pequeñas */
+    .wc-productos-template ul.products li.product,
+    .wc-productos-template .productos-grid li.product {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+    
+    .wc-productos-template .producto-imagen {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .wc-productos-template .producto-footer {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+    }
+    
+    /* En pantallas muy pequeñas, hacer los botones más compactos */
+    .wc-productos-template .producto-boton {
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+    }
+}
