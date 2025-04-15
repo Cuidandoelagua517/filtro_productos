@@ -867,3 +867,109 @@ jQuery(document).ready(function($) {
         handleStickyElements();
     });
 });
+/**
+ * JavaScript para controlar la funcionalidad de los filtros en móvil
+ * Este script gestiona la visibilidad del panel de filtros móvil
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Seleccionar elementos
+    const filterButton = document.querySelector('.mobile-filters-toggle');
+    const filterContainer = document.querySelector('.mobile-filters-container');
+    const closeButton = document.querySelector('.close-filters');
+    
+    // Verificar que los elementos existan
+    if (!filterButton || !filterContainer) {
+        console.warn('No se encontraron los elementos necesarios para los filtros móviles');
+        return;
+    }
+    
+    // Crear elementos si no existen
+    if (!filterButton) {
+        const newButton = document.createElement('button');
+        newButton.className = 'mobile-filters-toggle';
+        newButton.innerHTML = '<i class="fas fa-filter"></i>';
+        document.body.appendChild(newButton);
+        filterButton = newButton;
+    }
+    
+    if (!filterContainer) {
+        const newContainer = document.createElement('div');
+        newContainer.className = 'mobile-filters-container';
+        
+        // Crear encabezado
+        const header = document.createElement('div');
+        header.className = 'mobile-filters-header';
+        header.innerHTML = '<h2>Filtros</h2>';
+        
+        // Crear botón de cierre
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-filters';
+        closeBtn.innerHTML = '&times;';
+        header.appendChild(closeBtn);
+        
+        // Crear contenido
+        const content = document.createElement('div');
+        content.className = 'mobile-filters-content';
+        
+        // Clonar los filtros originales si existen
+        const originalFilters = document.querySelector('.wc-productos-template .productos-sidebar');
+        if (originalFilters) {
+            content.appendChild(originalFilters.cloneNode(true));
+        }
+        
+        newContainer.appendChild(header);
+        newContainer.appendChild(content);
+        document.body.appendChild(newContainer);
+        
+        filterContainer = newContainer;
+        closeButton = closeBtn;
+    }
+    
+    // Mostrar/ocultar filtros al hacer clic en el botón
+    filterButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        filterContainer.classList.add('active');
+    });
+    
+    // Cerrar filtros al hacer clic en el botón de cierre
+    if (closeButton) {
+        closeButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            filterContainer.classList.remove('active');
+        });
+    }
+    
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', function(event) {
+        if (filterContainer.classList.contains('active') && 
+            event.target !== filterContainer && 
+            !filterContainer.contains(event.target) && 
+            event.target !== filterButton &&
+            !filterButton.contains(event.target)) {
+            filterContainer.classList.remove('active');
+        }
+    });
+    
+    // Función para verificar si estamos en móvil
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    // Verificar tamaño de pantalla al cargar y redimensionar
+    function checkScreenSize() {
+        if (isMobile()) {
+            filterButton.style.display = 'flex';
+        } else {
+            filterButton.style.display = 'none';
+            filterContainer.classList.remove('active');
+        }
+    }
+    
+    // Verificar al cargar
+    checkScreenSize();
+    
+    // Verificar al redimensionar la ventana
+    window.addEventListener('resize', checkScreenSize);
+});
