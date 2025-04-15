@@ -1023,3 +1023,110 @@ form[role="search"],
     font-size: 20px !important;
     cursor: pointer !important;
 }
+/* Correcciones para el z-index de botones y elementos superpuestos */
+
+/* Asegurar que el botón "Añadir al carrito" esté por encima de otros elementos */
+.wc-productos-template .producto-boton,
+.wc-productos-template .add_to_cart_button,
+.wc-productos-template li.product .producto-boton,
+.wc-productos-template .productos-grid li.product .producto-boton,
+.wc-productos-template .producto-accion .button {
+    position: relative !important;
+    z-index: 10 !important;
+    overflow: visible !important;
+}
+
+/* Corrección para el contenedor del footer del producto */
+.wc-productos-template .producto-footer,
+.wc-productos-template li.product .producto-footer,
+.wc-productos-template .productos-grid li.product .producto-footer {
+    position: relative !important;
+    z-index: 5 !important;
+    overflow: visible !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* Corregir el contenedor de acción del producto */
+.wc-productos-template .producto-accion,
+.wc-productos-template li.product .producto-accion {
+    position: relative !important;
+    z-index: 6 !important;
+    overflow: visible !important;
+}
+
+/* Asegurar que el producto interior tenga overflow visible */
+.wc-productos-template .producto-interior,
+.wc-productos-template li.product .producto-interior {
+    overflow: visible !important;
+}
+
+/* Reparar el contenedor del producto completo */
+.wc-productos-template li.product {
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Aumentar especificidad para móviles */
+@media (max-width: 768px) {
+    .wc-productos-template li.product,
+    .wc-productos-template ul.products li.product,
+    .wc-productos-template .productos-grid li.product,
+    html body .wc-productos-template li.product {
+        overflow: visible !important;
+        padding-bottom: 15px !important; /* Espacio extra al final */
+    }
+    
+    .wc-productos-template li.product .producto-footer,
+    .wc-productos-template ul.products li.product .producto-footer,
+    html body .wc-productos-template li.product .producto-footer {
+        margin-bottom: 5px !important;
+        padding-bottom: 5px !important;
+        width: 100% !important;
+        position: relative !important;
+        z-index: 15 !important;
+    }
+    
+    /* Asegurar que el botón esté completamente visible */
+    .wc-productos-template li.product .producto-boton,
+    .wc-productos-template ul.products li.product .producto-boton,
+    html body .wc-productos-template li.product .producto-boton,
+    .wc-productos-template .producto-accion .button,
+    .add_to_cart_button {
+        position: relative !important;
+        z-index: 20 !important;
+        display: inline-block !important;
+        width: auto !important;
+        min-width: 120px !important;
+    }
+}
+
+/* Reparación específica para el botón flotante de filtros */
+.mobile-filters-toggle {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    background-color: #0056b3 !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+    z-index: 9999 !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+/* Asegurar que el texto de cualquier botón sea visible */
+.wc-productos-template .producto-boton span,
+.wc-productos-template .button span,
+.wc-productos-template .add_to_cart_button span {
+    position: relative !important;
+    z-index: 21 !important;
+}
