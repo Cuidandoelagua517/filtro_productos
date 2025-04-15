@@ -715,3 +715,155 @@ $(document).ready(function($) {
         };
     }
 });
+/**
+ * JavaScript para controlar el comportamiento de elementos sticky y vista móvil
+ * Añadir al archivo productos-template.js
+ */
+
+jQuery(document).ready(function($) {
+    // Comprobar si estamos en la página de productos
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+    
+    console.log('Inicializando sticky y responsive features');
+    
+    /** 
+     * 1. IMPLEMENTACIÓN DE ELEMENTOS STICKY 
+     */
+    // Variables para elementos sticky
+    const $header = $('.wc-productos-template .productos-header');
+    const $sidebar = $('.wc-productos-template .productos-sidebar');
+    let headerHeight = $header.outerHeight();
+    let lastScrollTop = 0;
+    
+    // Crear el botón de filtro móvil si no existe
+    if (!$('.mobile-filters-toggle').length && window.innerWidth <= 768) {
+        const $filterToggle = $('<button class="mobile-filters-toggle" aria-label="Filtros"><i class="fas fa-filter"></i></button>');
+        const $mobileFiltersContainer = $('<div class="mobile-filters-container"><div class="mobile-filters-header"><h2>Filtros</h2><button class="close-filters" aria-label="Cerrar"><i class="fas fa-times"></i></button></div><div class="mobile-filters-content"></div></div>');
+        
+        // Clonar los filtros al contenedor móvil
+        const $filtersContent = $sidebar.clone();
+        $mobileFiltersContainer.find('.mobile-filters-content').append($filtersContent);
+        
+        // Añadir elementos al DOM
+        $('body').append($filterToggle);
+        $('body').append($mobileFiltersContainer);
+        
+        // Eventos para mostrar/ocultar filtros en móvil
+        $filterToggle.on('click', function() {
+            $mobileFiltersContainer.toggleClass('active');
+            $('body').toggleClass('filters-open');
+        });
+        
+        $('.close-filters').on('click', function() {
+            $mobileFiltersContainer.removeClass('active');
+            $('body').removeClass('filters-open');
+        });
+        
+        // Evento para cerrar al hacer clic fuera
+        $(document).on('click', function(e) {
+            if ($mobileFiltersContainer.hasClass('active') && 
+                !$(e.target).closest('.mobile-filters-container').length && 
+                !$(e.target).closest('.mobile-filters-toggle').length) {
+                $mobileFiltersContainer.removeClass('active');
+                $('body').removeClass('filters-open');
+            }
+        });
+        
+        // Enlazar cambios de filtros entre mobile y desktop
+        $('.mobile-filters-container input[type="checkbox"]').on('change', function() {
+            const name = $(this).attr('name');
+            const checked = $(this).prop('checked');
+            // Sincronizar con el checkbox correspondiente en desktop
+            $sidebar.find(`input[name="${name}"]`).prop('checked', checked).trigger('change');
+        });
+    }
+    
+    // Función para manejar el comportamiento sticky
+    function handleStickyElements() {
+        const scrollTop = $(window).scrollTop();
+        
+        // Header sticky
+        if (scrollTop > 10) {
+            $header.addClass('is-sticky');
+        } else {
+            $header.removeClass('is-sticky');
+        }
+        
+        // Detectar dirección de scroll para comportamiento opcional
+        const scrollDown = scrollTop > lastScrollTop && scrollTop > headerHeight;
+        lastScrollTop = scrollTop;
+        
+        // Ajustar posición de sidebar según scroll
+        if (window.innerWidth > 768) {
+            const topOffset = scrollTop > headerHeight ? 20 : (headerHeight - scrollTop + 20);
+            $sidebar.css('top', topOffset + 'px');
+        }
+    }
+    
+    // Evento scroll para aplicar comportamiento sticky
+    $(window).on('scroll', handleStickyElements);
+    
+    /** 
+     * 2. IMPLEMENTACIÓN DE VISTA LINEAL EN MÓVILES 
+     */
+    // Función para aplicar vista apropiada según tamaño de pantalla
+    function applyResponsiveView() {
+        const $productGrid = $('.wc-productos-template ul.products, .wc-productos-template .productos-grid');
+        
+        if (window.innerWidth <= 768) {
+            // Aplicar vista en línea para móviles
+            $productGrid.addClass('mobile-list-view');
+            
+            // Reorganizar elementos dentro de cada producto si es necesario
+            $('.wc-productos-template li.product').each(function() {
+                const $item = $(this);
+                
+                // Solo reorganizar si no está ya en formato adecuado
+                if (!$item.hasClass('mobile-formatted')) {
+                    // Asegurar que la estructura interior es correcta
+                    if ($item.find('.producto-interior').length === 0) {
+                        $item.wrapInner('<div class="producto-interior"></div>');
+                    }
+                    
+                    // Añadir clase para marcar como formateado
+                    $item.addClass('mobile-formatted');
+                }
+            });
+        } else {
+            // Regresar a vista grid para desktop
+            $productGrid.removeClass('mobile-list-view');
+        }
+    }
+    
+    // Aplicar vista responsive inicialmente
+    applyResponsiveView();
+    
+    // Actualizar cuando cambie el tamaño de la ventana
+    $(window).on('resize', function() {
+        applyResponsiveView();
+        handleStickyElements();
+    });
+    
+    // Asegurar que se aplica después de cargar AJAX
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        if (settings.url && settings.url.indexOf('productos_filter') > -1) {
+            setTimeout(function() {
+                applyResponsiveView();
+            }, 300);
+        }
+    });
+    
+    // Exponer funciones para uso global
+    window.WCProductosResponsive = {
+        applyResponsiveView: applyResponsiveView,
+        handleStickyElements: handleStickyElements
+    };
+    
+    // Inicializar una vez que todo esté cargado
+    $(window).on('load', function() {
+        applyResponsiveView();
+        handleStickyElements();
+    });
+});
