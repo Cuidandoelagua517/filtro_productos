@@ -1,0 +1,179 @@
+/**
+ * ESTILOS PARA LISTA INFINITA EN MODO RESPONSIVE
+ * Añadir al final del archivo productos-template.css
+ */
+
+/* ===== LISTA INFINITA PARA MODO RESPONSIVE ===== */
+@media (max-width: 768px) {
+  /* Cambiar de grid a una sola columna */
+  .wc-productos-template ul.products,
+  .wc-productos-template .productos-grid,
+  body ul.products,
+  body.woocommerce ul.products,
+  body.woocommerce-page ul.products,
+  body .woocommerce ul.products,
+  html body .productos-grid,
+  .three-column-grid,
+  .force-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
+    gap: 15px !important;
+  }
+
+  /* Estilo para cada producto en formato lista */
+  .wc-productos-template ul.products li.product,
+  .wc-productos-template .productos-grid li.product,
+  body ul.products li.product,
+  body.woocommerce ul.products li.product,
+  body.woocommerce-page ul.products li.product,
+  html body .productos-grid li.product {
+    width: 100% !important;
+    margin-bottom: 15px !important;
+    display: flex !important;
+    flex-direction: row !important; /* Organización horizontal */
+    align-items: center !important;
+    padding: 10px !important;
+  }
+
+  /* Contenedor interior del producto reorganizado */
+  .wc-productos-template li.product .producto-interior {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  /* Ajustar tamaño de la imagen para formato lista */
+  .wc-productos-template .producto-imagen,
+  .wc-productos-template .producto-imagen-link {
+    width: 120px !important; /* Ancho fijo para la imagen */
+    min-width: 120px !important; /* Ancho mínimo para evitar que se encoja */
+    margin-bottom: 0 !important;
+  }
+
+  .wc-productos-template .producto-imagen img {
+    max-height: 120px !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Reorganizar la información del producto */
+  .wc-productos-template .producto-info {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Ajustes para los títulos en formato lista */
+  .wc-productos-template .producto-titulo {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 8px !important;
+    order: 1 !important;
+  }
+
+  /* SKU más visible en formato lista */
+  .wc-productos-template .producto-sku {
+    font-size: 12px !important;
+    color: #666 !important;
+    order: 0 !important;
+    margin-bottom: 5px !important;
+  }
+
+  /* Organización de detalles más compacta */
+  .wc-productos-template .producto-detalles {
+    font-size: 12px !important;
+    order: 2 !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Ajustar footer para formato lista */
+  .wc-productos-template .producto-footer {
+    border-top: none !important;
+    padding-top: 0 !important;
+    order: 3 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-top: 5px !important;
+  }
+
+  /* Ajuste para precios */
+  .wc-productos-template .producto-precio {
+    font-size: 16px !important;
+    margin: 0 !important;
+  }
+
+  /* Ajustar botón para formato lista */
+  .wc-productos-template .producto-accion {
+    justify-content: flex-end !important;
+    width: auto !important;
+  }
+
+  .wc-productos-template .producto-boton {
+    padding: 5px 10px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Posición correcta para badges en vista lista */
+  .wc-productos-template .producto-badges {
+    top: 5px !important;
+    left: 5px !important;
+  }
+
+  .wc-productos-template .producto-badge {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+  }
+
+  /* Ajustes específicos para la estructura interna */
+  .wc-productos-template li.product:hover {
+    transform: translateY(-2px) !important; /* Efecto hover más sutil */
+  }
+
+  .wc-productos-template .producto-volumen,
+  .wc-productos-template .producto-grado {
+    margin-bottom: 3px !important;
+  }
+}
+
+/* Para pantallas muy pequeñas, ajustamos aún más el diseño */
+@media (max-width: 480px) {
+  .wc-productos-template .producto-imagen,
+  .wc-productos-template .producto-imagen-link {
+    width: 100px !important;
+    min-width: 100px !important;
+  }
+
+  .wc-productos-template .producto-imagen img {
+    max-height: 100px !important;
+  }
+
+  .wc-productos-template .producto-titulo {
+    font-size: 14px !important;
+  }
+
+  .wc-productos-template .producto-footer {
+    flex-wrap: wrap !important;
+  }
+
+  .wc-productos-template .producto-precio {
+    margin-bottom: 5px !important;
+    width: 100% !important;
+  }
+
+  .wc-productos-template .producto-accion {
+    width: 100% !important;
+  }
+
+  .wc-productos-template .producto-boton {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
