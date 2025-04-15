@@ -1,0 +1,152 @@
+/**
+ * RESPONSIVE LIST VIEW - CSS
+ * Implementación de vista de lista para tarjetas de productos en dispositivos móviles
+ * 
+ * Este CSS transforma las tarjetas de productos de una vista de cuadrícula (grid)
+ * a una vista de lista horizontal en pantallas pequeñas, optimizando el espacio.
+ */
+
+/* Estilos para la vista de lista en móviles */
+@media (max-width: 768px) {
+  /* 1. Cambiar grid a una columna */
+  .wc-productos-template ul.products,
+  .wc-productos-template .productos-grid,
+  html body ul.products,
+  html body.woocommerce ul.products,
+  html body.woocommerce-page ul.products,
+  html body .woocommerce ul.products,
+  html body .productos-grid,
+  .three-column-grid,
+  .force-grid {
+    grid-template-columns: repeat(1, 1fr) !important;
+    gap: 15px !important;
+  }
+  
+  /* 2. Transformar las tarjetas a vista de lista */
+  .wc-productos-template ul.products li.product,
+  .wc-productos-template .productos-grid li.product,
+  html body ul.products li.product,
+  html body.woocommerce ul.products li.product,
+  html body.woocommerce-page ul.products li.product,
+  html body .woocommerce ul.products li.product,
+  html body .productos-grid li.product {
+    display: flex !important;
+    flex-direction: row !important; /* Cambiar a dirección horizontal */
+    align-items: stretch !important;
+    height: auto !important;
+    min-height: 150px !important;
+  }
+  
+  /* 3. Estructura interna de tarjeta en modo lista */
+  .wc-productos-template li.product .producto-interior {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  /* 4. Contenedor de imagen */
+  .wc-productos-template li.product .producto-imagen {
+    flex: 0 0 120px !important; /* Ancho fijo para la imagen */
+    max-width: 120px !important;
+    margin: 0 15px 0 0 !important;
+    align-self: center !important;
+    padding: 5px !important;
+  }
+  
+  /* 5. Contenedor de información */
+  .wc-productos-template li.product .producto-info {
+    flex: 1 !important;
+    padding: 10px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  
+  /* 6. Ajustar título */
+  .wc-productos-template li.product .producto-titulo {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* 7. Ajustar SKU/Referencia */
+  .wc-productos-template li.product .producto-sku {
+    font-size: 11px !important;
+    margin-bottom: 5px !important;
+  }
+  
+  /* 8. Ajustar detalles */
+  .wc-productos-template li.product .producto-detalles {
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+  }
+  
+  .wc-productos-template li.product .producto-volumen,
+  .wc-productos-template li.product .producto-grado {
+    margin-bottom: 2px !important;
+  }
+  
+  /* 9. Ajustar footer */
+  .wc-productos-template li.product .producto-footer {
+    padding-top: 8px !important;
+    margin-top: auto !important; /* Empujar al fondo */
+    flex-direction: row !important; /* Mantener dirección horizontal */
+    justify-content: space-between !important;
+  }
+  
+  /* 10. Ajustar precio */
+  .wc-productos-template li.product .producto-precio {
+    font-size: 15px !important;
+  }
+  
+  /* 11. Ajustar botón */
+  .wc-productos-template li.product .producto-accion {
+    width: auto !important;
+  }
+  
+  .wc-productos-template li.product .producto-boton {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* 12. Ajustar badges */
+  .wc-productos-template li.product .producto-badges {
+    top: 5px !important;
+    left: 5px !important;
+  }
+  
+  .wc-productos-template li.product .producto-badge {
+    font-size: 9px !important;
+    padding: 3px 6px !important;
+  }
+}
+
+/* Optimizaciones específicas para dispositivos muy pequeños */
+@media (max-width: 480px) {
+  /* Reducir aún más el tamaño de la imagen */
+  .wc-productos-template li.product .producto-imagen {
+    flex: 0 0 80px !important;
+    max-width: 80px !important;
+  }
+  
+  /* Ajustar el botón para que no se rompa */
+  .wc-productos-template li.product .producto-boton {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Reducir el margen entre elementos */
+  .wc-productos-template li.product .producto-info {
+    gap: 5px !important;
+  }
+  
+  /* Hacer que el footer sea más compacto */
+  .wc-productos-template li.product .producto-footer {
+    padding-top: 5px !important;
+  }
+}
