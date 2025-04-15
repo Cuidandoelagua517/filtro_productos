@@ -445,7 +445,7 @@ wp_localize_script('dpc-carousel-popup', 'dpcConfig', array(
         // Crear un archivo básico si no existe
         file_put_contents($search_fix_js_file, '/* JS para corregir problemas de la barra de búsqueda */');
     }
-    
+
     // CSS para forzar cuadrícula con prioridad muy alta
     wp_enqueue_style(
         'wc-force-grid', 
