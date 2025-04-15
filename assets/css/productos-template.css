@@ -1130,3 +1130,147 @@ form[role="search"],
     position: relative !important;
     z-index: 21 !important;
 }
+/**
+ * CSS para corregir la visualización de filtros responsive
+ * Este código soluciona el problema de visualización de los filtros y el botón móvil
+ */
+
+/* 1. REGLAS PARA ESCRITORIO (vista por defecto) */
+@media (min-width: 769px) {
+  /* En desktop, el sidebar de filtros debe estar visible */
+  .wc-productos-template .productos-sidebar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* En desktop, el botón móvil de filtros debe estar OCULTO */
+  .mobile-filters-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+  
+  /* En desktop, el contenedor móvil de filtros debe estar oculto */
+  .mobile-filters-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+}
+
+/* 2. REGLAS PARA MÓVIL */
+@media (max-width: 768px) {
+  /* En móvil, el sidebar de filtros original debe estar OCULTO */
+  .wc-productos-template .productos-sidebar {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+  
+  /* En móvil, el botón de filtros debe estar visible (fijado en la parte inferior) */
+  .mobile-filters-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    z-index: 999 !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+  }
+  
+  /* Asegurarse de que el layout cambie a una columna en lugar de dos en móvil */
+  .wc-productos-template .productos-layout {
+    display: block !important;
+    flex-direction: column !important;
+  }
+  
+  /* Asegurar que el contenedor principal ocupe todo el ancho en móvil */
+  .wc-productos-template .productos-main {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  
+  /* Estilos para el contenedor de filtros móvil */
+  .mobile-filters-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 998 !important;
+    background-color: #fff !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    padding: 20px !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Cuando está activo, mostrar el panel deslizándolo desde abajo */
+  .mobile-filters-container.active {
+    transform: translateY(0%) !important;
+  }
+  
+  /* Estilo para el header del panel de filtros */
+  .mobile-filters-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 15px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #eee !important;
+  }
+  
+  .mobile-filters-header h2 {
+    margin: 0 !important;
+    font-size: 18px !important;
+  }
+  
+  .close-filters {
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    color: #333 !important;
+  }
+}
+
+/* 3. CORRECCIONES PARA INTERACCIÓN DEL PANEL MÓVIL */
+/* Evita el scroll del body cuando el panel de filtros está abierto */
+body.filters-open {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Asegurarse de que el contenido del panel se vea correctamente */
+.mobile-filters-content {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Hacer que el contenido de filtros sea más legible */
+.mobile-filters-content .filtro-grupo {
+  margin-bottom: 20px !important;
+}
+
+.mobile-filters-content h3 {
+  font-size: 16px !important;
+  margin-bottom: 10px !important;
+  color: #333 !important;
+}
+
+.mobile-filters-content .filtro-option label {
+  font-size: 14px !important;
+}
