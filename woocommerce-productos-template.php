@@ -448,9 +448,10 @@ wp_localize_script('dpc-carousel-popup', 'dpcConfig', array(
 wp_enqueue_style(
     'wc-responsive-list-view',
     WC_PRODUCTOS_TEMPLATE_URL . 'assets/css/responsive-list-view.css',
-    array('wc-productos-template-styles', 'wc-force-grid'),
+    array('wc-productos-template-styles', 'wc-force-grid'), // Dependencias importantes
     WC_PRODUCTOS_TEMPLATE_VERSION . '.' . time()
 );
+wp_style_add_data('wc-responsive-list-view', 'priority', 99999); // Prioridad máxima
     // CSS para forzar cuadrícula con prioridad muy alta
     wp_enqueue_style(
         'wc-force-grid', 
