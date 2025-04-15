@@ -964,79 +964,40 @@ form[role="search"],
 
 /* Botón flotante para filtros - asegurar que aparezca */
 .mobile-filters-toggle {
-  position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  width: 50px !important;
-  height: 50px !important;
-  border-radius: 50% !important;
-  background-color: #0056b3 !important;
-  color: white !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
-  /* Valor alto de z-index para asegurar que esté por encima de todo */
-  z-index: 999999 !important;
-  border: none !important;
-  cursor: pointer !important;
-  font-size: 20px !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    background-color: #0056b3 !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    z-index: 999 !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
 }
-
 
 /* Panel de filtros móvil */
 .mobile-filters-container {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  /* Valor alto de z-index, pero menor que el botón */
-  z-index: 999998 !important;
-  background-color: #fff !important;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2) !important;
-  padding: 20px !important;
-  transform: translateY(100%) !important;
-  transition: transform 0.3s ease !important;
-  max-height: 80vh !important;
-  overflow-y: auto !important;
-}
-.wc-productos-template ul.products li.product,
-.wc-productos-template .productos-grid li.product,
-.producto-card {
-  z-index: 1 !important;
-  position: relative !important;
-}
-.mobile-filters-toggle i.fas,
-.mobile-filters-toggle i.fa,
-.mobile-filters-toggle .fa-filter {
-  font-size: 20px !important;
-  color: white !important;
-}
-.mobile-filters-container .mobile-filters-header,
-.mobile-filters-container .mobile-filters-content,
-.mobile-filters-container .close-filters {
-  z-index: 999998 !important;
-  position: relative !important;
-}
-body.filters-open::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999997 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 998 !important;
+    background-color: #fff !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+    padding: 20px !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
 }
 
-/* Asegurar que cualquier elemento con posición fixed o absolute en las tarjetas no sobrepase los filtros */
-.wc-productos-template .producto-badges,
-.wc-productos-template .producto-vista-rapida,
-.wc-productos-template .onsale,
-.wc-productos-template .producto-accion {
-  z-index: 10 !important;
-  position: relative !important;
-}
 .mobile-filters-container.active {
     transform: translateY(0%) !important;
 }
@@ -1312,4 +1273,91 @@ body.filters-open {
 
 .mobile-filters-content .filtro-option label {
   font-size: 14px !important;
+}
+/**
+ * Corrección para el z-index del botón y menú de filtros
+ * Este código asegura que el botón y panel aparezcan por encima de las tarjetas de productos
+ */
+
+/* Aumentar el z-index del botón flotante de filtros */
+.mobile-filters-toggle {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  background-color: #0056b3 !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+  /* Valor alto de z-index para asegurar que esté por encima de todo */
+  z-index: 999999 !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 20px !important;
+}
+
+/* Aumentar el z-index del panel de filtros */
+.mobile-filters-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  /* Valor alto de z-index, pero menor que el botón */
+  z-index: 999998 !important;
+  background-color: #fff !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2) !important;
+  padding: 20px !important;
+  transform: translateY(100%) !important;
+  transition: transform 0.3s ease !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+}
+
+/* Asegurar que las tarjetas de productos tengan un z-index bajo */
+.wc-productos-template ul.products li.product,
+.wc-productos-template .productos-grid li.product,
+.producto-card {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* Agregar estilo para el ícono del botón si usa Font Awesome */
+.mobile-filters-toggle i.fas,
+.mobile-filters-toggle i.fa,
+.mobile-filters-toggle .fa-filter {
+  font-size: 20px !important;
+  color: white !important;
+}
+
+/* Estilos adicionales para asegurar interactividad en el panel de filtros */
+.mobile-filters-container .mobile-filters-header,
+.mobile-filters-container .mobile-filters-content,
+.mobile-filters-container .close-filters {
+  z-index: 999998 !important;
+  position: relative !important;
+}
+
+/* Asegurar que el overlay del body no interfiera */
+body.filters-open::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999997 !important;
+}
+
+/* Asegurar que cualquier elemento con posición fixed o absolute en las tarjetas no sobrepase los filtros */
+.wc-productos-template .producto-badges,
+.wc-productos-template .producto-vista-rapida,
+.wc-productos-template .onsale,
+.wc-productos-template .producto-accion {
+  z-index: 10 !important;
+  position: relative !important;
 }
