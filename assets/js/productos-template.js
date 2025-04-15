@@ -1,12 +1,10 @@
 /**
- * JAVASCRIPT OPTIMIZADO PARA WC PRODUCTOS TEMPLATE
- * Versión con mejoras responsive y correcciones de búsqueda
- * 
- * @package WC_Productos_Template
+ * SOLUCIÓN: JavaScript mejorado para productos-template.js
+ * Este archivo corrige los problemas de paginación y filtrado
  */
 
 jQuery(document).ready(function($) {
-    console.log('Productos Template Script - Versión optimizada con responsive');
+    console.log('Productos Template Script - Versión optimizada');
     
     // Verificar si estamos en una página con el template de productos
     if (!$('.wc-productos-template').length) {
@@ -23,172 +21,168 @@ jQuery(document).ready(function($) {
         search: ''
     };
     
-    /**
-     * Función mejorada para filtrar productos con mejor manejo de búsqueda
-     */
-    function filterProducts(page) {
-        // Asignar página actual
-        page = parseInt(page) || 1;
-        currentFilters.page = page;
-        
-        // Mostrar mensaje de carga
-        var $mainContent = $('.wc-productos-template .productos-main');
-        
-        // Verificar si ya existe un loader
-        if (!$mainContent.find('.loading').length) {
-            $mainContent.append('<div class="loading">' + 
-                (typeof WCProductosParams !== 'undefined' ? 
-                WCProductosParams.i18n.loading : 'Cargando productos...') + 
-                '</div>');
-        }
-        
-        // Recopilar valores de filtros actuales
-        updateCurrentFilters();
-        
-        // Debug para verificar qué estamos enviando
-        console.log('Enviando filtros:', currentFilters);
-        
-        // Asegurar que el formulario de búsqueda muestre el término buscado
-        $('.wc-productos-template .productos-search input').val(currentFilters.search);
-        
-        // Realizar petición AJAX
-        $.ajax({
-            url: typeof WCProductosParams !== 'undefined' ? WCProductosParams.ajaxurl : ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'productos_filter',
-                nonce: typeof WCProductosParams !== 'undefined' ? WCProductosParams.nonce : '',
-                page: currentFilters.page,
-                category: currentFilters.category.join(','),
-                grade: currentFilters.grade.join(','),
-                min_volume: currentFilters.min_volume,
-                max_volume: currentFilters.max_volume,
-                search: currentFilters.search
-            },
-            success: function(response) {
-                // Eliminar mensaje de carga
-                $mainContent.find('.loading').remove();
+   /**
+ * MODIFICACIÓN: Mejorar función filterProducts para manejar mejor la búsqueda
+ */
+function filterProducts(page) {
+    // Asignar página actual
+    page = parseInt(page) || 1;
+    currentFilters.page = page;
+    
+    // Mostrar mensaje de carga
+    var $mainContent = $('.wc-productos-template .productos-main');
+    
+    // Verificar si ya existe un loader
+    if (!$mainContent.find('.loading').length) {
+        $mainContent.append('<div class="loading">' + 
+            (typeof WCProductosParams !== 'undefined' ? 
+            WCProductosParams.i18n.loading : 'Cargando productos...') + 
+            '</div>');
+    }
+    
+    // Recopilar valores de filtros actuales
+    updateCurrentFilters();
+    
+    // Debug para verificar qué estamos enviando
+    console.log('Enviando filtros:', currentFilters);
+    
+    // MODIFICADO: Asegurar que el formulario de búsqueda muestre el término buscado
+    $('.wc-productos-template .productos-search input').val(currentFilters.search);
+    
+    // Realizar petición AJAX
+    $.ajax({
+        url: typeof WCProductosParams !== 'undefined' ? WCProductosParams.ajaxurl : ajaxurl,
+        type: 'POST',
+        data: {
+            action: 'productos_filter',
+            nonce: typeof WCProductosParams !== 'undefined' ? WCProductosParams.nonce : '',
+            page: currentFilters.page,
+            category: currentFilters.category.join(','),
+            grade: currentFilters.grade.join(','),
+            min_volume: currentFilters.min_volume,
+            max_volume: currentFilters.max_volume,
+            search: currentFilters.search
+        },
+        success: function(response) {
+            // Eliminar mensaje de carga
+            $mainContent.find('.loading').remove();
+            
+            console.log('Respuesta recibida:', response);
+            
+            if (response.success) {
+                // Actualizar productos y paginación
+                updateProductGrid(response.data.products);
+                updatePagination(response.data.pagination);
                 
-                console.log('Respuesta recibida:', response);
-                
-                if (response.success) {
-                    // Actualizar productos y paginación
-                    updateProductGrid(response.data.products);
-                    updatePagination(response.data.pagination);
-                    
-                    // Actualizar el breadcrumb si está disponible
-                    if (response.data.breadcrumb) {
-                        updateBreadcrumb(response.data.breadcrumb);
-                    } else {
-                        // Alternativa: actualizar manualmente con la página actual
-                        updateBreadcrumbForPagination(currentFilters.page);
-                    }
-                    
-                    // Desplazarse al inicio de los productos con animación suave
-                    $('html, body').animate({
-                        scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
-                    }, 500);
-                    
-                    // Actualizar estado de URL sin recargar página
-                    updateUrlState();
-                    
-                    // Forzar la cuadrícula y volver a enlazar eventos
-                    setTimeout(function() {
-                        forceGridLayout();
-                        bindPaginationEvents();
-                        // Aplicar vista responsive
-                        applyResponsiveView();
-                    }, 100);
+                // Actualizar el breadcrumb si está disponible
+                if (response.data.breadcrumb) {
+                    updateBreadcrumb(response.data.breadcrumb);
                 } else {
-                    // Mostrar mensaje de error
-                    showError(typeof WCProductosParams !== 'undefined' ? 
-                             WCProductosParams.i18n.error : 
-                             'Error al cargar productos. Intente nuevamente.');
+                    // Alternativa: actualizar manualmente con la página actual
+                    updateBreadcrumbForPagination(currentFilters.page);
                 }
-            },
-            error: function(xhr, status, error) {
-                // Eliminar mensaje de carga y mostrar error
-                $mainContent.find('.loading').remove();
-                console.error('Error AJAX:', status, error);
+                
+                // Desplazarse al inicio de los productos con animación suave
+                $('html, body').animate({
+                    scrollTop: $('.wc-productos-template .productos-main').offset().top - 100
+                }, 500);
+                
+                // Actualizar estado de URL sin recargar página
+                updateUrlState();
+                
+                // Forzar la cuadrícula y volver a enlazar eventos
+                setTimeout(function() {
+                    forceGridLayout();
+                    bindPaginationEvents();
+                }, 100);
+            } else {
+                // Mostrar mensaje de error
                 showError(typeof WCProductosParams !== 'undefined' ? 
                          WCProductosParams.i18n.error : 
                          'Error al cargar productos. Intente nuevamente.');
             }
-        });
-    }
-
-    /**
-     * Unificar eventos de búsqueda para evitar duplicación
-     */
-    function bindSearchEvents() {
-        // Eliminar eventos anteriores para evitar duplicados
-        $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').off('submit');
-        $('.wc-productos-template .productos-search input').off('keypress');
-        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').off('click');
-        
-        // Búsqueda - formulario
-        $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').on('submit', function(e) {
+        },
+        error: function(xhr, status, error) {
+            // Eliminar mensaje de carga y mostrar error
+            $mainContent.find('.loading').remove();
+            console.error('Error AJAX:', status, error);
+            showError(typeof WCProductosParams !== 'undefined' ? 
+                     WCProductosParams.i18n.error : 
+                     'Error al cargar productos. Intente nuevamente.');
+        }
+    });
+}
+/**
+ * MODIFICACIÓN: Unificar eventos de búsqueda para evitar duplicación
+ */
+function bindSearchEvents() {
+    // Eliminar eventos anteriores para evitar duplicados
+    $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').off('submit');
+    $('.wc-productos-template .productos-search input').off('keypress');
+    $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').off('click');
+    
+    // Búsqueda - formulario
+    $('.wc-productos-template .productos-search form, .wc-productos-template .productos-search-form').on('submit', function(e) {
+        e.preventDefault();
+        console.log('Búsqueda enviada por formulario');
+        filterProducts(1); // Volver a página 1 al buscar
+    });
+    
+    // Búsqueda - tecla Enter
+    $('.wc-productos-template .productos-search input').on('keypress', function(e) {
+        if (e.which === 13) {
             e.preventDefault();
-            console.log('Búsqueda enviada por formulario');
+            console.log('Búsqueda enviada con Enter');
             filterProducts(1); // Volver a página 1 al buscar
-        });
-        
-        // Búsqueda - tecla Enter
-        $('.wc-productos-template .productos-search input').on('keypress', function(e) {
-            if (e.which === 13) {
-                e.preventDefault();
-                console.log('Búsqueda enviada con Enter');
-                filterProducts(1); // Volver a página 1 al buscar
-            }
-        });
-        
-        // Búsqueda - botón
-        $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').on('click', function(e) {
-            e.preventDefault();
-            console.log('Búsqueda enviada con botón');
-            filterProducts(1); // Volver a página 1 al buscar
-        });
-        
-        // Debug para verificar que los eventos de búsqueda fueron enlazados
-        console.log('Eventos de búsqueda enlazados correctamente');
+        }
+    });
+    
+    // Búsqueda - botón
+    $('.wc-productos-template .productos-search button, .wc-productos-template .productos-search-button').on('click', function(e) {
+        e.preventDefault();
+        console.log('Búsqueda enviada con botón');
+        filterProducts(1); // Volver a página 1 al buscar
+    });
+    
+    // Debug para verificar que los eventos de búsqueda fueron enlazados
+    console.log('Eventos de búsqueda enlazados correctamente');
+}
+    
+   /**
+ * MODIFICACIÓN: Corregir función updateCurrentFilters() para capturar correctamente el término de búsqueda
+ */
+function updateCurrentFilters() {
+    // Categorías seleccionadas
+    currentFilters.category = [];
+    $('.wc-productos-template .filtro-category:checked').each(function() {
+        currentFilters.category.push($(this).val());
+    });
+    
+    // Grados seleccionados
+    currentFilters.grade = [];
+    $('.wc-productos-template .filtro-grade:checked').each(function() {
+        currentFilters.grade.push($(this).val());
+    });
+    
+    // Valores de volumen (asegurar que sean números)
+    currentFilters.min_volume = parseInt($('.wc-productos-template input[name="min_volume"]').val()) || 100;
+    currentFilters.max_volume = parseInt($('.wc-productos-template input[name="max_volume"]').val()) || 5000;
+    
+    // MODIFICADO: Término de búsqueda (selector más específico y robusto)
+    var searchInputValue = '';
+    var $searchInput = $('.wc-productos-template #productos-search-input, .wc-productos-template .productos-search input[type="text"], .wc-productos-template .productos-search-form input[name="s"]');
+    
+    if ($searchInput.length > 0) {
+        searchInputValue = $searchInput.val() || '';
     }
     
+    currentFilters.search = $.trim(searchInputValue);
+    
+    // Debug para verificar la captura del término de búsqueda
+    console.log('Término de búsqueda capturado:', currentFilters.search);
+}
     /**
-     * Función corregida para capturar correctamente el término de búsqueda
-     */
-    function updateCurrentFilters() {
-        // Categorías seleccionadas
-        currentFilters.category = [];
-        $('.wc-productos-template .filtro-category:checked').each(function() {
-            currentFilters.category.push($(this).val());
-        });
-        
-        // Grados seleccionados
-        currentFilters.grade = [];
-        $('.wc-productos-template .filtro-grade:checked').each(function() {
-            currentFilters.grade.push($(this).val());
-        });
-        
-        // Valores de volumen (asegurar que sean números)
-        currentFilters.min_volume = parseInt($('.wc-productos-template input[name="min_volume"]').val()) || 100;
-        currentFilters.max_volume = parseInt($('.wc-productos-template input[name="max_volume"]').val()) || 5000;
-        
-        // Término de búsqueda (selector más específico y robusto)
-        var searchInputValue = '';
-        var $searchInput = $('.wc-productos-template #productos-search-input, .wc-productos-template .productos-search input[type="text"], .wc-productos-template .productos-search-form input[name="s"]');
-        
-        if ($searchInput.length > 0) {
-            searchInputValue = $searchInput.val() || '';
-        }
-        
-        currentFilters.search = $.trim(searchInputValue);
-        
-        // Debug para verificar la captura del término de búsqueda
-        console.log('Término de búsqueda capturado:', currentFilters.search);
-    }
-
-    /**
-     * Actualizar la cuadrícula de productos con el nuevo HTML
+     * Actualizar la cuadrícula de productos con el nuevo HTML - CORREGIDA
      */
     function updateProductGrid(productsHtml) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
@@ -220,7 +214,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Actualizar el breadcrumb
+     * Actualizar el breadcrumb - CORREGIDA
      */
     function updateBreadcrumb(breadcrumbHtml) {
         var $breadcrumb = $('.wc-productos-template .productos-breadcrumb');
@@ -230,7 +224,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Función para actualizar el breadcrumb según la página actual
+     * Función para actualizar el breadcrumb según la página actual - CORREGIDA
      */
     function updateBreadcrumbForPagination(currentPage) {
         // Obtener el breadcrumb actual
@@ -270,7 +264,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Actualizar la paginación
+     * Actualizar la paginación - CORREGIDA
      */
     function updatePagination(paginationHtml) {
         var $pagination = $('.wc-productos-template .productos-pagination');
@@ -282,7 +276,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Mostrar mensaje de error
+     * Mostrar mensaje de error - CORREGIDA
      */
     function showError(message) {
         var $productsWrapper = $('.wc-productos-template .productos-wrapper');
@@ -300,7 +294,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Forzar disposición en cuadrícula con JavaScript
+     * Forzar disposición en cuadrícula con JavaScript - CORREGIDA
      */
     function forceGridLayout() {
         // Asegurarse de que la clase principal esté presente
@@ -346,69 +340,68 @@ jQuery(document).ready(function($) {
         }
     }
     
-    /**
-     * Mejorar función updateUrlState para incluir correctamente el término de búsqueda
-     */
-    function updateUrlState() {
-        if (!window.history || !window.history.pushState) {
-            return; // No soporta History API
-        }
-        
-        var url = new URL(window.location.href);
-        var params = url.searchParams;
-        
-        // Limpiar parámetros existentes
-        params.delete('paged');
-        params.delete('category');
-        params.delete('grade');
-        params.delete('min_volume');
-        params.delete('max_volume');
-        params.delete('s');
-        
-        // Añadir parámetros actuales
-        if (currentFilters.page > 1) {
-            params.set('paged', currentFilters.page);
-        }
-        
-        if (currentFilters.category.length > 0) {
-            params.set('category', currentFilters.category.join(','));
-        }
-        
-        if (currentFilters.grade.length > 0) {
-            params.set('grade', currentFilters.grade.join(','));
-        }
-        
-        if (currentFilters.min_volume > 100 || currentFilters.max_volume < 5000) {
-            params.set('min_volume', currentFilters.min_volume);
-            params.set('max_volume', currentFilters.max_volume);
-        }
-        
-        // Usar 's' como parámetro que es el estándar de WordPress para búsqueda
-        if (currentFilters.search) {
-            params.set('s', currentFilters.search);
-        }
-        
-        // Actualizar URL sin recargar (usando replaceState para no afectar el historial)
-        var newUrl = url.pathname + (params.toString() ? '?' + params.toString() : '');
-        window.history.replaceState({}, '', newUrl);
-    }
-
-    /**
-     * Extraer términos de búsqueda de la URL
-     */
-    function extractSearchFromUrl() {
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('s')) {
-            var searchTerm = urlParams.get('s');
-            $('.wc-productos-template .productos-search input').val(searchTerm);
-            currentFilters.search = searchTerm;
-            
-            console.log('Término de búsqueda extraído de URL:', searchTerm);
-        }
+  /**
+ * MODIFICACIÓN: Mejorar función updateUrlState para incluir correctamente el término de búsqueda
+ */
+function updateUrlState() {
+    if (!window.history || !window.history.pushState) {
+        return; // No soporta History API
     }
     
+    var url = new URL(window.location.href);
+    var params = url.searchParams;
+    
+    // Limpiar parámetros existentes
+    params.delete('paged');
+    params.delete('category');
+    params.delete('grade');
+    params.delete('min_volume');
+    params.delete('max_volume');
+    params.delete('s');
+    
+    // Añadir parámetros actuales
+    if (currentFilters.page > 1) {
+        params.set('paged', currentFilters.page);
+    }
+    
+    if (currentFilters.category.length > 0) {
+        params.set('category', currentFilters.category.join(','));
+    }
+    
+    if (currentFilters.grade.length > 0) {
+        params.set('grade', currentFilters.grade.join(','));
+    }
+    
+    if (currentFilters.min_volume > 100 || currentFilters.max_volume < 5000) {
+        params.set('min_volume', currentFilters.min_volume);
+        params.set('max_volume', currentFilters.max_volume);
+    }
+    
+    // MODIFICADO: Usar 's' como parámetro que es el estándar de WordPress para búsqueda
+    if (currentFilters.search) {
+        params.set('s', currentFilters.search);
+    }
+    
+    // Actualizar URL sin recargar (usando replaceState para no afectar el historial)
+    var newUrl = url.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history.replaceState({}, '', newUrl);
+}
+/**
+ * MODIFICACIÓN: Extraer términos de búsqueda de la URL
+ */
+function extractSearchFromUrl() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('s')) {
+        var searchTerm = urlParams.get('s');
+        $('.wc-productos-template .productos-search input').val(searchTerm);
+        currentFilters.search = searchTerm;
+        
+        console.log('Término de búsqueda extraído de URL:', searchTerm);
+    }
+}
+    
     /**
-     * Inicializar el slider de volumen
+     * Inicializar el slider de volumen - CORREGIDA
      */
     function initVolumeSlider() {
         if ($.fn.slider && $('.volumen-range').length) {
@@ -449,31 +442,32 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Actualizar la función bindFilterEvents para usar bindSearchEvents
-     */
-    function bindFilterEvents() {
-        // Eliminar eventos anteriores para evitar duplicados
-        $('.wc-productos-template .filtro-category').off('change');
-        $('.wc-productos-template .filtro-grade').off('change');
-        
-        // Filtros de categoría
-        $('.wc-productos-template .filtro-category').on('change', function() {
-            console.log('Categoría cambiada');
-            filterProducts(1); // Volver a página 1 al cambiar filtro
-        });
-        
-        // Filtros de grado
-        $('.wc-productos-template .filtro-grade').on('change', function() {
-            console.log('Grado cambiado');
-            filterProducts(1); // Volver a página 1 al cambiar filtro
-        });
-        
-        // Enlazar eventos de búsqueda
-        bindSearchEvents();
-    }
+ * MODIFICACIÓN: Actualizar la función bindFilterEvents para usar bindSearchEvents
+ */
+function bindFilterEvents() {
+    // Eliminar eventos anteriores para evitar duplicados
+    $('.wc-productos-template .filtro-category').off('change');
+    $('.wc-productos-template .filtro-grade').off('change');
+    
+    // Filtros de categoría
+    $('.wc-productos-template .filtro-category').on('change', function() {
+        console.log('Categoría cambiada');
+        filterProducts(1); // Volver a página 1 al cambiar filtro
+    });
+    
+    // Filtros de grado
+    $('.wc-productos-template .filtro-grade').on('change', function() {
+        console.log('Grado cambiado');
+        filterProducts(1); // Volver a página 1 al cambiar filtro
+    });
+    
+    // Enlazar eventos de búsqueda
+    bindSearchEvents();
+}
+
     
     /**
-     * Enlazar eventos de paginación
+     * Enlazar eventos de paginación - versión CORREGIDA
      */
     function bindPaginationEvents() {
         // En lugar de usar delegación general, vamos a ser específicos
@@ -508,7 +502,7 @@ jQuery(document).ready(function($) {
     }
     
     /**
-     * Forzar cuadrícula de tres columnas
+     * Forzar cuadrícula de tres columnas - CORREGIDA
      */
     function forceThreeColumnGrid() {
         // Eliminar clases que puedan interferir
@@ -520,87 +514,273 @@ jQuery(document).ready(function($) {
         // Establecer explícitamente grid-template-columns
         $('.wc-productos-template ul.products, .productos-grid').css('grid-template-columns', 'repeat(3, 1fr)');
     }
-
     /**
-     * Inicializar comportamiento de categorías jerárquicas
-     */
-    function initCategoryFilters() {
-        console.log('Inicializando filtros de categorías jerárquicas');
+ * JavaScript para manejar la expansión/contracción de categorías jerárquicas
+ * Para agregar al archivo productos-template.js
+ */
+
+// Función para inicializar comportamiento de categorías jerárquicas
+function initCategoryFilters() {
+    console.log('Inicializando filtros de categorías jerárquicas');
+    
+    // Manejar clic en el icono de expansión
+    $('.wc-productos-template .category-toggle').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Evitar que se propague al checkbox
         
-        // Manejar clic en el icono de expansión
-        $('.wc-productos-template .category-toggle').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation(); // Evitar que se propague al checkbox
-            
-            var categorySlug = $(this).data('category');
-            var childrenList = $('#children-' + categorySlug);
-            
-            // Alternar expansión
-            $(this).toggleClass('expanded');
-            childrenList.toggleClass('expanded');
-            
-            // Rotar icono
-            if ($(this).hasClass('expanded')) {
-                $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            } else {
-                $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-            }
-        });
+        var categorySlug = $(this).data('category');
+        var childrenList = $('#children-' + categorySlug);
         
-        // Marcar/desmarcar automáticamente categorías hijas cuando se selecciona la categoría padre
-        $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
-            var isChecked = $(this).prop('checked');
-            var categorySlug = $(this).val();
-            var childrenContainer = $('#children-' + categorySlug);
-            
-            // Si el padre está seleccionado, expandir automáticamente
-            if (isChecked) {
-                var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
-                toggle.addClass('expanded');
-                toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                childrenContainer.addClass('expanded');
-            }
-            
-            // Seleccionar o deseleccionar todas las categorías hijas
-            childrenContainer.find('.filtro-child').prop('checked', isChecked);
-        });
+        // Alternar expansión
+        $(this).toggleClass('expanded');
+        childrenList.toggleClass('expanded');
         
-        // Al cargar, expandir automáticamente categorías que ya tienen selecciones
-        $('.wc-productos-template .filtro-parent-option .filtro-category:checked').each(function() {
-            var categorySlug = $(this).val();
+        // Rotar icono
+        if ($(this).hasClass('expanded')) {
+            $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        } else {
+            $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        }
+    });
+    
+    // Marcar/desmarcar automáticamente categorías hijas cuando se selecciona la categoría padre
+    $('.wc-productos-template .filtro-parent-option .filtro-category').on('change', function() {
+        var isChecked = $(this).prop('checked');
+        var categorySlug = $(this).val();
+        var childrenContainer = $('#children-' + categorySlug);
+        
+        // Si el padre está seleccionado, expandir automáticamente
+        if (isChecked) {
             var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
             toggle.addClass('expanded');
             toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            $('#children-' + categorySlug).addClass('expanded');
-        });
+            childrenContainer.addClass('expanded');
+        }
         
-        // También expandir si alguna categoría hija está seleccionada
-        $('.wc-productos-template .filtro-child-option .filtro-category:checked').each(function() {
-            var parentContainer = $(this).closest('.filtro-children-list');
-            var parentId = parentContainer.attr('id');
-            if (parentId && parentId.startsWith('children-')) {
-                var categorySlug = parentId.replace('children-', '');
-                var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
-                toggle.addClass('expanded');
-                toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                parentContainer.addClass('expanded');
+        // Seleccionar o deseleccionar todas las categorías hijas
+        childrenContainer.find('.filtro-child').prop('checked', isChecked);
+    });
+    
+    // Al cargar, expandir automáticamente categorías que ya tienen selecciones
+    $('.wc-productos-template .filtro-parent-option .filtro-category:checked').each(function() {
+        var categorySlug = $(this).val();
+        var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+        toggle.addClass('expanded');
+        toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        $('#children-' + categorySlug).addClass('expanded');
+    });
+    
+    // También expandir si alguna categoría hija está seleccionada
+    $('.wc-productos-template .filtro-child-option .filtro-category:checked').each(function() {
+        var parentContainer = $(this).closest('.filtro-children-list');
+        var parentId = parentContainer.attr('id');
+        if (parentId && parentId.startsWith('children-')) {
+            var categorySlug = parentId.replace('children-', '');
+            var toggle = $('.category-toggle[data-category="' + categorySlug + '"]');
+            toggle.addClass('expanded');
+            toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            parentContainer.addClass('expanded');
+        }
+    });
+}
+
+// Añadir la inicialización a la función existente
+$(document).ready(function($) {
+    // Verificar si estamos en una página con el template de productos
+    if ($('.wc-productos-template').length) {
+        // Inicializar filtros de categorías jerárquicas
+        initCategoryFilters();
+        
+        // Volver a inicializar después de AJAX
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            if (settings.url && settings.url.includes('productos_filter')) {
+                setTimeout(function() {
+                    initCategoryFilters();
+                }, 200);
             }
         });
     }
+});
+    // Inicializar todo - VERSIÓN CORREGIDA
+   function init() {
+    console.log('Inicializando productos template con búsqueda mejorada');
+    
+    // Forzar cuadrícula desde el inicio
+    forceGridLayout();
+    forceThreeColumnGrid();
+    
+    // Inicializar slider de volumen
+    initVolumeSlider();
+    
+    // Enlazar eventos
+    bindFilterEvents();
+    bindPaginationEvents();
+    
+    // Extraer filtros de la URL al cargar
+    var urlParams = new URLSearchParams(window.location.search);
+    
+    // Procesar parámetros de la URL
+    if (urlParams.has('category')) {
+        var categories = urlParams.get('category').split(',');
+        categories.forEach(function(cat) {
+            $('#cat-' + cat).prop('checked', true);
+        });
+        currentFilters.category = categories;
+    }
+    
+    if (urlParams.has('grade')) {
+        var grades = urlParams.get('grade').split(',');
+        grades.forEach(function(grade) {
+            $('#grade-' + grade).prop('checked', true);
+        });
+        currentFilters.grade = grades;
+    }
+    
+    if (urlParams.has('min_volume') && urlParams.has('max_volume')) {
+        var minVol = parseInt(urlParams.get('min_volume'));
+        var maxVol = parseInt(urlParams.get('max_volume'));
+        
+        if ($.fn.slider && $('.volumen-range').length) {
+            $('.volumen-range').slider('values', [minVol, maxVol]);
+            $('#volumen-min').text(minVol + ' ml');
+            $('#volumen-max').text(maxVol + ' ml');
+            $('input[name="min_volume"]').val(minVol);
+            $('input[name="max_volume"]').val(maxVol);
+        }
+        
+        currentFilters.min_volume = minVol;
+        currentFilters.max_volume = maxVol;
+    }
+    
+    // MODIFICADO: Extraer término de búsqueda de la URL (parámetro 's')
+    if (urlParams.has('s')) {
+        var searchTerm = urlParams.get('s');
+        $('.wc-productos-template .productos-search input').val(searchTerm);
+        currentFilters.search = searchTerm;
+    }
+    
+    if (urlParams.has('paged')) {
+        currentFilters.page = parseInt(urlParams.get('paged'));
+    }
+    
+    // Si hay paginación activa, actualizar el breadcrumb
+    if (urlParams.has('paged')) {
+        var pageNum = parseInt(urlParams.get('paged'));
+        if (pageNum > 1) {
+            setTimeout(function() {
+                updateBreadcrumbForPagination(pageNum);
+            }, 300);
+        }
+    }
+    
+    // Si hay algún filtro o paginación activo, actualizar los productos
+    if (urlParams.has('category') || urlParams.has('grade') || 
+        urlParams.has('min_volume') || urlParams.has('max_volume') || 
+        urlParams.has('s') || urlParams.has('paged')) {
+        
+        console.log('Hay filtros activos, actualizando productos...');
+        
+        // Usar timeout para asegurar que los elementos del DOM estén listos
+        setTimeout(function() {
+            filterProducts(currentFilters.page);
+        }, 300);
+    }
+    
+    // Volver a forzar la cuadrícula después de cargar imágenes
+    $(window).on('load', function() {
+        forceGridLayout();
+        forceThreeColumnGrid();
+        bindPaginationEvents(); // Reenlazar eventos después de carga completa
+    });
+    
+    // Ajustar cuadrícula al cambiar tamaño de ventana
+    $(window).on('resize', function() {
+        forceGridLayout();
+        forceThreeColumnGrid();
+    });
+}
+    
+    // Iniciar todo
+    init();
+    
+    // Exponer la función a nivel global para otros scripts
+    window.filterProducts = filterProducts;
+    
+    // Asegurar que el script search-bar-fix no interfiera con la paginación
+    if (window.forceGridLayout) {
+        var originalForceGrid = window.forceGridLayout;
+        window.forceGridLayout = function() {
+            originalForceGrid();
+            bindPaginationEvents(); // Volver a enlazar eventos después de forzar la cuadrícula
+        };
+    }
+});
+/**
+ * JavaScript para controlar el comportamiento de elementos sticky y vista móvil
+ * Añadir al archivo productos-template.js
+ */
 
-    /**
-     * FUNCIONES PARA RESPONSIVE Y ELEMENTOS STICKY
+jQuery(document).ready(function($) {
+    // Comprobar si estamos en la página de productos
+    if (!$('.wc-productos-template').length) {
+        return;
+    }
+    
+    console.log('Inicializando sticky y responsive features');
+    
+    /** 
+     * 1. IMPLEMENTACIÓN DE ELEMENTOS STICKY 
      */
-
     // Variables para elementos sticky
     const $header = $('.wc-productos-template .productos-header');
     const $sidebar = $('.wc-productos-template .productos-sidebar');
     let headerHeight = $header.outerHeight();
     let lastScrollTop = 0;
-
-    /**
-     * Función para manejar el comportamiento sticky
-     */
+    
+    // Crear el botón de filtro móvil si no existe
+    if (!$('.mobile-filters-toggle').length && window.innerWidth <= 768) {
+        const $filterToggle = $('<button class="mobile-filters-toggle" aria-label="Filtros"><i class="fas fa-filter"></i></button>');
+        const $mobileFiltersContainer = $('<div class="mobile-filters-container"><div class="mobile-filters-header"><h2>Filtros</h2><button class="close-filters" aria-label="Cerrar"><i class="fas fa-times"></i></button></div><div class="mobile-filters-content"></div></div>');
+        
+        // Clonar los filtros al contenedor móvil
+        const $filtersContent = $sidebar.clone();
+        $mobileFiltersContainer.find('.mobile-filters-content').append($filtersContent);
+        
+        // Añadir elementos al DOM
+        $('body').append($filterToggle);
+        $('body').append($mobileFiltersContainer);
+        
+        // Eventos para mostrar/ocultar filtros en móvil
+        $filterToggle.on('click', function() {
+            $mobileFiltersContainer.toggleClass('active');
+            $('body').toggleClass('filters-open');
+        });
+        
+        $('.close-filters').on('click', function() {
+            $mobileFiltersContainer.removeClass('active');
+            $('body').removeClass('filters-open');
+        });
+        
+        // Evento para cerrar al hacer clic fuera
+        $(document).on('click', function(e) {
+            if ($mobileFiltersContainer.hasClass('active') && 
+                !$(e.target).closest('.mobile-filters-container').length && 
+                !$(e.target).closest('.mobile-filters-toggle').length) {
+                $mobileFiltersContainer.removeClass('active');
+                $('body').removeClass('filters-open');
+            }
+        });
+        
+        // Enlazar cambios de filtros entre mobile y desktop
+        $('.mobile-filters-container input[type="checkbox"]').on('change', function() {
+            const name = $(this).attr('name');
+            const checked = $(this).prop('checked');
+            // Sincronizar con el checkbox correspondiente en desktop
+            $sidebar.find(`input[name="${name}"]`).prop('checked', checked).trigger('change');
+        });
+    }
+    
+    // Función para manejar el comportamiento sticky
     function handleStickyElements() {
         const scrollTop = $(window).scrollTop();
         
@@ -621,10 +801,14 @@ jQuery(document).ready(function($) {
             $sidebar.css('top', topOffset + 'px');
         }
     }
-
-    /**
-     * Función para aplicar vista apropiada según tamaño de pantalla
+    
+    // Evento scroll para aplicar comportamiento sticky
+    $(window).on('scroll', handleStickyElements);
+    
+    /** 
+     * 2. IMPLEMENTACIÓN DE VISTA LINEAL EN MÓVILES 
      */
+    // Función para aplicar vista apropiada según tamaño de pantalla
     function applyResponsiveView() {
         const $productGrid = $('.wc-productos-template ul.products, .wc-productos-template .productos-grid');
         
@@ -652,166 +836,12 @@ jQuery(document).ready(function($) {
             $productGrid.removeClass('mobile-list-view');
         }
     }
-
-    /**
-     * Inicializar todo
-     */
-    function init() {
-        console.log('Inicializando productos template con responsive');
-        
-        // Forzar cuadrícula desde el inicio
-        forceGridLayout();
-        forceThreeColumnGrid();
-        
-        // Inicializar slider de volumen
-        initVolumeSlider();
-        
-        // Enlazar eventos
-        bindFilterEvents();
-        bindPaginationEvents();
-        
-        // Crear botón de filtro móvil si no existe
-        if (!$('.mobile-filters-toggle').length && window.innerWidth <= 768) {
-            const $filterToggle = $('<button class="mobile-filters-toggle" aria-label="Filtros"><i class="fas fa-filter"></i></button>');
-            const $mobileFiltersContainer = $('<div class="mobile-filters-container"><div class="mobile-filters-header"><h2>Filtros</h2><button class="close-filters" aria-label="Cerrar"><i class="fas fa-times"></i></button></div><div class="mobile-filters-content"></div></div>');
-            
-            // Clonar los filtros al contenedor móvil
-            const $filtersContent = $sidebar.clone();
-            $mobileFiltersContainer.find('.mobile-filters-content').append($filtersContent);
-            
-            // Añadir elementos al DOM
-            $('body').append($filterToggle);
-            $('body').append($mobileFiltersContainer);
-            
-            // Eventos para mostrar/ocultar filtros en móvil
-            $filterToggle.on('click', function() {
-                $mobileFiltersContainer.toggleClass('active');
-                $('body').toggleClass('filters-open');
-            });
-            
-            $('.close-filters').on('click', function() {
-                $mobileFiltersContainer.removeClass('active');
-                $('body').removeClass('filters-open');
-            });
-            
-            // Evento para cerrar al hacer clic fuera
-            $(document).on('click', function(e) {
-                if ($mobileFiltersContainer.hasClass('active') && 
-                    !$(e.target).closest('.mobile-filters-container').length && 
-                    !$(e.target).closest('.mobile-filters-toggle').length) {
-                    $mobileFiltersContainer.removeClass('active');
-                    $('body').removeClass('filters-open');
-                }
-            });
-            
-            // Enlazar cambios de filtros entre mobile y desktop
-            $('.mobile-filters-container input[type="checkbox"]').on('change', function() {
-                const name = $(this).attr('name');
-                const checked = $(this).prop('checked');
-                // Sincronizar con el checkbox correspondiente en desktop
-                $sidebar.find(`input[name="${name}"]`).prop('checked', checked).trigger('change');
-            });
-        }
-        
-        // Inicializar categorías jerárquicas
-        initCategoryFilters();
-        
-        // Aplicar vista responsive inicial
-        applyResponsiveView();
-        
-        // Manejar elementos sticky
-        handleStickyElements();
-        
-        // Extraer filtros de la URL al cargar
-        var urlParams = new URLSearchParams(window.location.search);
-        
-        // Procesar parámetros de la URL
-        if (urlParams.has('category')) {
-            var categories = urlParams.get('category').split(',');
-            categories.forEach(function(cat) {
-                $('#cat-' + cat).prop('checked', true);
-            });
-            currentFilters.category = categories;
-        }
-        
-        if (urlParams.has('grade')) {
-            var grades = urlParams.get('grade').split(',');
-            grades.forEach(function(grade) {
-                $('#grade-' + grade).prop('checked', true);
-            });
-            currentFilters.grade = grades;
-        }
-        
-        if (urlParams.has('min_volume') && urlParams.has('max_volume')) {
-            var minVol = parseInt(urlParams.get('min_volume'));
-            var maxVol = parseInt(urlParams.get('max_volume'));
-            
-            if ($.fn.slider && $('.volumen-range').length) {
-                $('.volumen-range').slider('values', [minVol, maxVol]);
-                $('#volumen-min').text(minVol + ' ml');
-                $('#volumen-max').text(maxVol + ' ml');
-                $('input[name="min_volume"]').val(minVol);
-                $('input[name="max_volume"]').val(maxVol);
-            }
-            
-            currentFilters.min_volume = minVol;
-            currentFilters.max_volume = maxVol;
-        }
-        
-        // Extraer término de búsqueda de la URL (parámetro 's')
-        if (urlParams.has('s')) {
-            var searchTerm = urlParams.get('s');
-            $('.wc-productos-template .productos-search input').val(searchTerm);
-            currentFilters.search = searchTerm;
-        }
-        
-        if (urlParams.has('paged')) {
-            currentFilters.page = parseInt(urlParams.get('paged'));
-        }
-        
-        // Si hay paginación activa, actualizar el breadcrumb
-        if (urlParams.has('paged')) {
-            var pageNum = parseInt(urlParams.get('paged'));
-            if (pageNum > 1) {
-                setTimeout(function() {
-                    updateBreadcrumbForPagination(pageNum);
-                }, 300);
-            }
-        }
-        
-        // Si hay algún filtro o paginación activo, actualizar los productos
-        if (urlParams.has('category') || urlParams.has('grade') || 
-            urlParams.has('min_volume') || urlParams.has('max_volume') || 
-            urlParams.has('s') || urlParams.has('paged')) {
-            
-            console.log('Hay filtros activos, actualizando productos...');
-            
-            // Usar timeout para asegurar que los elementos del DOM estén listos
-            setTimeout(function() {
-                filterProducts(currentFilters.page);
-            }, 300);
-        }
-    }
-
-    // Iniciar todo
-    init();
     
-    // Evento scroll para aplicar comportamiento sticky
-    $(window).on('scroll', handleStickyElements);
+    // Aplicar vista responsive inicialmente
+    applyResponsiveView();
     
     // Actualizar cuando cambie el tamaño de la ventana
     $(window).on('resize', function() {
-        forceGridLayout();
-        forceThreeColumnGrid();
-        applyResponsiveView();
-        handleStickyElements();
-    });
-    
-    // Volver a forzar la cuadrícula después de cargar imágenes
-    $(window).on('load', function() {
-        forceGridLayout();
-        forceThreeColumnGrid();
-        bindPaginationEvents(); // Reenlazar eventos después de carga completa
         applyResponsiveView();
         handleStickyElements();
     });
@@ -821,24 +851,19 @@ jQuery(document).ready(function($) {
         if (settings.url && settings.url.indexOf('productos_filter') > -1) {
             setTimeout(function() {
                 applyResponsiveView();
-                initCategoryFilters();
             }, 300);
         }
     });
     
-    // Exponer la función a nivel global para otros scripts
-    window.filterProducts = filterProducts;
+    // Exponer funciones para uso global
     window.WCProductosResponsive = {
         applyResponsiveView: applyResponsiveView,
         handleStickyElements: handleStickyElements
     };
     
-    // Asegurar que el script search-bar-fix no interfiera con la paginación
-    if (window.forceGridLayout) {
-        var originalForceGrid = window.forceGridLayout;
-        window.forceGridLayout = function() {
-            originalForceGrid();
-            bindPaginationEvents(); // Volver a enlazar eventos después de forzar la cuadrícula
-        };
-    }
+    // Inicializar una vez que todo esté cargado
+    $(window).on('load', function() {
+        applyResponsiveView();
+        handleStickyElements();
+    });
 });
