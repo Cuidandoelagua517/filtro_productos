@@ -868,20 +868,14 @@ jQuery(document).ready(function($) {
     });
 });
 /**
- * JavaScript para controlar la funcionalidad de los filtros en móvil
- * Este script gestiona la visibilidad del panel de filtros móvil
+ * JavaScript optimizado para controlar la funcionalidad de los filtros en móvil
+ * y el comportamiento de acordeón para las categorías
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Seleccionar elementos
-    const filterButton = document.querySelector('.mobile-filters-toggle');
-    const filterContainer = document.querySelector('.mobile-filters-container');
-    const closeButton = document.querySelector('.close-filters');
-    
-    // Verificar que los elementos existan
-    if (!filterButton || !filterContainer) {
-        console.warn('No se encontraron los elementos necesarios para los filtros móviles');
-        return;
-    }
+    let filterButton = document.querySelector('.mobile-filters-toggle');
+    let filterContainer = document.querySelector('.mobile-filters-container');
+    let closeButton = document.querySelector('.close-filters');
     
     // Crear elementos si no existen
     if (!filterButton) {
@@ -922,14 +916,87 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(newContainer);
         
         filterContainer = newContainer;
-        closeButton = closeBtn;
+        closeButton = document.querySelector('.close-filters');
     }
+    
+    // Función para inicializar el acordeón
+    function initAccordion() {
+        // Configurar grupos de filtros como acordeones
+        const filterGroups = document.querySelectorAll('.wc-productos-template .filtro-grupo h3');
+        filterGroups.forEach(header => {
+            // Asegurarse de que el contenido está cerrado inicialmente
+            const content = header.nextElementSibling;
+            if (content && content.classList.contains('filtro-lista')) {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            }
+            
+            // Añadir evento click
+            header.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                if (content) {
+                    content.classList.toggle('active');
+                    if (content.classList.contains('active')) {
+                        content.style.display = 'block';
+                    } else {
+                        content.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Configurar categorías padre como acordeones
+        const parentCategories = document.querySelectorAll('.wc-productos-template .filtro-parent-option');
+        parentCategories.forEach(parent => {
+            // Asegurar que tiene el ícono de toggle
+            let toggleIcon = parent.querySelector('.category-toggle');
+            if (!toggleIcon) {
+                toggleIcon = document.createElement('span');
+                toggleIcon.className = 'category-toggle';
+                parent.appendChild(toggleIcon);
+            }
+            
+            // Asegurar que los hijos están cerrados inicialmente
+            const childrenList = parent.nextElementSibling;
+            if (childrenList && childrenList.classList.contains('filtro-children-list')) {
+                childrenList.classList.remove('active');
+                childrenList.style.display = 'none';
+            }
+            
+            // Añadir evento click
+            parent.addEventListener('click', function(e) {
+                // Evitar que se active el checkbox al expandir/colapsar
+                if (e.target.tagName === 'INPUT') return;
+                
+                this.classList.toggle('active');
+                const childrenList = this.nextElementSibling;
+                if (childrenList && childrenList.classList.contains('filtro-children-list')) {
+                    childrenList.classList.toggle('active');
+                    if (childrenList.classList.contains('active')) {
+                        childrenList.style.display = 'block';
+                    } else {
+                        childrenList.style.display = 'none';
+                    }
+                }
+            });
+        });
+    }
+    
+    // Inicializar acordeón
+    initAccordion();
     
     // Mostrar/ocultar filtros al hacer clic en el botón
     filterButton.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         filterContainer.classList.add('active');
+        
+        // Reinicializar el acordeón cada vez que se abra el panel móvil
+        // para asegurar que funcione en el contenido clonado
+        setTimeout(function() {
+            initAccordion();
+        }, 100);
     });
     
     // Cerrar filtros al hacer clic en el botón de cierre
@@ -943,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cerrar al hacer clic fuera
     document.addEventListener('click', function(event) {
-        if (filterContainer.classList.contains('active') && 
+        if (filterContainer && filterContainer.classList.contains('active') && 
             event.target !== filterContainer && 
             !filterContainer.contains(event.target) && 
             event.target !== filterButton &&
@@ -963,7 +1030,9 @@ document.addEventListener('DOMContentLoaded', function() {
             filterButton.style.display = 'flex';
         } else {
             filterButton.style.display = 'none';
-            filterContainer.classList.remove('active');
+            if (filterContainer) {
+                filterContainer.classList.remove('active');
+            }
         }
     }
     
@@ -972,4 +1041,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Verificar al redimensionar la ventana
     window.addEventListener('resize', checkScreenSize);
+    
+    // También inicializar el acordeón para la barra lateral de escritorio
+    document.querySelectorAll('.wc-productos-template .productos-sidebar').forEach(sidebar => {
+        if (sidebar) {
+            // Inicializa el acordeón solo para la barra lateral de escritorio
+            const filterGroups = sidebar.querySelectorAll('.filtro-grupo h3');
+            filterGroups.forEach(header => {
+                const content = header.nextElementSibling;
+                if (content && content.classList.contains('filtro-lista')) {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                }
+            });
+            
+            const parentCategories = sidebar.querySelectorAll('.filtro-parent-option');
+            parentCategories.forEach(parent => {
+                const childrenList = parent.nextElementSibling;
+                if (childrenList && childrenList.classList.contains('filtro-children-list')) {
+                    childrenList.classList.remove('active');
+                    childrenList.style.display = 'none';
+                }
+            });
+        }
+    });
 });
