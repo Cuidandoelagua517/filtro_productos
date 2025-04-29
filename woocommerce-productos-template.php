@@ -61,10 +61,14 @@ public function __construct() {
         // Sobreescribir templates de WooCommerce
         add_filter('woocommerce_locate_template', array($this, 'override_woocommerce_templates'), 999, 3);
         add_filter('wc_get_template_part', array($this, 'override_template_parts'), 999, 3);
- 
-        // Agregar AJAX handlers
-        add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
-        add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
+ add_action('pre_get_posts', array($this, 'apply_stock_priority_to_queries'), 999);
+add_filter('posts_clauses', array($this, 'modify_product_query_clauses'), 999, 2);
+   // Priorizar productos en stock en las consultas de la tienda
+add_action('pre_get_posts', array($this, 'modify_shop_query'));
+
+// Reemplazar el handler AJAX existente o modificarlo
+add_action('wp_ajax_productos_filter', array($this, 'ajax_filter_products'));
+add_action('wp_ajax_nopriv_productos_filter', array($this, 'ajax_filter_products'));
         
         // Método alternativo para cargar templates personalizados
         add_filter('template_include', array($this, 'template_loader'));
@@ -96,6 +100,253 @@ add_action('wp_ajax_nopriv_mam_ajax_register', array($this, 'ajax_process_regist
     }
 }
 
+        /**
+ * Modifica las cláusulas SQL de la consulta para priorizar productos en stock
+ * Esta es la parte clave que hace que el ordenamiento funcione correctamente
+ *
+ * @param array $clauses Cláusulas SQL de la consulta
+ * @param WP_Query $query Objeto de consulta
+ * @return array Cláusulas modificadas
+ */
+public function modify_product_query_clauses($clauses, $query) {
+    global $wpdb;
+    
+    // Verificar si debemos aplicar prioridad de stock
+    if (!isset($query->query_vars['stock_priority']) || $query->query_vars['stock_priority'] !== true) {
+        return $clauses;
+    }
+    
+    // Verificar si es una consulta de productos
+    if (!$this->is_product_query($query)) {
+        return $clauses;
+    }
+    
+    // Preparar la cláusula ORDER BY para priorizar stock
+    $stock_orderby = "
+    (SELECT 
+        CASE 
+            WHEN pm.meta_key = '_stock_status' AND pm.meta_value = 'instock' THEN 0
+            WHEN pm.meta_key = '_stock_status' AND pm.meta_value = 'onbackorder' THEN 1
+            WHEN pm.meta_key = '_stock_status' AND pm.meta_value = 'outofstock' THEN 2
+            ELSE 3
+        END
+    FROM {$wpdb->postmeta} pm
+    WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key = '_stock_status'
+    LIMIT 1)";
+    
+    // Si ya hay una ordenación, la mantenemos como criterio secundario
+    if (!empty($clauses['orderby'])) {
+        $clauses['orderby'] = $stock_orderby . " ASC, " . $clauses['orderby'];
+    } else {
+        $clauses['orderby'] = $stock_orderby . " ASC, {$wpdb->posts}.post_date DESC";
+    }
+    
+    return $clauses;
+}
+        /**
+ * Aplica priorización de stock a todas las consultas de productos de WooCommerce
+ * Esta función intercepta las consultas antes de ejecutarse
+ *
+ * @param WP_Query $query Objeto de consulta de WordPress
+ */
+public function apply_stock_priority_to_queries($query) {
+    // No aplicar en admin o si no es consulta principal
+    if (is_admin() && !wp_doing_ajax()) {
+        return;
+    }
+
+    // Verificar si es una consulta de productos
+    if (!$this->is_product_query($query)) {
+        return;
+    }
+
+    // Marcar esta consulta para priorizar productos en stock
+    $query->set('stock_priority', true);
+    
+    // No sobreescribir otras ordenaciones a menos que sea necesario
+    $orderby = $query->get('orderby');
+    if (empty($orderby) || $orderby == 'menu_order title' || $orderby == 'date') {
+        // Establecer una meta consulta para _stock_status, pero no la usamos para ordenar directamente
+        // Solo aseguramos que la meta esté disponible
+        $meta_query = $query->get('meta_query');
+        if (!is_array($meta_query)) {
+            $meta_query = array();
+        }
+
+        // No filtrar por valor, solo asegurar que la clave esté incluida
+        $has_stock_query = false;
+        foreach ($meta_query as $query_item) {
+            if (is_array($query_item) && isset($query_item['key']) && $query_item['key'] === '_stock_status') {
+                $has_stock_query = true;
+                break;
+            }
+        }
+
+        if (!$has_stock_query) {
+            $meta_query[] = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_stock_status',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => '_stock_status',
+                    'compare' => 'NOT EXISTS'
+                )
+            );
+            $query->set('meta_query', $meta_query);
+        }
+    }
+}
+/**
+ * Ordena los productos priorizando aquellos que están en stock
+ * 
+ * @param WP_Query $products_query La consulta de productos a modificar
+ */
+public function stock_priority_sorting($products_query) {
+    // Agregar hook para ordenar manualmente los resultados antes de mostrarlos
+    add_filter('posts_orderby', array($this, 'orderby_stock_status'), 10, 2);
+    
+    // También podemos registrar este ordenamiento en WooCommerce
+    add_filter('woocommerce_get_catalog_ordering_args', array($this, 'wc_get_stock_priority_args'));
+}
+
+/**
+ * Modifica la consulta SQL para ordenar por estado de stock
+ * 
+ * @param string $orderby Parte ORDER BY de la consulta SQL
+ * @param WP_Query $query Objeto de consulta WP_Query
+ * @return string Consulta SQL modificada
+ */
+public function orderby_stock_status($orderby, $query) {
+    global $wpdb;
+    
+    // Solo aplicar a consultas de productos
+    if (!isset($query->query_vars['post_type']) || $query->query_vars['post_type'] !== 'product') {
+        return $orderby;
+    }
+    
+    // Construir consulta para priorizar productos en stock
+    $stock_orderby = "
+    (
+        SELECT 
+            CASE 
+                WHEN meta_value = 'instock' THEN 0 
+                WHEN meta_value = 'onbackorder' THEN 1
+                ELSE 2 
+            END
+        FROM {$wpdb->postmeta} 
+        WHERE {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID 
+        AND {$wpdb->postmeta}.meta_key = '_stock_status' 
+        LIMIT 1
+    ) ASC";
+    
+    // Si ya hay un orden definido, agregar como criterio secundario
+    if ($orderby) {
+        $orderby = $stock_orderby . ", " . $orderby;
+    } else {
+        $orderby = $stock_orderby;
+    }
+    
+    return $orderby;
+}
+
+/**
+ * Modifica los argumentos de ordenamiento del catálogo de WooCommerce
+ * 
+ * @param array $args Argumentos de ordenamiento
+ * @return array Argumentos modificados
+ */
+public function wc_get_stock_priority_args($args) {
+    // Agregar meta_key para stock_status
+    $args['meta_key'] = '_stock_status';
+    
+    // Mantener el orderby original como secundario
+    $original_orderby = isset($args['orderby']) ? $args['orderby'] : 'menu_order title';
+    
+    // Configurar orderby personalizado que prioriza stock
+    $args['orderby'] = array(
+        'meta_value' => 'ASC', // instock viene antes que outofstock alfabéticamente
+        $original_orderby => isset($args['order']) ? $args['order'] : 'ASC'
+    );
+    
+    return $args;
+}
+
+/**
+ * Aplicar la priorización de stock a la consulta AJAX de productos
+ * 
+ * Esta función modifica ajax_filter_products para aplicar el ordenamiento por stock
+ */
+public function ajax_filter_products_with_stock_priority() {
+    // Verificar nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'productos_filter_nonce')) {
+        wp_send_json_error(array('message' => 'Nonce inválido'));
+        exit;
+    }
+    
+    // Log para depuración
+    error_log('Recibida solicitud AJAX para filtrar productos con prioridad de stock');
+    
+    // Obtener parámetros de la solicitud
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    $search_term = isset($_POST['search']) ? trim(sanitize_text_field($_POST['search'])) : '';
+    $category = isset($_POST['category']) ? sanitize_text_field($_POST['category']) : '';
+    
+    // Configurar argumentos básicos de la consulta
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => get_option('posts_per_page'),
+        'paged'          => $page,
+        'post_status'    => 'publish',
+    );
+    
+    // [Incluir aquí el resto del código de filtrado existente]
+    
+    // Agregar ordenamiento para priorizar productos en stock
+    $args['meta_key'] = '_stock_status';
+    $args['orderby'] = array(
+        'meta_value' => 'ASC', // instock viene antes que outofstock alfabéticamente
+        'date' => 'DESC'       // productos más recientes como criterio secundario
+    );
+    
+    // [Continuar con el resto del código original de la función]
+    
+    // El siguiente código es solo una versión simplificada para mostrar el concepto
+    // Ejecutar la consulta
+    $products_query = new WP_Query($args);
+    
+    // Aplicar el ordenamiento por stock a la consulta
+    $this->stock_priority_sorting($products_query);
+    
+    // [Procesamiento de resultados y envío de respuesta JSON]
+}
+
+/**
+ * Modificar la consulta de productos en archivo/tienda
+ * 
+ * Esta función aplica el ordenamiento por stock a la página principal de la tienda
+ */
+public function modify_shop_query($query) {
+    // No modificar en admin o si no es la consulta principal de productos
+    if (is_admin() || !$query->is_main_query() || 
+        !is_shop() && !is_product_category() && !is_product_tag()) {
+        return;
+    }
+    
+    // Aplicar ordenamiento de stock
+    $meta_query = $query->get('meta_query');
+    if (!is_array($meta_query)) {
+        $meta_query = array();
+    }
+    
+    // Priorizamos productos en stock pero sin ocultar los agotados
+    $query->set('meta_key', '_stock_status');
+    $query->set('orderby', array(
+        'meta_value' => 'ASC',
+        'date' => 'DESC'
+    ));
+}
 /**
  * Configura los filtros para usuarios no logueados
  * Este método se ejecuta después de que WordPress está completamente cargado
