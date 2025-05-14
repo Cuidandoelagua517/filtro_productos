@@ -1,0 +1,404 @@
+/**
+ * CSS para los filtros laterales
+ * Estilo inspirado en Mercado Libre
+ * 
+ * @package WC_Productos_Template
+ */
+
+/* Sidebar (barra lateral) */
+.wc-productos-sidebar {
+    width: var(--wc-sidebar-width, 260px);
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Contenedor de filtros */
+.wc-productos-filters {
+    background-color: var(--wc-white);
+    border-radius: var(--wc-border-radius);
+    box-shadow: var(--wc-shadow-sm);
+    overflow: hidden;
+    position: sticky;
+    top: 20px;
+}
+
+/* Título de filtros */
+.wc-productos-filters-title {
+    font-size: var(--wc-font-size-md);
+    font-weight: 600;
+    color: var(--wc-gray-900);
+    padding: var(--wc-spacing);
+    margin: 0;
+    border-bottom: 1px solid var(--wc-border-color);
+}
+
+/* Sección de filtro */
+.wc-productos-filter-section {
+    border-bottom: 1px solid var(--wc-border-color);
+    padding: var(--wc-spacing);
+}
+
+.wc-productos-filter-section:last-child {
+    border-bottom: none;
+}
+
+/* Título de sección de filtro */
+.wc-productos-filter-heading {
+    font-size: var(--wc-font-size);
+    font-weight: 600;
+    color: var(--wc-gray-800);
+    margin: 0 0 var(--wc-spacing-sm) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-xs);
+}
+
+/* Contenido de filtro */
+.wc-productos-filter-content {
+    margin-top: var(--wc-spacing-sm);
+}
+
+/* Lista de filtros */
+.wc-productos-filter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Checkbox personalizado */
+.wc-productos-filter-checkbox,
+.wc-productos-category-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-sm);
+    cursor: pointer;
+    padding: var(--wc-spacing-xs) 0;
+    color: var(--wc-gray-700);
+    font-size: var(--wc-font-size-sm);
+}
+
+.wc-productos-filter-checkbox input[type="checkbox"],
+.wc-productos-category-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--wc-gray-400);
+    border-radius: var(--wc-border-radius-sm);
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-filter-checkbox input[type="checkbox"]:checked,
+.wc-productos-category-checkbox input[type="checkbox"]:checked {
+    background-color: var(--wc-primary);
+    border-color: var(--wc-primary);
+}
+
+.wc-productos-filter-checkbox input[type="checkbox"]:checked::after,
+.wc-productos-category-checkbox input[type="checkbox"]:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--wc-white);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Filtro de categorías */
+.wc-productos-category-parent {
+    margin-bottom: var(--wc-spacing-sm);
+}
+
+.wc-productos-category-parent:last-child {
+    margin-bottom: 0;
+}
+
+.wc-productos-category-parent-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wc-productos-category-toggle {
+    background: none;
+    border: none;
+    color: var(--wc-gray-600);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--wc-font-size-sm);
+    border-radius: var(--wc-border-radius-sm);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-category-toggle:hover {
+    background-color: var(--wc-gray-100);
+    color: var(--wc-gray-900);
+}
+
+.wc-productos-category-children {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 var(--wc-spacing-md);
+    display: none;
+}
+
+.wc-productos-category-children.expanded {
+    display: block;
+    margin-top: var(--wc-spacing-xs);
+}
+
+.wc-productos-category-child {
+    margin-bottom: var(--wc-spacing-xs);
+}
+
+.wc-productos-category-child:last-child {
+    margin-bottom: 0;
+}
+
+/* Filtro de precio */
+.wc-productos-price-slider {
+    padding: var(--wc-spacing-xs) 0;
+}
+
+.wc-productos-price-range {
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-price-slider-ui {
+    margin: var(--wc-spacing) 0;
+    height: 4px;
+    background-color: var(--wc-gray-200);
+    border-radius: 2px;
+    position: relative;
+}
+
+.wc-productos-price-slider-ui .ui-slider-range {
+    position: absolute;
+    height: 100%;
+    background-color: var(--wc-primary);
+}
+
+.wc-productos-price-slider-ui .ui-slider-handle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: var(--wc-white);
+    border: 2px solid var(--wc-primary);
+    border-radius: 50%;
+    top: -6px;
+    margin-left: -8px;
+    cursor: pointer;
+    outline: none;
+    box-shadow: var(--wc-shadow-sm);
+    transition: transform 0.2s ease;
+}
+
+.wc-productos-price-slider-ui .ui-slider-handle:hover,
+.wc-productos-price-slider-ui .ui-slider-handle.ui-state-active {
+    transform: scale(1.1);
+}
+
+.wc-productos-price-inputs {
+    display: flex;
+    gap: var(--wc-spacing);
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-price-input {
+    flex: 1;
+}
+
+.wc-productos-price-input label {
+    display: block;
+    margin-bottom: var(--wc-spacing-xs);
+    font-size: var(--wc-font-size-xs);
+    color: var(--wc-gray-700);
+}
+
+.wc-productos-price-input input {
+    width: 100%;
+    padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    border: 1px solid var(--wc-gray-300);
+    border-radius: var(--wc-border-radius-sm);
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-900);
+    outline: none;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-price-input input:focus {
+    border-color: var(--wc-primary);
+    box-shadow: 0 0 0 2px rgba(52, 131, 250, 0.2);
+}
+
+/* Botón para aplicar filtros */
+.wc-productos-price-filter-button,
+.wc-productos-apply-filters-button {
+    background-color: var(--wc-primary);
+    color: var(--wc-white);
+    border: none;
+    padding: var(--wc-spacing-xs) var(--wc-spacing);
+    font-size: var(--wc-font-size-sm);
+    font-weight: 600;
+    border-radius: var(--wc-border-radius-sm);
+    cursor: pointer;
+    width: 100%;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-price-filter-button:hover,
+.wc-productos-apply-filters-button:hover {
+    background-color: var(--wc-primary-dark);
+}
+
+.wc-productos-apply-filters-button {
+    margin-top: var(--wc-spacing);
+    display: none;
+}
+
+/* Widget personalizado */
+.wc-productos-widget {
+    background-color: var(--wc-white);
+    border-radius: var(--wc-border-radius);
+    box-shadow: var(--wc-shadow-sm);
+    margin-bottom: var(--wc-spacing);
+    padding: var(--wc-spacing);
+}
+
+.wc-productos-widget h4 {
+    font-size: var(--wc-font-size);
+    font-weight: 600;
+    color: var(--wc-gray-800);
+    margin: 0 0 var(--wc-spacing-sm) 0;
+    border-bottom: 1px solid var(--wc-border-color);
+    padding-bottom: var(--wc-spacing-sm);
+}
+
+/* Botón para mostrar filtros en móvil */
+.wc-productos-show-filters-button {
+    display: none;
+    background-color: var(--wc-white);
+    color: var(--wc-gray-800);
+    border: 1px solid var(--wc-border-color);
+    padding: var(--wc-spacing-xs) var(--wc-spacing);
+    font-size: var(--wc-font-size-sm);
+    font-weight: 600;
+    border-radius: var(--wc-border-radius-sm);
+    cursor: pointer;
+    margin-bottom: var(--wc-spacing);
+    align-items: center;
+    gap: var(--wc-spacing-xs);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-show-filters-button:hover {
+    background-color: var(--wc-gray-100);
+}
+
+/* Botón para cerrar filtros en móvil */
+.wc-productos-close-filters {
+    display: none;
+    background: none;
+    border: none;
+    position: absolute;
+    top: var(--wc-spacing-sm);
+    right: var(--wc-spacing-sm);
+    cursor: pointer;
+    font-size: var(--wc-font-size-lg);
+    color: var(--wc-gray-700);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    z-index: 10;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-close-filters:hover {
+    background-color: var(--wc-gray-100);
+    color: var(--wc-gray-900);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .wc-productos-sidebar {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .wc-productos-filters {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .wc-productos-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none;
+        overflow-y: auto;
+        padding: var(--wc-spacing);
+    }
+    
+    .wc-productos-sidebar.active {
+        display: block;
+    }
+    
+    .wc-productos-filters {
+        max-width: 400px;
+        margin: 0 auto;
+        margin-top: var(--wc-spacing-lg);
+        position: relative;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .wc-productos-show-filters-button {
+        display: inline-flex;
+    }
+    
+    .wc-productos-close-filters {
+        display: flex;
+    }
+    
+    .wc-productos-apply-filters-button {
+        display: block;
+    }
+    
+    body.filters-active {
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 576px) {
+    .wc-productos-sidebar {
+        padding: var(--wc-spacing-sm);
+    }
+    
+    .wc-productos-filters {
+        max-width: 100%;
+        margin-top: var(--wc-spacing);
+    }
+}
