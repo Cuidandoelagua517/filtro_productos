@@ -1,0 +1,305 @@
+/**
+ * CSS para la barra de búsqueda
+ * Estilo inspirado en Mercado Libre
+ * 
+ * @package WC_Productos_Template
+ */
+
+/* Contenedor principal de la barra de búsqueda */
+.wc-productos-search-bar {
+    background-color: var(--wc-primary);
+    padding: var(--wc-spacing) var(--wc-spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Contenedor del formulario de búsqueda */
+.wc-productos-search-container {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Formulario de búsqueda */
+.wc-productos-search-form {
+    width: 100%;
+    position: relative;
+}
+
+/* Wrapper para el input de búsqueda */
+.wc-productos-search-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    box-shadow: var(--wc-shadow-sm);
+    border-radius: var(--wc-border-radius);
+    background-color: var(--wc-white);
+}
+
+/* Input de búsqueda */
+#wc-productos-search-input {
+    flex: 1;
+    border: none;
+    padding: var(--wc-spacing-sm) var(--wc-spacing);
+    font-size: var(--wc-font-size);
+    border-radius: var(--wc-border-radius) 0 0 var(--wc-border-radius);
+    outline: none;
+    width: 100%;
+    background: transparent;
+}
+
+/* Botón de búsqueda */
+.wc-productos-search-button {
+    background-color: var(--wc-white);
+    color: var(--wc-gray-700);
+    border: none;
+    padding: var(--wc-spacing-sm) var(--wc-spacing);
+    font-size: var(--wc-font-size);
+    cursor: pointer;
+    border-radius: 0 var(--wc-border-radius) var(--wc-border-radius) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-search-button:hover {
+    color: var(--wc-primary);
+}
+
+/* Acciones de usuario (cuenta, carrito) */
+.wc-productos-user-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-md);
+    margin-left: var(--wc-spacing-md);
+}
+
+/* Enlace a Mi cuenta */
+.wc-productos-user-account, 
+.wc-productos-login {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-xs);
+    color: var(--wc-white);
+    font-size: var(--wc-font-size-sm);
+    text-decoration: none;
+}
+
+.wc-productos-user-account:hover, 
+.wc-productos-login:hover {
+    text-decoration: underline;
+    color: var(--wc-white);
+}
+
+/* Icono de usuario */
+.wc-productos-user-account i, 
+.wc-productos-login i {
+    font-size: var(--wc-font-size);
+}
+
+/* Enlace al carrito */
+.wc-productos-cart {
+    display: flex;
+    align-items: center;
+    position: relative;
+    color: var(--wc-white);
+    font-size: var(--wc-font-size-lg);
+}
+
+.wc-productos-cart:hover {
+    color: var(--wc-secondary);
+}
+
+/* Contador de items en el carrito */
+.wc-productos-cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: var(--wc-secondary);
+    color: var(--wc-gray-900);
+    font-size: var(--wc-font-size-xs);
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 50%;
+    padding: 0 var(--wc-spacing-xs);
+}
+
+/* Barra de categorías */
+.wc-productos-categories-nav {
+    background-color: var(--wc-primary-dark);
+    padding: var(--wc-spacing-xs) var(--wc-spacing-md);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.wc-productos-categories-nav::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* Lista de categorías */
+.wc-productos-categories-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: var(--wc-spacing);
+}
+
+/* Item de categoría */
+.wc-productos-category-item {
+    margin: 0;
+    padding: 0;
+}
+
+.wc-productos-category-item a {
+    color: var(--wc-white);
+    font-size: var(--wc-font-size-sm);
+    text-decoration: none;
+    padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    border-radius: var(--wc-border-radius-sm);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-category-item a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--wc-white);
+}
+
+/* Contenedor de resultados de búsqueda */
+.wc-productos-search-result {
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-700);
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-search-result span {
+    font-weight: 600;
+    color: var(--wc-gray-900);
+}
+
+/* Autocompletado */
+.ui-autocomplete {
+    background-color: var(--wc-white);
+    border-radius: var(--wc-border-radius-sm);
+    box-shadow: var(--wc-shadow);
+    border: 1px solid var(--wc-border-color);
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 9999;
+    padding: var(--wc-spacing-xs) 0;
+}
+
+.ui-autocomplete .ui-menu-item {
+    padding: 0;
+    margin: 0;
+}
+
+.ui-autocomplete .ui-menu-item-wrapper {
+    padding: 0;
+}
+
+.wc-productos-autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-sm);
+    padding: var(--wc-spacing-sm);
+    cursor: pointer;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-autocomplete-item:hover {
+    background-color: var(--wc-gray-100);
+}
+
+.wc-productos-autocomplete-image {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--wc-border-radius-sm);
+    background-color: var(--wc-gray-100);
+}
+
+.wc-productos-autocomplete-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.wc-productos-autocomplete-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.wc-productos-autocomplete-title {
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-900);
+    margin-bottom: var(--wc-spacing-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wc-productos-autocomplete-price {
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-700);
+    font-weight: 600;
+}
+
+/* Estado de carga */
+.wc-productos-search-loading {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--wc-spacing);
+    color: var(--wc-gray-500);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wc-productos-search-bar {
+        flex-direction: column;
+        gap: var(--wc-spacing);
+        padding: var(--wc-spacing-sm);
+    }
+    
+    .wc-productos-search-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .wc-productos-user-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .wc-productos-categories-nav {
+        padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    }
+}
+
+@media (max-width: 576px) {
+    .wc-productos-user-account span,
+    .wc-productos-login span {
+        display: none;
+    }
+    
+    .wc-productos-user-actions {
+        gap: var(--wc-spacing);
+    }
+}
