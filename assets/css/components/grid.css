@@ -1,0 +1,161 @@
+/**
+ * CSS de la cuadrícula de productos
+ * Estilo inspirado en Mercado Libre
+ * 
+ * @package WC_Productos_Template
+ */
+
+/* Estructura principal de la cuadrícula */
+.wc-productos-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--wc-grid-columns, 4), 1fr);
+    gap: var(--wc-grid-gap, 16px);
+    width: 100%;
+    margin: 0 0 var(--wc-spacing-md) 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Asegurar que los flotadores no rompan la cuadrícula */
+.wc-productos-grid::before,
+.wc-productos-grid::after,
+ul.products::before,
+ul.products::after {
+    display: none !important;
+    content: none !important;
+    clear: none !important;
+}
+
+/* Configuración para WooCommerce nativo */
+.woocommerce ul.products,
+.woocommerce-page ul.products,
+ul.products {
+    display: grid !important;
+    grid-template-columns: repeat(var(--wc-grid-columns, 4), 1fr) !important;
+    gap: var(--wc-grid-gap, 16px) !important;
+    width: 100% !important;
+    margin: 0 0 var(--wc-spacing-md) 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    float: none !important;
+    clear: both !important;
+}
+
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product,
+ul.products li.product {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+}
+
+/* Adaptación para columnas explícitas de WooCommerce */
+.columns-1 {
+    --wc-grid-columns: 1;
+}
+
+.columns-2 {
+    --wc-grid-columns: 2;
+}
+
+.columns-3 {
+    --wc-grid-columns: 3;
+}
+
+.columns-4 {
+    --wc-grid-columns: 4;
+}
+
+.columns-5 {
+    --wc-grid-columns: 5;
+}
+
+.columns-6 {
+    --wc-grid-columns: 6;
+}
+
+/* Filtrar por disponibilidad - Destacar productos en stock */
+.wc-productos-grid li.product.in-stock {
+    order: -1; /* Los productos en stock aparecen primero */
+}
+
+/* Forzar cuadrícula independientemente del tema */
+.force-grid {
+    display: grid !important;
+    grid-template-columns: repeat(var(--wc-grid-columns, 4), 1fr) !important;
+    gap: var(--wc-grid-gap, 16px) !important;
+}
+
+/* Cuadrícula por defecto: 4 columnas */
+.four-column-grid {
+    --wc-grid-columns: 4;
+}
+
+/* Cuadrícula de tres columnas */
+.three-column-grid {
+    --wc-grid-columns: 3;
+}
+
+/* Cuadrícula de dos columnas */
+.two-column-grid {
+    --wc-grid-columns: 2;
+}
+
+/* Cuadrícula de una columna */
+.one-column-grid {
+    --wc-grid-columns: 1;
+}
+
+/* Adaptación para dispositivos grandes (escritorio) */
+@media (min-width: 1200px) {
+    :root {
+        --wc-grid-columns: 4;
+    }
+}
+
+/* Adaptación para tabletas grandes */
+@media (max-width: 1199px) and (min-width: 992px) {
+    :root {
+        --wc-grid-columns: 3;
+    }
+}
+
+/* Adaptación para tabletas */
+@media (max-width: 991px) and (min-width: 768px) {
+    :root {
+        --wc-grid-columns: 3;
+    }
+}
+
+/* Adaptación para móviles grandes */
+@media (max-width: 767px) and (min-width: 576px) {
+    :root {
+        --wc-grid-columns: 2;
+    }
+}
+
+/* Adaptación para móviles */
+@media (max-width: 575px) {
+    :root {
+        --wc-grid-columns: 1;
+    }
+}
+
+/* Animación al cargar la cuadrícula */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wc-productos-grid li.product {
+    animation: fadeIn 0.3s ease-in-out;
+}
