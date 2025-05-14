@@ -1,0 +1,409 @@
+/**
+ * CSS para el popup de login
+ * Estilo inspirado en Mercado Libre
+ * 
+ * @package WC_Productos_Template
+ */
+
+/* Modal de login */
+.wc-productos-login-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Overlay (fondo oscuro) */
+.wc-productos-login-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+/* Contenido del modal */
+.wc-productos-login-modal-content {
+    position: relative;
+    background-color: var(--wc-white);
+    border-radius: var(--wc-border-radius);
+    box-shadow: var(--wc-shadow-lg);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 2;
+}
+
+/* Botón para cerrar */
+.wc-productos-login-modal-close {
+    position: absolute;
+    top: var(--wc-spacing-sm);
+    right: var(--wc-spacing-sm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--wc-font-size-lg);
+    color: var(--wc-gray-600);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-login-modal-close:hover {
+    background-color: var(--wc-gray-100);
+    color: var(--wc-gray-900);
+}
+
+/* Cuerpo del modal */
+.wc-productos-login-modal-body {
+    padding: var(--wc-spacing-md);
+}
+
+/* Contenedor del formulario */
+.wc-productos-login-container {
+    width: 100%;
+}
+
+/* Tabs (pestañas) */
+.wc-productos-login-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--wc-border-color);
+    margin-bottom: var(--wc-spacing-md);
+}
+
+.wc-productos-login-tab,
+.wc-productos-register-tab {
+    flex: 1;
+    text-align: center;
+    padding: var(--wc-spacing) var(--wc-spacing-sm);
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-700);
+    text-decoration: none;
+    position: relative;
+    transition: var(--wc-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wc-spacing-xs);
+}
+
+.wc-productos-login-tab:hover,
+.wc-productos-register-tab:hover {
+    color: var(--wc-primary);
+}
+
+.wc-productos-login-tab.active,
+.wc-productos-register-tab.active {
+    color: var(--wc-primary);
+    font-weight: 600;
+}
+
+.wc-productos-login-tab.active::after,
+.wc-productos-register-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--wc-primary);
+}
+
+/* Formularios */
+.wc-productos-login-forms {
+    margin-top: var(--wc-spacing);
+}
+
+.wc-productos-form-row {
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-form-row-half {
+    width: 48%;
+    display: inline-block;
+}
+
+.wc-productos-form-row-half + .wc-productos-form-row-half {
+    margin-left: 4%;
+}
+
+.wc-productos-form-row label {
+    display: block;
+    margin-bottom: var(--wc-spacing-xs);
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-700);
+}
+
+/* Inputs con iconos */
+.wc-productos-input-icon {
+    position: relative;
+}
+
+.wc-productos-input-icon i {
+    position: absolute;
+    left: var(--wc-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wc-gray-500);
+    font-size: var(--wc-font-size);
+}
+
+.wc-productos-input {
+    width: 100%;
+    padding: var(--wc-spacing-sm) var(--wc-spacing-sm) var(--wc-spacing-sm) var(--wc-spacing-lg);
+    border: 1px solid var(--wc-gray-300);
+    border-radius: var(--wc-border-radius-sm);
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-900);
+    outline: none;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-input:focus {
+    border-color: var(--wc-primary);
+    box-shadow: 0 0 0 2px rgba(52, 131, 250, 0.2);
+}
+
+.wc-productos-input-error {
+    border-color: var(--wc-danger) !important;
+    box-shadow: 0 0 0 2px rgba(255, 82, 82, 0.2) !important;
+}
+
+/* Campo de contraseña con toggle para mostrar/ocultar */
+.wc-productos-password-field {
+    position: relative;
+}
+
+.wc-productos-password-toggle {
+    position: absolute;
+    right: var(--wc-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wc-gray-600);
+    cursor: pointer;
+    font-size: var(--wc-font-size-sm);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-password-toggle:hover {
+    color: var(--wc-primary);
+}
+
+/* Fila de recordarme y enlace a recuperar contraseña */
+.wc-productos-remember-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Checkbox personalizado */
+.wc-productos-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-sm);
+    cursor: pointer;
+    color: var(--wc-gray-700);
+    font-size: var(--wc-font-size-sm);
+}
+
+.wc-productos-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--wc-gray-400);
+    border-radius: var(--wc-border-radius-sm);
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-checkbox input[type="checkbox"]:checked {
+    background-color: var(--wc-primary);
+    border-color: var(--wc-primary);
+}
+
+.wc-productos-checkbox input[type="checkbox"]:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--wc-white);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Enlace a recuperar contraseña */
+.wc-productos-lost-password {
+    color: var(--wc-primary);
+    font-size: var(--wc-font-size-sm);
+    text-decoration: none;
+}
+
+.wc-productos-lost-password:hover {
+    text-decoration: underline;
+}
+
+/* Botones */
+.wc-productos-button {
+    background-color: var(--wc-primary);
+    color: var(--wc-white);
+    border: none;
+    padding: var(--wc-spacing-sm) var(--wc-spacing);
+    font-size: var(--wc-font-size);
+    font-weight: 600;
+    border-radius: var(--wc-border-radius-sm);
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wc-spacing-xs);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-button:hover {
+    background-color: var(--wc-primary-dark);
+}
+
+/* Estado de carga del botón */
+.wc-productos-button.loading {
+    position: relative;
+    color: transparent;
+}
+
+.wc-productos-button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--wc-white);
+    border-radius: 50%;
+    animation: wc-productos-spin 0.6s linear infinite;
+}
+
+@keyframes wc-productos-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mensajes de formulario */
+.wc-productos-form-message {
+    padding: var(--wc-spacing-sm);
+    border-radius: var(--wc-border-radius-sm);
+    margin-bottom: var(--wc-spacing);
+    font-size: var(--wc-font-size-sm);
+}
+
+.wc-productos-form-message-error {
+    background-color: rgba(255, 82, 82, 0.1);
+    color: var(--wc-danger);
+    border-left: 3px solid var(--wc-danger);
+}
+
+.wc-productos-form-message-success {
+    background-color: rgba(0, 166, 80, 0.1);
+    color: var(--wc-success);
+    border-left: 3px solid var(--wc-success);
+}
+
+.wc-productos-form-message-info {
+    background-color: rgba(52, 131, 250, 0.1);
+    color: var(--wc-info);
+    border-left: 3px solid var(--wc-info);
+}
+
+/* Pantalla de carga */
+.wc-productos-login-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wc-spacing-lg) 0;
+}
+
+.wc-productos-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(52, 131, 250, 0.3);
+    border-top-color: var(--wc-primary);
+    border-radius: 50%;
+    animation: wc-productos-spin 0.8s linear infinite;
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-loading-text {
+    color: var(--wc-gray-700);
+    font-size: var(--wc-font-size);
+}
+
+/* Mensaje de error */
+.wc-productos-login-error {
+    text-align: center;
+    padding: var(--wc-spacing);
+}
+
+.wc-productos-login-error p {
+    color: var(--wc-danger);
+    margin-bottom: var(--wc-spacing);
+}
+
+/* Mensaje de ya logueado */
+.wc-productos-already-logged-in {
+    text-align: center;
+    padding: var(--wc-spacing);
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-700);
+}
+
+/* Evitar scroll en body cuando el modal está abierto */
+body.wc-productos-modal-open {
+    overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .wc-productos-login-modal-content {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .wc-productos-login-modal-body {
+        padding: var(--wc-spacing);
+    }
+    
+    .wc-productos-form-row-half {
+        width: 100%;
+        display: block;
+    }
+    
+    .wc-productos-form-row-half + .wc-productos-form-row-half {
+        margin-left: 0;
+    }
+}
