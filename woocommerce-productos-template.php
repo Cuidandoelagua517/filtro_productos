@@ -90,9 +90,21 @@ function run_wc_productos_template() {
     // Crear directorios
     wc_productos_create_plugin_directories();
     
+    // Verificar que el archivo existe antes de incluirlo
+    $loader_file = WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-loader.php';
+    $plugin_file = WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-plugin.php';
+    
+    if (!file_exists($loader_file)) {
+        wp_die('Error: El archivo class-loader.php no existe en ' . $loader_file);
+    }
+    
+    if (!file_exists($plugin_file)) {
+        wp_die('Error: El archivo class-plugin.php no existe en ' . $plugin_file);
+    }
+    
     // Cargar archivos principales
-    require_once WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-loader.php';
-    require_once WC_PRODUCTOS_TEMPLATE_INCLUDES_DIR . 'class-plugin.php';
+    require_once $loader_file;
+    require_once $plugin_file;
     
     // Iniciar el plugin
     $plugin = new WC_Productos_Template_Plugin();
