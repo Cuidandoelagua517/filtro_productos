@@ -1,0 +1,356 @@
+/**
+ * CSS principal para WC Productos Template
+ * Estilo inspirado en Mercado Libre
+ * 
+ * @package WC_Productos_Template
+ */
+
+/* Importar componentes */
+@import 'components/grid.css';
+@import 'components/product-card.css';
+@import 'components/filters.css';
+@import 'components/search.css';
+@import 'components/login.css';
+
+/* Variables globales */
+:root {
+    /* Colores */
+    --wc-primary: #3483fa;
+    --wc-primary-dark: #2968c8;
+    --wc-primary-light: #e5efff;
+    --wc-secondary: #ffe600;
+    --wc-secondary-dark: #ffda00;
+    --wc-success: #00a650;
+    --wc-danger: #ff5252;
+    --wc-warning: #ffa733;
+    --wc-info: #3483fa;
+    
+    /* Grises */
+    --wc-gray-900: #333333;
+    --wc-gray-800: #4d4d4d;
+    --wc-gray-700: #666666;
+    --wc-gray-600: #808080;
+    --wc-gray-500: #999999;
+    --wc-gray-400: #b3b3b3;
+    --wc-gray-300: #cccccc;
+    --wc-gray-200: #e6e6e6;
+    --wc-gray-100: #f5f5f5;
+    --wc-white: #ffffff;
+    
+    /* Sombras */
+    --wc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --wc-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --wc-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    /* Espaciado */
+    --wc-spacing-xs: 4px;
+    --wc-spacing-sm: 8px;
+    --wc-spacing: 16px;
+    --wc-spacing-md: 24px;
+    --wc-spacing-lg: 32px;
+    --wc-spacing-xl: 48px;
+    
+    /* Bordes */
+    --wc-border-radius-sm: 4px;
+    --wc-border-radius: 6px;
+    --wc-border-radius-lg: 8px;
+    --wc-border-color: #e6e6e6;
+    
+    /* Fuentes */
+    --wc-font-family: "Proxima Nova", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    --wc-font-size-xs: 12px;
+    --wc-font-size-sm: 14px;
+    --wc-font-size: 16px;
+    --wc-font-size-md: 18px;
+    --wc-font-size-lg: 20px;
+    --wc-font-size-xl: 24px;
+    
+    /* Transiciones */
+    --wc-transition: all 0.3s ease;
+    
+    /* Layout */
+    --wc-sidebar-width: 260px;
+    --wc-header-height: 60px;
+    --wc-container-max-width: 1200px;
+    --wc-grid-columns: 4;
+    --wc-grid-gap: 16px;
+}
+
+/* Reset y estilos base */
+.wc-productos-template * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.wc-productos-template {
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-900);
+    line-height: 1.5;
+    max-width: var(--wc-container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--wc-spacing);
+}
+
+.wc-productos-template a {
+    color: var(--wc-primary);
+    text-decoration: none;
+    transition: var(--wc-transition);
+}
+
+.wc-productos-template a:hover {
+    color: var(--wc-primary-dark);
+    text-decoration: none;
+}
+
+.wc-productos-template img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.wc-productos-template ul {
+    list-style: none;
+}
+
+.wc-productos-template button,
+.wc-productos-template .button {
+    cursor: pointer;
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size);
+    transition: var(--wc-transition);
+}
+
+/* Contenedor principal */
+.mercadolibre-style {
+    background-color: var(--wc-gray-100);
+    border-radius: var(--wc-border-radius);
+    overflow: hidden;
+    margin-bottom: var(--wc-spacing-lg);
+}
+
+/* Fila de categorías principales */
+.wc-productos-categories-nav {
+    background-color: var(--wc-white);
+    padding: var(--wc-spacing-sm) var(--wc-spacing);
+    border-bottom: 1px solid var(--wc-border-color);
+}
+
+.wc-productos-categories-list {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.wc-productos-categories-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.wc-productos-category-item {
+    margin-right: var(--wc-spacing);
+}
+
+.wc-productos-category-item a {
+    color: var(--wc-gray-700);
+    font-size: var(--wc-font-size-sm);
+    padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    border-radius: var(--wc-border-radius-sm);
+}
+
+.wc-productos-category-item a:hover {
+    color: var(--wc-primary);
+    background-color: var(--wc-primary-light);
+}
+
+/* Layout de dos columnas */
+.wc-productos-layout {
+    display: flex;
+    gap: var(--wc-spacing-md);
+    padding: var(--wc-spacing);
+}
+
+/* Header de productos */
+.wc-productos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--wc-spacing);
+    flex-wrap: wrap;
+}
+
+.wc-productos-header h1 {
+    font-size: var(--wc-font-size-xl);
+    font-weight: 600;
+    margin: 0;
+    color: var(--wc-gray-900);
+}
+
+.wc-productos-result-count {
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-600);
+}
+
+/* Ordenamiento */
+.wc-productos-ordering {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-ordering select {
+    padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    border: 1px solid var(--wc-border-color);
+    border-radius: var(--wc-border-radius-sm);
+    font-size: var(--wc-font-size-sm);
+    background-color: var(--wc-white);
+    color: var(--wc-gray-700);
+    cursor: pointer;
+}
+
+/* Paginación */
+.wc-productos-pagination {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: var(--wc-spacing-md);
+    padding-top: var(--wc-spacing);
+    border-top: 1px solid var(--wc-border-color);
+}
+
+.wc-productos-pagination-info {
+    font-size: var(--wc-font-size-sm);
+    color: var(--wc-gray-600);
+    margin-bottom: var(--wc-spacing);
+}
+
+.wc-productos-pagination-links {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-spacing-xs);
+}
+
+.wc-productos-page-number,
+.wc-productos-page-prev,
+.wc-productos-page-next {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--wc-spacing-xs);
+    border: 1px solid var(--wc-border-color);
+    border-radius: var(--wc-border-radius-sm);
+    background-color: var(--wc-white);
+    color: var(--wc-gray-700);
+    font-size: var(--wc-font-size-sm);
+    transition: var(--wc-transition);
+}
+
+.wc-productos-page-number:hover,
+.wc-productos-page-prev:hover,
+.wc-productos-page-next:hover {
+    border-color: var(--wc-primary);
+    color: var(--wc-primary);
+}
+
+.wc-productos-page-current {
+    background-color: var(--wc-primary);
+    border-color: var(--wc-primary);
+    color: var(--wc-white);
+}
+
+.wc-productos-page-dots {
+    color: var(--wc-gray-500);
+}
+
+/* Mensajes de estado */
+.wc-productos-no-results {
+    background-color: var(--wc-white);
+    border-radius: var(--wc-border-radius);
+    padding: var(--wc-spacing);
+    text-align: center;
+    margin: var(--wc-spacing) 0;
+    border: 1px solid var(--wc-border-color);
+    font-size: var(--wc-font-size);
+    color: var(--wc-gray-700);
+}
+
+/* Badges */
+.wc-producto-badge {
+    display: inline-block;
+    padding: var(--wc-spacing-xs) var(--wc-spacing-sm);
+    border-radius: var(--wc-border-radius-sm);
+    font-size: var(--wc-font-size-xs);
+    font-weight: 600;
+    line-height: 1;
+    text-transform: uppercase;
+    margin-bottom: var(--wc-spacing-xs);
+}
+
+.badge-stock {
+    background-color: var(--wc-success);
+    color: var(--wc-white);
+}
+
+.badge-out-stock {
+    background-color: var(--wc-danger);
+    color: var(--wc-white);
+}
+
+.badge-sale {
+    background-color: var(--wc-secondary);
+    color: var(--wc-gray-900);
+}
+
+.badge-shipping {
+    background-color: var(--wc-info);
+    color: var(--wc-white);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    :root {
+        --wc-grid-columns: 3;
+    }
+    
+    .wc-productos-layout {
+        flex-direction: column;
+    }
+    
+    .wc-productos-sidebar {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --wc-grid-columns: 2;
+    }
+    
+    .wc-productos-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .wc-productos-header h1 {
+        margin-bottom: var(--wc-spacing-sm);
+    }
+    
+    .wc-productos-result-count {
+        margin-bottom: var(--wc-spacing-sm);
+    }
+}
+
+@media (max-width: 576px) {
+    :root {
+        --wc-grid-columns: 1;
+    }
+    
+    .wc-productos-layout {
+        padding: var(--wc-spacing-sm);
+    }
+}
