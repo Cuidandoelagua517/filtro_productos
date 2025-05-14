@@ -1,3 +1,4 @@
+<?php
 /**
  * Plugin Name: WooCommerce Productos Template Modular
  * Plugin URI: https://example.com/
